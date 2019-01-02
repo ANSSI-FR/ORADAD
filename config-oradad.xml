@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <configORADAD>
    <config>
-      <server>[dsgetdc]</server>          <!-- [dsgetdc] for automatic detection -->
-      <port></port>                       <!-- Empty for default port -->
-      <username></username>               <!-- Empty for implicit authentication -->
+      <server>[dsgetdc]</server>                   <!-- [dsgetdc] for automatic detection -->
+      <port></port>                                <!-- Empty for default port -->
+      <username></username>                        <!-- Empty for implicit authentication -->
       <userdomain></userdomain>
       <userpassword></userpassword>
       <allDomainsInForest>1</allDomainsInForest>
+      <forestDomains></forestDomains>              <!-- When [dsgetdc] is not used and allDomainsInForest=1, add the domain list here, comma separated -->
       <level>2</level>
       <writeHeader>0</writeHeader>
       <sleepTime>0</sleepTime>
@@ -93,43 +94,66 @@
          <attribute name="adminCount" level="1" type="INT" />
          <attribute name="altSecurityIdentities" level="1" type="STRS" />
          <attribute name="applicationName" level="1" type="STR" />
+         <attribute name="appliesTo" level="1" type="STRS" />
          <attribute name="attributeCertificateAttribute" level="3" type="BIN" />
          <attribute name="attributeSecurityGUID" level="1" type="GUID" />
          <attribute name="attributeSyntax" level="2" type="STR" />
+         <attribute name="auditingPolicy" level="1" type="BIN" />
          <attribute name="authorityRevocationList" level="1" type="BIN" />
+         <attribute name="auxiliaryClass" level="2" type="STRS" />
          <attribute name="badPasswordTime" level="1" type="DATEINT64" />
          <attribute name="badPwdCount" level="1" type="INT" />
          <attribute name="bridgeheadServerListBL" level="2" type="STRS" />
          <attribute name="bridgeheadTransportList" level="2" type="STRS" />
+         <attribute name="builtinCreationTime" level="2" type="INT64" />
+         <attribute name="builtinModifiedCount" level="2" type="INT64" />
          <attribute name="cACertificate" level="1" type="BIN" />
          <attribute name="cACertificateDN" level="1" type="STR" />
-         <attribute name="cRLObject" level="1" type="STR" />
          <attribute name="certificateRevocationList" level="1" type="BIN" />
          <attribute name="certificateTemplates" level="2" type="STRS" />
          <attribute name="cn" level="1" type="STR" />
          <attribute name="comment" level="1" type="STR" />
          <attribute name="controlAccessRights" level="2" type="STRS" />
          <attribute name="cost" level="2" type="INT" />
-         <attribute name="dMDLocation" level="1" type="STR" />
-         <attribute name="dNSHostName" level="1" type="STR" />
-         <attribute name="dNSProperty" level="1" type="BIN" />
-         <attribute name="dNSTombstoned" level="1" type="BOOL" />
+         <attribute name="creationTime" level="2" type="DATEINT64" />
+         <attribute name="cRLObject" level="1" type="STR" />
          <attribute name="dc" level="1" type="STR" />
+         <attribute name="defaultLocalPolicyObject" level="3" type="STR" />
          <attribute name="defaultSecurityDescriptor" level="1" type="STR" />
          <attribute name="deltaRevocationList" level="1" type="BIN" />
          <attribute name="description" level="1" type="STRS" />
+         <attribute name="desktopProfile" level="3" type="STR" />
          <attribute name="displayName" level="1" type="STR" />
+         <attribute name="dMDLocation" level="1" type="STR" />
+         <attribute name="dNReferenceUpdate" level="1" type="STRS" />
          <attribute name="dnsAllowDynamic" level="1" type="BOOL" />
          <attribute name="dnsAllowXFR" level="1" type="BOOL" />
+         <attribute name="dNSHostName" level="1" type="STR" />
          <attribute name="dnsNotifySecondaries" level="2" type="INT" />
+         <attribute name="dNSProperty" level="1" type="BIN" />
          <attribute name="dnsRecord" level="1" type="BIN" />
+         <attribute name="dnsRoot" level="1" type="STRS" />
          <attribute name="dnsSecureSecondaries" level="2" type="INT" />
+         <attribute name="dNSTombstoned" level="1" type="BOOL" />
          <attribute name="domainCrossRef" level="1" type="STR" />
          <attribute name="domainIdentifier" level="1" type="INT" />
-         <attribute name="fRSRootPath" level="2" type="STR" />
+         <attribute name="domainPolicyObject" level="3" type="STR" />
+         <attribute name="domainReplica" level="2" type="STR" />
+         <attribute name="dSHeuristics" level="1" type="STR" />
+         <attribute name="eFSPolicy" level="2" type="BIN" />
+         <attribute name="Enabled" level="1" type="BOOL" />
+         <attribute name="enabledConnection" level="1" type="BOOL" />
          <attribute name="flags" level="1" type="INT" />
          <attribute name="flatName" level="1" type="STR" />
+         <attribute name="forceLogoff" level="2" type="INT64" />
          <attribute name="foreignIdentifier" level="1" type="BIN" />
+         <attribute name="fromServer" level="1" type="STR" />
+         <attribute name="fRSRootPath" level="2" type="STR" />
+         <attribute name="fSMORoleOwner" level="1" type="STR" />
+         <attribute name="garbageCollPeriod" level="2" type="INT" />
+         <attribute name="generatedConnection" level="1" type="BOOL" />
+         <attribute name="gidNumber" level="2" type="INT" />
+         <attribute name="givenName" level="2" type="STR" />
          <attribute name="gPCFileSysPath" level="1" type="STR" />
          <attribute name="gPCFunctionalityVersion" level="1" type="INT" />
          <attribute name="gPCMachineExtensionNames" level="1" type="STR" />
@@ -137,8 +161,6 @@
          <attribute name="gPCWQLFilter" level="1" type="STR" />
          <attribute name="gPLink" level="1" type="STR" />
          <attribute name="gPOptions" level="1" type="INT" />
-         <attribute name="gidNumber" level="2" type="INT" />
-         <attribute name="givenName" level="2" type="STR" />
          <attribute name="groupAttributes" level="1" type="INT" />
          <attribute name="groupMembershipSAM" level="2" type="STR" />
          <attribute name="groupType" level="1" type="INT" filter="groupType" />
@@ -152,26 +174,41 @@
          <attribute name="isDeleted" level="1" type="BOOL" />
          <attribute name="isMemberOfPartialAttributeSet" level="1" type="BOOL" />
          <attribute name="isRecycled" level="1" type="BOOL" />
-         <attribute name="lDAPDisplayName" level="2" type="STR" />
+         <attribute name="isSingleValued" level="2" type="BOOL" />
          <attribute name="lastBackupRestorationTime" level="2" type="DATE" />
          <attribute name="lastLogoff" level="1" type="DATEINT64" />
          <attribute name="lastLogon" level="1" type="DATEINT64" />
          <attribute name="lastLogonTimestamp" level="1" type="DATEINT64" />
+         <attribute name="lDAPDisplayName" level="2" type="STR" />
          <attribute name="linkID" level="1" type="INT" />
+         <attribute name="localizationDisplayId" level="1" type="INT" />
          <attribute name="location" level="1" type="STR" />
+         <attribute name="lockoutDuration" level="1" type="INT64" filter="NegFiletime" />
+         <attribute name="lockOutObservationWindow" level="1" type="INT64" filter="NegFiletime" />
+         <attribute name="lockoutThreshold" level="1" type="INT" />
          <attribute name="lockoutTime" level="1" type="DATEINT64" />
          <attribute name="loginShell" level="2" type="STR" />
          <attribute name="logonCount" level="1" type="INT" />
          <attribute name="logonHours" level="2" type="BIN" />
          <attribute name="logonWorkstation" level="3" type="BIN" />
-         <attribute name="mAPIID" level="1" type="INT" />
-         <attribute name="mS-DS-CreatorSID" level="3" type="STR" />
+         <attribute name="lSACreationTime" level="1" type="DATEINT64" />
+         <attribute name="lSAModifiedCount" level="1" type="INT64" />
          <attribute name="mail" level="2" type="STR" />
          <attribute name="managedBy" level="2" type="STR" />
          <attribute name="manager" level="3" type="str" />
+         <attribute name="mAPIID" level="1" type="INT" />
+         <attribute name="maxPwdAge" level="1" type="INT64" filter="NegFiletime" />
+         <attribute name="mayContain" level="2" type="STRS" />
          <attribute name="member" level="1" type="STRS" />
          <attribute name="memberOf" level="1" type="STRS" />
          <attribute name="memberUid" level="2" type="STRS" />
+         <attribute name="minPwdAge" level="1" type="INT64" filter="NegFiletime" />
+         <attribute name="minPwdLength" level="1" type="INT" />
+         <attribute name="modifiedCount" level="2" type="INT64" />
+         <attribute name="modifiedCountAtLastProm" level="2" type="INT64" />
+         <attribute name="mS-DS-CreatorSID" level="3" type="STR" />
+         <attribute name="ms-DS-MachineAccountQuota" level="3" type="INT" />
+         <attribute name="mS-DS-ReplicatesNCReason" level="2" type="STRS" />
          <attribute name="msDNS-DNSKEYRecordSetTTL" level="2" type="INT" />
          <attribute name="msDNS-DSRecordAlgorithms" level="3" type="INT" />
          <attribute name="msDNS-DSRecordSetTTL" level="2" type="INT" />
@@ -180,17 +217,19 @@
          <attribute name="msDNS-SigningKeyDescriptors" level="2" type="STRS" />
          <attribute name="msDS-AdditionalDnsHostName" level="2" type="STR" />
          <attribute name="msDS-AdditionalSamAccountName" level="2" type="STR" />
+         <attribute name="msDS-AllowedDNSSuffixes" level="2" type="STRS" />
          <attribute name="msDS-AllowedToActOnBehalfOfOtherIdentity" level="1" type="SD" />
          <attribute name="msDS-AllowedToDelegateTo" level="1" type="STRS" />
+         <attribute name="msDS-AllUsersTrustQuota" level="2" type="STRS" />
          <attribute name="msDS-AssignedAuthNPolicy" level="2" type="STR" />
          <attribute name="msDS-AssignedAuthNPolicyBL" level="1" type="STRS" />
          <attribute name="msDS-AssignedAuthNPolicySilo" level="2" type="STR" />
          <attribute name="msDS-AssignedAuthNPolicySiloBL" level="1" type="STRS" />
+         <attribute name="msDS-AuthenticatedAtDC" level="2" type="STRS" />
          <attribute name="msDS-AuthNPolicyEnforced" level="1" type="BOOL" />
          <attribute name="msDS-AuthNPolicySiloEnforced" level="1" type="BOOL" />
          <attribute name="msDS-AuthNPolicySiloMembers" level="1" type="STRS" />
          <attribute name="msDS-AuthNPolicySiloMembersBL" level="2" type="STRS" />
-         <attribute name="msDS-AuthenticatedAtDC" level="2" type="STRS" />
          <attribute name="msDS-Behavior-Version" level="1" type="INT" />
          <attribute name="msDS-BridgeHeadServersUsed" level="2" type="STRS" />
          <attribute name="msDS-Cached-Membership" level="3" type="BIN" />
@@ -199,17 +238,24 @@
          <attribute name="msDS-ComputerAuthNPolicy" level="1" type="STR" />
          <attribute name="msDS-ComputerAuthNPolicyBL" level="1" type="STRS" />
          <attribute name="msDS-ComputerTGTLifetime" level="1" type="INT64" filter="Filetime" />
+         <attribute name="msDS-DeletedObjectLifetime" level="1" type="INT" />
+         <attribute name="msDS-DnsRootAlias" level="1" type="STR" />
          <attribute name="msDS-EgressClaimsTransformationPolicy" level="2" type="STR" />
          <attribute name="msDS-EnabledFeature" level="1" type="STRS" />
+         <attribute name="msDS-ExpirePasswordsOnSmartCardOnlyAccounts" level="1" type="BOOL" />
          <attribute name="msDS-FailedInteractiveLogonCount" level="2" type="INT" />
          <attribute name="msDS-FailedInteractiveLogonCountAtLastSuccessfulLogon" level="2" type="INT" />
          <attribute name="msDS-GenerationId" level="2" type="BIN" />
          <attribute name="msDS-GroupMSAMembership" level="1" type="SD" />
          <attribute name="msDS-HasDomainNCs" level="2" type="STRS" />
+         <attribute name="msDS-hasFullReplicaNCs" level="1" type="STRS" />
          <attribute name="msDS-HasInstantiatedNCs" level="2" type="STRS" />
+         <attribute name="msDS-hasMasterNCs" level="2" type="STRS" />
          <attribute name="msDS-HostServiceAccount" level="2" type="STRS" />
          <attribute name="msDS-HostServiceAccountBL" level="1" type="STRS" />
          <attribute name="msDS-IngressClaimsTransformationPolicy" level="2" type="STR" />
+         <attribute name="msDS-isGC" level="1" type="BOOL" />
+         <attribute name="msDS-isRODC" level="1" type="BOOL" />
          <attribute name="msDS-KeyCredentialLink" level="1" type="STRS" />
          <attribute name="msDS-KeyPrincipalBL" level="1" type="STRS" />
          <attribute name="msDS-KeyVersionNumber" level="1" type="INT" />
@@ -220,29 +266,39 @@
          <attribute name="msDS-LockoutDuration" level="1" type="INT64" filter="NegFiletime" />
          <attribute name="msDS-LockoutObservationWindow" level="1" type="INT64" filter="NegFiletime" />
          <attribute name="msDS-LockoutThreshold" level="1" type="INT" />
+         <attribute name="msDS-LogonTimeSyncInterval" level="2" type="INT" />
          <attribute name="msDS-ManagedPasswordId" level="1" type="BIN" />
          <attribute name="msDS-ManagedPasswordInterval" level="3" type="INT" />
          <attribute name="msDS-ManagedPasswordPreviousId" level="3" type="BIN" />
          <attribute name="msDS-MaximumPasswordAge" level="1" type="INT64" filter="NegFiletime" />
          <attribute name="msDS-MinimumPasswordAge" level="1" type="INT64" filter="NegFiletime" />
          <attribute name="msDS-MinimumPasswordLength" level="1" type="INT" />
+         <attribute name="msDS-NC-Replica-Locations" level="2" type="STRS" />
+         <attribute name="msDS-NC-RO-Replica-Locations" level="2" type="STRS" />
          <attribute name="msDS-NeverRevealGroup" level="3" type="STRS" />
          <attribute name="msDS-NonMembers" level="1" type="STRS" />
          <attribute name="msDS-NonMembersBL" level="1" type="STRS" />
-         <attribute name="msDS-PSOAppliesTo" level="1" type="STRS" />
+         <attribute name="msDS-Other-Settings" level="2" type="STRS" />
          <attribute name="msDS-PasswordComplexityEnabled" level="1" type="BOOL" />
          <attribute name="msDS-PasswordHistoryLength" level="1" type="INT" />
          <attribute name="msDS-PasswordReversibleEncryptionEnabled" level="1" type="BOOL" />
          <attribute name="msDS-PasswordSettingsPrecedence" level="1" type="INT" />
+         <attribute name="msDS-PerUserTrustQuota" level="3" type="INT" />
+         <attribute name="msDS-PerUserTrustTombstonesQuota" level="3" type="INT" />
          <attribute name="msDS-PrimaryComputer" level="1" type="STRS" />
+         <attribute name="msDS-PSOAppliesTo" level="1" type="STRS" />
          <attribute name="msDS-ReplAttributeMetaData" level="3" type="STRS" />
+         <attribute name="msDS-Replication-Notify-First-DSA-Delay" level="2" type="INT" />
+         <attribute name="msDS-Replication-Notify-Subsequent-DSA-Delay" level="2" type="INT" />
          <attribute name="msDS-ReplicationEpoch" level="1" type="INT" />
          <attribute name="msDS-ResultantPSO" level="1" type="STR" />
          <attribute name="msDS-RetiredReplNCSignatures" level="2" type="STR" />
-         <attribute name="msDS-RevealOnDemandGroup" level="3" type="STRS" />
          <attribute name="msDS-RevealedDSAs" level="2" type="STRS" />
          <attribute name="msDS-RevealedList" level="3" type="STRS" />
          <attribute name="msDS-RevealedUsers" level="3" type="STRS" />
+         <attribute name="msDS-RevealOnDemandGroup" level="3" type="STRS" />
+         <attribute name="msDS-RIDPoolAllocationEnabled" level="1" type="BOOL" />
+         <attribute name="msDS-SDReferenceDomain" level="1" type="STR" />
          <attribute name="msDS-SecondaryKrbTgtNumber" level="1" type="INT" />
          <attribute name="msDS-ServiceAllowedNTLMNetworkAuthentication" level="1" type="BOOL" />
          <attribute name="msDS-ServiceAllowedToAuthenticateFrom" level="1" type="DACL" />
@@ -254,9 +310,11 @@
          <attribute name="msDS-Site-Affinity" level="3" type="BIN" />
          <attribute name="msDS-SiteName" level="1" type="STR" />
          <attribute name="msDS-SourceObjectDN" level="3" type="STR" />
+         <attribute name="msDS-SPNSuffixes" level="1" type="STRS" />
          <attribute name="msDS-StrongNTLMPolicy" level="1" type="INT" />
          <attribute name="msDS-SupportedEncryptionTypes" level="1" type="INT" filter="supportedEncryptionTypes" />
          <attribute name="msDS-TrustForestTrustInfo" level="1" type="BIN" />
+         <attribute name="msDS-UpdateScript" level="1" type="STR" />
          <attribute name="msDS-User-Account-Control-Computed" level="1" type="INT" filter="userAccountControl" />
          <attribute name="msDS-UserAllowedNTLMNetworkAuthentication" level="1" type="BOOL" />
          <attribute name="msDS-UserAllowedToAuthenticateFrom" level="1" type="DACL" />
@@ -265,22 +323,25 @@
          <attribute name="msDS-UserAuthNPolicyBL" level="1" type="STRS" />
          <attribute name="msDS-UserPasswordExpiryTimeComputed" level="2" type="DATEINT64" />
          <attribute name="msDS-UserTGTLifetime" level="1" type="INT64" filter="Filetime" />
-         <attribute name="msDS-hasFullReplicaNCs" level="1" type="STRS" />
-         <attribute name="msDS-hasMasterNCs" level="2" type="STRS" />
-         <attribute name="msDS-isGC" level="1" type="BOOL" />
-         <attribute name="msDS-isRODC" level="1" type="BOOL" />
+         <attribute name="msDS-USNLastSyncSuccess" level="3" type="INT" />
          <attribute name="msTSInitialProgram" level="2" type="STR" />
-         <attribute name="nTGroupMembers" level="1" type="STRS" />
-         <attribute name="nTSecurityDescriptor" level="1" type="SD" />
+         <attribute name="mustContain" level="2" type="STRS" />
          <attribute name="name" level="1" type="STR" />
+         <attribute name="nCName" level="1" type="STR" />
+         <attribute name="nETBIOSName" level="1" type="STR" />
          <attribute name="networkAddress" level="1" type="STRS" />
+         <attribute name="nextRid" level="2" type="INT" />
          <attribute name="nonSecurityMember" level="3" type="STRS" />
          <attribute name="nonSecurityMemberBL" level="1" type="STRS" />
          <attribute name="notificationList" level="2" type="STR" />
+         <attribute name="nTGroupMembers" level="1" type="STRS" />
+         <attribute name="nTMixedDomain" level="1" type="INT" />
+         <attribute name="nTSecurityDescriptor" level="1" type="SD" />
          <attribute name="objectCategory" level="1" type="STR" />
          <attribute name="objectClass" level="1" type="STRS" />
          <attribute name="objectGUID" level="1" type="GUID" />
          <attribute name="objectSid" level="1" type="SID" />
+         <attribute name="oEMInformation" level="2" type="STR" />
          <attribute name="operatingSystem" level="1" type="STR" />
          <attribute name="operatingSystemHotfix" level="1" type="STR" />
          <attribute name="operatingSystemServicePack" level="1" type="STR" />
@@ -289,19 +350,29 @@
          <attribute name="options" level="1" type="INT" />
          <attribute name="ou" level="1" type="STRS" />
          <attribute name="parentGUID" level="1" type="GUID" />
+         <attribute name="pekKeyChangeInterval" level="2" type="INT" />
          <attribute name="physicalLocationObject" level="1" type="STR" />
          <attribute name="primaryGroupID" level="1" type="INT" />
          <attribute name="primaryGroupToken" level="1" type="INT" />
+         <attribute name="pwdHistoryLength" level="1" type="INT" />
          <attribute name="pwdLastSet" level="1" type="DATEINT64" />
+         <attribute name="pwdProperties" level="1" type="INT" />
          <attribute name="queryPolicyObject" level="1" type="STR" />
+         <attribute name="replicaSource" level="2" type="STR" />
          <attribute name="replInterval" level="2" type="INT" />
+         <attribute name="replTopologyStayOfExecution" level="3" type="INT" />
          <attribute name="repsFrom" level="1" type="BIN" />
          <attribute name="repsTo" level="1" type="BIN" />
          <attribute name="retiredReplDSASignatures" level="2" type="STR" />
+         <attribute name="revision" level="2" type="INT" />
          <attribute name="rid" level="2" type="INT" />
+         <attribute name="rIDAvailablePool" level="1" type="INT64" />
+         <attribute name="rIDManagerReference" level="3" type="STR" />
+         <attribute name="rightsGuid" level="1" type="STR" />
+         <attribute name="rootTrust" level="1" type="STRS" />
          <attribute name="sAMAccountName" level="1" type="STR" />
          <attribute name="sAMAccountType" level="1" type="INT" />
-         <attribute name="sIDHistory" level="1" type="SID" />
+         <attribute name="schedule" level="2" type="BIN" />
          <attribute name="schemaFlagsEx" level="1" type="INT" filter="schemaFlagsEx" />
          <attribute name="schemaIDGUID" level="1" type="GUID" />
          <attribute name="scriptPath" level="1" type="STR" />
@@ -310,23 +381,35 @@
          <attribute name="serialNumber" level="1" type="STRS" />
          <attribute name="serverReference" level="1" type="STR" />
          <attribute name="serverReferenceBL" level="1" type="STRS" />
+         <attribute name="serverRole" level="1" type="INT" />
+         <attribute name="serverState" level="1" type="INT" />
          <attribute name="servicePrincipalName" level="1" type="STRS" />
          <attribute name="showInAddressBook" level="2" type="STRS" />
+         <attribute name="sIDHistory" level="1" type="SID" />
          <attribute name="siteList" level="1" type="STRS" />
          <attribute name="siteObject" level="1" type="STR" />
          <attribute name="siteObjectBL" level="1" type="STRS" />
          <attribute name="sn" level="2" type="STR" />
+         <attribute name="sPNMappings" level="1" type="STRS" />
+         <attribute name="superiorDNSRoot" level="1" type="STR" />
+         <attribute name="systemAuxiliaryClass" level="2" type="STRS" />
          <attribute name="systemFlags" level="1" type="INT" filter="systemFlags" />
+         <attribute name="systemMayContain" level="2" type="STRS" />
+         <attribute name="systemMustContain" level="2" type="STRS" />
+         <attribute name="tombstoneLifetime" level="1" type="INT" />
+         <attribute name="transportType" level="2" type="STR" />
+         <attribute name="treeName" level="2" type="STR" />
          <attribute name="trustAttributes" level="1" type="INT" filter="trustAttributes" />
          <attribute name="trustDirection" level="1" type="INT" filter="trustDirection" />
+         <attribute name="trustParent" level="1" type="STR" />
          <attribute name="trustPartner" level="1" type="STR" />
          <attribute name="trustPosixOffset" level="1" type="INT" />
          <attribute name="trustType" level="1" type="INT" filter="trustType" />
-         <attribute name="uSNChanged" level="2" type="INT64" />
-         <attribute name="uSNCreated" level="2" type="INT64" />
+         <attribute name="uASCompat" level="1" type="INT" />
          <attribute name="uid" level="2" type="STRS" />
          <attribute name="uidNumber" level="2" type="INT" />
          <attribute name="unixUserPassword" level="2" type="BIN" />
+         <attribute name="uPNSuffixes" level="1" type="STRS" />
          <attribute name="userAccountControl" level="1" type="INT" filter="userAccountControl" />
          <attribute name="userCert" level="2" type="BIN" />
          <attribute name="userCertificate" level="2" type="BIN" />
@@ -334,87 +417,12 @@
          <attribute name="userPrincipalName" level="1" type="STR" />
          <attribute name="userSMIMECertificate" level="2" type="BIN" />
          <attribute name="userWorkstations" level="3" type="STR" />
+         <attribute name="uSNChanged" level="2" type="INT64" />
+         <attribute name="uSNCreated" level="2" type="INT64" />
+         <attribute name="validAccesses" level="1" type="INT" />
          <attribute name="versionNumber" level="1" type="INT" />
          <attribute name="whenChanged" level="1" type="DATE" />
          <attribute name="whenCreated" level="1" type="DATE" />
-         <attribute name="msDS-ExpirePasswordsOnSmartCardOnlyAccounts" level="1" type="BOOL" />
-         <attribute name="msDS-USNLastSyncSuccess" level="3" type="INT" />
-         <attribute name="msDS-AllowedDNSSuffixes" level="2" type="STRS" />
-         <attribute name="treeName" level="2" type="STR" />
-         <attribute name="rIDManagerReference" level="3" type="STR" />
-         <attribute name="replicaSource" level="2" type="STR" />
-         <attribute name="pwdProperties" level="1" type="INT" />
-         <attribute name="pwdHistoryLength" level="1" type="INT" />
-         <attribute name="pekKeyChangeInterval" level="2" type="INT" />
-         <attribute name="nTMixedDomain" level="1" type="INT" />
-         <attribute name="nextRid" level="2" type="INT" />
-         <attribute name="nETBIOSName" level="1" type="STR" />
-         <attribute name="msDS-PerUserTrustTombstonesQuota" level="3" type="INT" />
-         <attribute name="msDS-PerUserTrustQuota" level="3" type="INT" />
-         <attribute name="ms-DS-MachineAccountQuota" level="3" type="INT" />
-         <attribute name="msDS-LogonTimeSyncInterval" level="2" type="INT" />
-         <attribute name="msDS-AllUsersTrustQuota" level="2" type="STRS" />
-         <attribute name="modifiedCountAtLastProm" level="2" type="INT64" />
-         <attribute name="minPwdLength" level="1" type="INT" />
-         <attribute name="minPwdAge" level="1" type="INT64" filter="NegFiletime" />
-         <attribute name="maxPwdAge" level="1" type="INT64" filter="NegFiletime" />
-         <attribute name="lSAModifiedCount" level="1" type="INT64" />
-         <attribute name="lSACreationTime" level="1" type="DATEINT64" />
-         <attribute name="lockoutThreshold" level="1" type="INT" />
-         <attribute name="lockoutDuration" level="1" type="INT64" filter="NegFiletime" />
-         <attribute name="lockOutObservationWindow" level="1" type="INT64" filter="NegFiletime" />
-         <attribute name="eFSPolicy" level="2" type="BIN" />
-         <attribute name="domainPolicyObject" level="3" type="STR" />
-         <attribute name="desktopProfile" level="3" type="STR" />
-         <attribute name="defaultLocalPolicyObject" level="3" type="STR" />
-         <attribute name="creationTime" level="2" type="DATEINT64" />
-         <attribute name="builtinModifiedCount" level="2" type="INT64" />
-         <attribute name="builtinCreationTime" level="2" type="INT64" />
-         <attribute name="auditingPolicy" level="1" type="BIN" />
-         <attribute name="uASCompat" level="1" type="INT" />
-         <attribute name="serverState" level="1" type="INT" />
-         <attribute name="serverRole" level="1" type="INT" />
-         <attribute name="revision" level="2" type="INT" />
-         <attribute name="oEMInformation" level="2" type="STR" />
-         <attribute name="modifiedCount" level="2" type="INT64" />
-         <attribute name="forceLogoff" level="2" type="INT64" />
-         <attribute name="domainReplica" level="2" type="STR" />
-         <attribute name="systemMustContain" level="2" type="STRS" />
-         <attribute name="systemMayContain" level="2" type="STRS" />
-         <attribute name="systemAuxiliaryClass" level="2" type="STRS" />
-         <attribute name="mustContain" level="2" type="STRS" />
-         <attribute name="mayContain" level="2" type="STRS" />
-         <attribute name="auxiliaryClass" level="2" type="STRS" />
-         <attribute name="isSingleValued" level="2" type="BOOL" />
-         <attribute name="validAccesses" level="1" type="INT" />
-         <attribute name="rightsGuid" level="1" type="STR" />
-         <attribute name="localizationDisplayId" level="1" type="INT" />
-         <attribute name="appliesTo" level="1" type="STRS" />
-         <attribute name="transportType" level="2" type="STR" />
-         <attribute name="schedule" level="2" type="BIN" />
-         <attribute name="mS-DS-ReplicatesNCReason" level="2" type="STRS" />
-         <attribute name="generatedConnection" level="1" type="BOOL" />
-         <attribute name="fromServer" level="1" type="STR" />
-         <attribute name="enabledConnection" level="1" type="BOOL" />
-         <attribute name="fSMORoleOwner" level="1" type="STR" />
-         <attribute name="rIDAvailablePool" level="1" type="INT64" />
-         <attribute name="msDS-RIDPoolAllocationEnabled" level="1" type="BOOL" />
-         <attribute name="dNReferenceUpdate" level="1" type="STRS" />
-         <attribute name="msDS-SPNSuffixes" level="1" type="STRS" />
-         <attribute name="uPNSuffixes" level="1" type="STRS" />
-         <attribute name="msDS-UpdateScript" level="1" type="STR" />
-         <attribute name="trustParent" level="1" type="STR" />
-         <attribute name="superiorDNSRoot" level="1" type="STR" />
-         <attribute name="rootTrust" level="1" type="STRS" />
-         <attribute name="Enabled" level="1" type="BOOL" />
-         <attribute name="msDS-SDReferenceDomain" level="1" type="STR" />
-         <attribute name="msDS-Replication-Notify-Subsequent-DSA-Delay" level="2" type="INT" />
-         <attribute name="msDS-Replication-Notify-First-DSA-Delay" level="2" type="INT" />
-         <attribute name="msDS-NC-RO-Replica-Locations" level="2" type="STRS" />
-         <attribute name="msDS-NC-Replica-Locations" level="2" type="STRS" />
-         <attribute name="msDS-DnsRootAlias" level="1" type="STR" />
-         <attribute name="nCName" level="1" type="STR" />
-         <attribute name="dnsRoot" level="1" type="STRS" />
          <!-- Exchange -->
          <attribute name="msExchMailboxSecurityDescriptor" level="1" type="SD" source="exch" />
       </attributes>
@@ -871,6 +879,15 @@
             <attribute name="nCName" />
             <attribute name="dnsRoot" />
             <attribute name="cn" />
+         </class>
+         <class name="nTDSService">
+            <attribute name="msDS-DeletedObjectLifetime" />
+            <attribute name="tombstoneLifetime" />
+            <attribute name="sPNMappings" />
+            <attribute name="replTopologyStayOfExecution" />
+            <attribute name="msDS-Other-Settings" />
+            <attribute name="garbageCollPeriod" />
+            <attribute name="dSHeuristics" />
          </class>
          <class name="leaf">
          </class>

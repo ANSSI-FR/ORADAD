@@ -146,6 +146,7 @@ typedef struct _GLOBAL_CONFIG
    WCHAR szSystemTime[17];
 
    LPWSTR szOutDirectory;
+   WCHAR szFullOutDirectory[MAX_PATH];
    HANDLE hTableFile;
    BOOL bWriteHeader;
 
@@ -158,6 +159,8 @@ typedef struct _GLOBAL_CONFIG
    DWORD dwLevel;
    BOOL bAllDomainsInForest;
    BOOL dwSleepTime;
+
+   LPWSTR szForestDomains;
 
    DWORD dwRequestCount;
    PREQUEST_CONFIG pRequests;

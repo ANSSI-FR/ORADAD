@@ -170,6 +170,8 @@ XmlReadConfigFile (
          pGlobalConfig->szUserPassword = strNodeText;
       else if ((wcscmp(strNodeName, L"allDomainsInForest") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->bAllDomainsInForest = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"forestDomains") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->szForestDomains = strNodeText;
       else if ((wcscmp(strNodeName, L"level") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->dwLevel = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"sleepTime") == 0) && (wcslen(strNodeText) > 0))
@@ -182,6 +184,16 @@ XmlReadConfigFile (
 
    _SafeCOMRelease(pXMLNodeList);
    _SafeCOMRelease(pXMLNode);
+
+
+   //
+   // Check attributes
+   //
+   // Find all domains in forest can only be done with DC locator option
+   if ((wcscmp(pGlobalConfig->szServer, DC_LOCATOR_OPTION) != 0) && (pGlobalConfig->bAllDomainsInForest == TRUE))
+   {
+      pGlobalConfig->bAllDomainsInForest = FALSE;
+   }
 
    //
    // Read Attributes

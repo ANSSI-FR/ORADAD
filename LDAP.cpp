@@ -371,13 +371,14 @@ LdapProcessRequest (
 
       berval *pBerVal = NULL;
 
+      DWORD dwObjectCount = 0;
       DWORD dwStartTime, dwEndTime;
 
       dwStartTime = GetTickCount();
 
       Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-         "Start dump '%S/%S/%S/%S'.", szRootDns, szPath1, szPath2, pRequest->szName
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+         "Dumping '%S/%S/%S/%S'.", szRootDns, szPath1, szPath2, pRequest->szName
       );
 
       //
@@ -772,10 +773,15 @@ LdapProcessRequest (
                      }
                      else
                      {
-                        Log(
-                           __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
-                           "ldap_get_values(%S, %s) has no value but is not with range.", szDn, pAttribute
-                        );
+                        // We exclude 'msDS-RevealedList' attribute which can be
+                        // returned even null
+                        if (wcscmp(pAttribute, L"msDS-RevealedList") != 0)
+                        {
+                           Log(
+                              __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+                              "ldap_get_values(%S, %S) has no value but is not with range.", szDn, pAttribute
+                           );
+                        }
                      }
                   }
                }
@@ -1009,7 +1015,7 @@ LdapProcessRequest (
          }
 
          BufferWriteLine(pBuffer);
-
+         dwObjectCount++;
          ldap_memfree(szDn);
       }
 
@@ -1090,12 +1096,15 @@ LdapProcessRequest (
       BufferClose(&Buffer);
 
       dwEndTime = GetTickCount();
+      dwEndTime = (dwEndTime - dwStartTime) / 1000;
 
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "Dump '%S/%S/%S/%S' finished (elapsed time: %u seconds).",
-         szRootDns, szPath1, szPath2, pRequest->szName,
-         (dwEndTime - dwStartTime) / 1000
+         "   Finished: elapsed time: %u second%s, %u object%s.",
+         dwEndTime,
+         dwEndTime > 1 ? "s" : "",
+         dwObjectCount,
+         dwObjectCount > 1 ? "s" : ""
       );
    }
 
@@ -1369,7 +1378,7 @@ pHasAttributeWithRange (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-            "'%S' has attribute '%S' with range.",
+            "'%S' has at least one attribute with range ('%S').",
             szDn, szAttrName
          );
          bReturn = TRUE;
@@ -1497,3 +1506,29 @@ End:
 
    return ppValue;
 }
+
+/*
+   BerElement* pBer = NULL;
+
+   pAttribute = ldap_first_attribute(
+      pLdapHandle,      // Session handle
+      pEntry,           // Current entry
+      &pBer);           // [out] Current BerElement
+
+   while (pAttribute != NULL)
+   {
+      ldap_memfree(pAttribute);
+
+      pAttribute = ldap_next_attribute(
+         pLdapHandle,   // Session Handle
+         pEntry,            // Current entry
+         pBer);             // Current BerElement
+         }
+   }
+
+   if (pBer != NULL)
+   {
+      ber_free(pBer, 0);
+      pBer = NULL;
+   }
+*/

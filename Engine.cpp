@@ -24,6 +24,12 @@ pProcessDomain(
 );
 
 BOOL
+pGetFileVersion(
+   _Out_ wchar_t* szVersion,
+   _In_  size_t   _BufferCount
+);
+
+BOOL
 Process (
    _In_ PGLOBAL_CONFIG pGlobalConfig
 )
@@ -35,10 +41,14 @@ Process (
 
    ROOTDSE_CONFIG RootDse = { 0 };
 
+   DWORD dwStartTime, dwEndTime;
+
+   dwStartTime = GetTickCount();
+
    //
    // Get server by DC Locator, if needed
    //
-   if (wcscmp(pGlobalConfig->szServer, L"[dsgetdc]") == 0)
+   if (wcscmp(pGlobalConfig->szServer, DC_LOCATOR_OPTION) == 0)
    {
       bResult = pLocateDc(NULL, &szServer);
       if (bResult == FALSE)
@@ -79,13 +89,13 @@ Process (
    }
 
    swprintf(
-      szDirectory, MAX_PATH,
+      pGlobalConfig->szFullOutDirectory, MAX_PATH,
       L"%s\\%s\\%s",
       pGlobalConfig->szOutDirectory,
       szRootDns,
       pGlobalConfig->szSystemTime
    );
-   CreateDirectory(szDirectory, NULL);
+   CreateDirectory(pGlobalConfig->szFullOutDirectory, NULL);
 
    swprintf(
       szDirectory, MAX_PATH,
@@ -190,7 +200,39 @@ Process (
    {
       ROOTDSE_CONFIG pRootDse = { 0 };
 
-      pProcessDomain(pGlobalConfig, &pRootDse, szDirectory, szServer, szRootDns, TRUE, TRUE);
+      pProcessDomain(pGlobalConfig, &pRootDse, szDirectory, szServer, szRootDns, TRUE, FALSE);
+
+      //
+      // Process Forest domains
+      //
+      if (pGlobalConfig->szForestDomains != NULL)
+      {
+         LPWSTR szContext = NULL;
+         LPWSTR szOtherDomain = wcstok_s(pGlobalConfig->szForestDomains, L",", &szContext);
+
+         while (szOtherDomain != NULL)
+         {
+            ROOTDSE_CONFIG pOtherRootDse = { 0 };
+            bResult = pLocateDc(szOtherDomain, &szServer);
+            if (bResult != FALSE)
+            {
+               Log(
+                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+                  "Processing extra domain in forest: %S",
+                  szOtherDomain
+               );
+               pProcessDomain(pGlobalConfig, &pOtherRootDse, szDirectory, szServer, szRootDns, TRUE, TRUE);
+            }
+            szOtherDomain = wcstok_s(NULL, L",", &szContext);
+         }
+      }
+
+      //
+      // Write table infos into table file (FALSE, TRUE)
+      // Done only after all requests (TRUE, FALSE) to be sure to have max text size for all domains
+      //
+      pProcessDomain(pGlobalConfig, &pRootDse, szDirectory, szServer, szRootDns, FALSE, TRUE);
+
       _SafeHeapRelease(szServer);
    }
    else
@@ -257,10 +299,55 @@ Process (
    bReturn = TRUE;
 
 End:
-   _SafeHeapRelease(szRootDns);
-   if (pGlobalConfig->hTableFile != NULL)
-      CloseHandle(pGlobalConfig->hTableFile);
+   dwEndTime = GetTickCount() - dwStartTime;
 
+   if (pGlobalConfig->hTableFile != NULL)
+   {
+      //
+      // Write metatada table
+      //
+      BUFFER_DATA Buffer;
+      WCHAR szFilename[MAX_PATH];
+      WCHAR szMetadata[1024];
+
+      swprintf(
+         szFilename, MAX_PATH,
+         L"%s\\%s\\%s\\metadata.tsv",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+      bResult = BufferInitialize(&Buffer, szFilename);
+      if (bResult != FALSE)
+      {
+         // Exe version
+         BufferWrite(&Buffer, (LPWSTR)L"oradad_version");
+         BufferWriteTab(&Buffer);
+         pGetFileVersion(szMetadata, 1024);
+         BufferWrite(&Buffer, szMetadata);
+         BufferWriteLine(&Buffer);
+         // Process Time
+         BufferWrite(&Buffer, (LPWSTR)L"oradad_processtime");
+         BufferWriteTab(&Buffer);
+         swprintf_s(szMetadata, 1024, L"%d", dwEndTime);
+         BufferWrite(&Buffer, szMetadata);
+         BufferWriteLine(&Buffer);
+         // Level
+         BufferWrite(&Buffer, (LPWSTR)L"oradad_level");
+         BufferWriteTab(&Buffer);
+         swprintf_s(szMetadata, 1024, L"%d", pGlobalConfig->dwLevel);
+         BufferWrite(&Buffer, szMetadata);
+         BufferWriteLine(&Buffer);
+
+         BufferClose(&Buffer);
+
+         WriteTextFile(pGlobalConfig->hTableFile, "metadata.tsv\tmetadata\tmetadata\t2\tkey\tnvarchar(255)\tvalue\tnvarchar(1024)\n");
+      }
+
+      CloseHandle(pGlobalConfig->hTableFile);
+   }
+
+   _SafeHeapRelease(szRootDns);
    return bReturn;
 }
 
@@ -405,4 +492,42 @@ pProcessDomain (
    _SafeHeapRelease(szDomainDns);
 
    return TRUE;
+}
+
+BOOL
+pGetFileVersion (
+   _Out_ wchar_t* const szVersion,
+   _In_  size_t   const _BufferCount
+)
+{
+   WCHAR szFilename[MAX_PATH];
+
+   GetModuleFileNameW(NULL, szFilename, MAX_PATH);
+   DWORD dwHandle;
+   DWORD sz = GetFileVersionInfoSizeW(szFilename, &dwHandle);
+   if (0 == sz)
+   {
+      return FALSE;
+   }
+   PBYTE pbBuf = (PBYTE)_HeapAlloc(sz);
+   if (GetFileVersionInfoW(szFilename, dwHandle, sz, pbBuf) == FALSE)
+   {
+      _SafeHeapRelease(pbBuf);
+      return FALSE;
+   }
+   VS_FIXEDFILEINFO * pvi;
+   sz = sizeof(VS_FIXEDFILEINFO);
+   if (!VerQueryValueW(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&sz))
+   {
+      _SafeHeapRelease(pbBuf);
+      return FALSE;
+   }
+   swprintf(szVersion, _BufferCount, L"%d.%d.%d.%d",
+      pvi->dwProductVersionMS >> 16,
+      pvi->dwFileVersionMS & 0xFFFF,
+      pvi->dwFileVersionLS >> 16,
+      pvi->dwFileVersionLS & 0xFFFF
+   );
+   _SafeHeapRelease(pbBuf);
+   return 0;
 }

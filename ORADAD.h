@@ -9,3 +9,8 @@
 #define _SafeCOMRelease(x) { if (NULL != x) { x->Release(); x = NULL; } }
 
 #define _CallWriteAndGetMax(x, y) do { DWORD dwTempSizeResult; dwTempSizeResult = x; if (dwTempSizeResult>y) y=dwTempSizeResult; } while(FALSE)
+
+//
+// Defines
+//
+#define DC_LOCATOR_OPTION              L"[dsgetdc]"
