@@ -212,3 +212,96 @@ Fail:
 
    return NULL;
 }
+
+//
+// Metadata
+//
+BOOL
+pGetFileVersion (
+   _Out_ wchar_t* const szVersion,
+   _In_  size_t   const _BufferCount
+)
+{
+   WCHAR szFilename[MAX_PATH];
+
+   GetModuleFileNameW(NULL, szFilename, MAX_PATH);
+   DWORD dwHandle;
+   DWORD sz = GetFileVersionInfoSizeW(szFilename, &dwHandle);
+   if (0 == sz)
+   {
+      return FALSE;
+   }
+   PBYTE pbBuf = (PBYTE)_HeapAlloc(sz);
+   if (GetFileVersionInfoW(szFilename, dwHandle, sz, pbBuf) == FALSE)
+   {
+      _SafeHeapRelease(pbBuf);
+      return FALSE;
+   }
+   VS_FIXEDFILEINFO * pvi;
+   sz = sizeof(VS_FIXEDFILEINFO);
+   if (!VerQueryValueW(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&sz))
+   {
+      _SafeHeapRelease(pbBuf);
+      return FALSE;
+   }
+   swprintf(szVersion, _BufferCount, L"%d.%d.%d.%d",
+      pvi->dwProductVersionMS >> 16,
+      pvi->dwFileVersionMS & 0xFFFF,
+      pvi->dwFileVersionLS >> 16,
+      pvi->dwFileVersionLS & 0xFFFF
+   );
+   _SafeHeapRelease(pbBuf);
+   return 0;
+}
+
+BOOL
+MetadataWriteFile (
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPCWSTR szKey,
+   _In_z_ LPWSTR szValue
+)
+{
+   BufferWrite(&pGlobalConfig->BufferMetadata, (LPWSTR)szKey);
+   BufferWriteTab(&pGlobalConfig->BufferMetadata);
+   BufferWrite(&pGlobalConfig->BufferMetadata, szValue);
+   BufferWriteLine(&pGlobalConfig->BufferMetadata);
+
+   return TRUE;
+}
+
+BOOL
+MetadataCreateFile (
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szRootDns
+)
+{
+   BOOL bResult;
+
+   WCHAR szMetadataFilename[MAX_PATH];
+   WCHAR szMetadata[MAX_METADATA_VALUE];
+
+   // Open metadata file
+   swprintf(
+      szMetadataFilename, MAX_PATH,
+      L"%s\\%s\\%s\\metadata.tsv",
+      pGlobalConfig->szOutDirectory,
+      szRootDns,
+      pGlobalConfig->szSystemTime
+   );
+
+   WriteTextFile(pGlobalConfig->hTableFile, "metadata.tsv\tmetadata\tmetadata\t2\tkey\tnvarchar(255)\tvalue\tnvarchar(1024)\n");
+
+   bResult = BufferInitialize(&pGlobalConfig->BufferMetadata, szMetadataFilename);
+   if (bResult != FALSE)
+   {
+      // Exe version
+      pGetFileVersion(szMetadata, MAX_METADATA_VALUE);
+      MetadataWriteFile(pGlobalConfig, L"oradad_version", szMetadata);
+
+      // Level
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
+      MetadataWriteFile(pGlobalConfig, L"oradad_level", szMetadata);
+   }
+
+   return TRUE;
+}

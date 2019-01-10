@@ -141,6 +141,18 @@ typedef struct _REQUEST_CONFIG
    BOOL bTableInfoWritten;
 } REQUEST_CONFIG, *PREQUEST_CONFIG;
 
+//
+// Buffer
+//
+typedef struct _BUFFER_DATA
+{
+   SIZE_T BufferSize;
+   SIZE_T Position;
+   PBYTE pbData;
+   HANDLE hOutputFile;
+   TCHAR szFileName[MAX_PATH];
+} BUFFER_DATA, *PBUFFER_DATA;
+
 typedef struct _GLOBAL_CONFIG
 {
    WCHAR szSystemTime[17];
@@ -169,16 +181,6 @@ typedef struct _GLOBAL_CONFIG
    DWORD dwAttributesCount;
    PATTRIBUTE_CONFIG pRootDSEAttributes;
    PATTRIBUTE_CONFIG pAttributes;
-} GLOBAL_CONFIG, *PGLOBAL_CONFIG;
 
-//
-// Buffer
-//
-typedef struct _BUFFER_DATA
-{
-   SIZE_T BufferSize;
-   SIZE_T Position;
-   PBYTE pbData;
-   HANDLE hOutputFile;
-   TCHAR szFileName[MAX_PATH];
-} BUFFER_DATA, *PBUFFER_DATA;
+   BUFFER_DATA BufferMetadata;
+} GLOBAL_CONFIG, *PGLOBAL_CONFIG;

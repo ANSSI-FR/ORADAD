@@ -14,3 +14,5 @@
 // Defines
 //
 #define DC_LOCATOR_OPTION              L"[dsgetdc]"
+#define MAX_METADATA_KEY               255
+#define MAX_METADATA_VALUE             1024

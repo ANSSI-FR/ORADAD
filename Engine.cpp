@@ -24,12 +24,6 @@ pProcessDomain(
 );
 
 BOOL
-pGetFileVersion(
-   _Out_ wchar_t* szVersion,
-   _In_  size_t   _BufferCount
-);
-
-BOOL
 Process (
    _In_ PGLOBAL_CONFIG pGlobalConfig
 )
@@ -41,6 +35,7 @@ Process (
 
    ROOTDSE_CONFIG RootDse = { 0 };
 
+   WCHAR szMetadata[MAX_METADATA_VALUE];
    DWORD dwStartTime, dwEndTime;
 
    dwStartTime = GetTickCount();
@@ -173,6 +168,11 @@ Process (
    WriteTextFile(pGlobalConfig->hTableFile, "%S_%S\n", szRootDns, pGlobalConfig->szSystemTime);
 
    //
+   // Metadata
+   //
+   MetadataCreateFile(pGlobalConfig, szRootDns);
+
+   //
    // Process all forest global partition
    //
    for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
@@ -301,51 +301,13 @@ Process (
 End:
    dwEndTime = GetTickCount() - dwStartTime;
 
+   // Metadata: Process Time and close
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", dwEndTime);
+   MetadataWriteFile(pGlobalConfig, L"oradad_processtime", szMetadata);
+   BufferClose(&pGlobalConfig->BufferMetadata);
+
    if (pGlobalConfig->hTableFile != NULL)
-   {
-      //
-      // Write metatada table
-      //
-      BUFFER_DATA Buffer;
-      WCHAR szFilename[MAX_PATH];
-      WCHAR szMetadata[1024];
-
-      swprintf(
-         szFilename, MAX_PATH,
-         L"%s\\%s\\%s\\metadata.tsv",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime
-      );
-      bResult = BufferInitialize(&Buffer, szFilename);
-      if (bResult != FALSE)
-      {
-         // Exe version
-         BufferWrite(&Buffer, (LPWSTR)L"oradad_version");
-         BufferWriteTab(&Buffer);
-         pGetFileVersion(szMetadata, 1024);
-         BufferWrite(&Buffer, szMetadata);
-         BufferWriteLine(&Buffer);
-         // Process Time
-         BufferWrite(&Buffer, (LPWSTR)L"oradad_processtime");
-         BufferWriteTab(&Buffer);
-         swprintf_s(szMetadata, 1024, L"%d", dwEndTime);
-         BufferWrite(&Buffer, szMetadata);
-         BufferWriteLine(&Buffer);
-         // Level
-         BufferWrite(&Buffer, (LPWSTR)L"oradad_level");
-         BufferWriteTab(&Buffer);
-         swprintf_s(szMetadata, 1024, L"%d", pGlobalConfig->dwLevel);
-         BufferWrite(&Buffer, szMetadata);
-         BufferWriteLine(&Buffer);
-
-         BufferClose(&Buffer);
-
-         WriteTextFile(pGlobalConfig->hTableFile, "metadata.tsv\tmetadata\tmetadata\t2\tkey\tnvarchar(255)\tvalue\tnvarchar(1024)\n");
-      }
-
       CloseHandle(pGlobalConfig->hTableFile);
-   }
 
    _SafeHeapRelease(szRootDns);
    return bReturn;
@@ -492,42 +454,4 @@ pProcessDomain (
    _SafeHeapRelease(szDomainDns);
 
    return TRUE;
-}
-
-BOOL
-pGetFileVersion (
-   _Out_ wchar_t* const szVersion,
-   _In_  size_t   const _BufferCount
-)
-{
-   WCHAR szFilename[MAX_PATH];
-
-   GetModuleFileNameW(NULL, szFilename, MAX_PATH);
-   DWORD dwHandle;
-   DWORD sz = GetFileVersionInfoSizeW(szFilename, &dwHandle);
-   if (0 == sz)
-   {
-      return FALSE;
-   }
-   PBYTE pbBuf = (PBYTE)_HeapAlloc(sz);
-   if (GetFileVersionInfoW(szFilename, dwHandle, sz, pbBuf) == FALSE)
-   {
-      _SafeHeapRelease(pbBuf);
-      return FALSE;
-   }
-   VS_FIXEDFILEINFO * pvi;
-   sz = sizeof(VS_FIXEDFILEINFO);
-   if (!VerQueryValueW(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&sz))
-   {
-      _SafeHeapRelease(pbBuf);
-      return FALSE;
-   }
-   swprintf(szVersion, _BufferCount, L"%d.%d.%d.%d",
-      pvi->dwProductVersionMS >> 16,
-      pvi->dwFileVersionMS & 0xFFFF,
-      pvi->dwFileVersionLS >> 16,
-      pvi->dwFileVersionLS & 0xFFFF
-   );
-   _SafeHeapRelease(pbBuf);
-   return 0;
 }

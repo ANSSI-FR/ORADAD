@@ -717,7 +717,6 @@ LdapProcessRequest (
                            ppValueRange = ldap_get_values(pLdapHandle, pEntry, szRangeAttrName);
                            if (ppValueRange != NULL)
                            {
-                              DWORD dwTotalSize = 0;
                               ULONG ulValues;
 
                               ulValues = ldap_count_values(ppValueRange);
@@ -1313,7 +1312,16 @@ pWriteTableInfo (
                if (dwStrintMaxLength < 4000)
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
                else
+               {
+                  WCHAR szMetadataKey[MAX_METADATA_KEY];
+                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
+
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
+
+                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
+               }
                break;
             }
 
@@ -1326,7 +1334,16 @@ pWriteTableInfo (
                if (dwStrintMaxLength < 8000)
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
                else
+               {
+                  WCHAR szMetadataKey[MAX_METADATA_KEY];
+                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
+
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
+
+                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
+               }
                break;
             }
 

@@ -80,6 +80,19 @@ LPWSTRtoLPSTR(
    _In_opt_z_ LPWSTR szToConvert
 );
 
+BOOL
+MetadataWriteFile(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPCWSTR szKey,
+   _In_z_ LPWSTR szValue
+);
+
+BOOL
+MetadataCreateFile(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szRootDns
+);
+
 //
 // Buffer.cpp
 //
