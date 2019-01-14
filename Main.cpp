@@ -8,7 +8,7 @@
 #pragma comment(lib, "wldap32.lib")
 #pragma comment(lib, "rpcrt4.lib")
 #pragma comment(lib, "NetApi32.lib")
-#pragma comment(lib, "Mincore.lib")
+#pragma comment(lib, "Version.lib")
 
 HANDLE g_hHeap = NULL;
 HANDLE g_hLogFile = NULL;
