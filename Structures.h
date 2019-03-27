@@ -10,6 +10,16 @@
 #define LOG_LEVEL_VERYVERBOSE 6
 
 //
+// Colors VT100
+//
+#define COLOR_RED          (g_bSupportsAnsi) ? "\x1b[1;31m" : ""
+#define COLOR_GREEN        (g_bSupportsAnsi) ? "\x1b[1;32m" : ""
+#define COLOR_YELLOW       (g_bSupportsAnsi) ? "\x1b[1;33m" : ""
+#define COLOR_MAGENTA      (g_bSupportsAnsi) ? "\x1b[1;35m" : ""
+#define COLOR_CYAN         (g_bSupportsAnsi) ? "\x1b[1;36m" : ""
+#define COLOR_RESET        (g_bSupportsAnsi) ? "\x1b[0m" : ""
+
+//
 // Naming context
 //
 #define STR_ROOTDSE           L"rootDSE"
@@ -41,6 +51,14 @@ typedef struct _CONST_TXT {
 //
 // Configuration
 //
+typedef enum _TYPE_CONFIG
+{
+   ConfigTypeBool,
+   ConfigTypeString,
+   ConfigTypeUnsignedInterger,
+   ConfigTypeCheckType
+} TYPE_CONFIG;
+
 typedef enum _BASE_TYPE
 {
    BASE_ROOTDSE = 1,

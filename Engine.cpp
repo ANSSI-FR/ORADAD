@@ -5,6 +5,7 @@
 #include "ORADAD.h"
 
 extern HANDLE g_hHeap;
+extern BOOL g_bSupportsAnsi;
 
 BOOL
 pLocateDc(
@@ -77,8 +78,8 @@ Process (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-         "Unable to create directory '%S' (error %u).",
-         szDirectory, GetLastError()
+         "[!] %sUnable to create directory '%S'%s (error %u).",
+         COLOR_RED, szDirectory, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }
@@ -158,8 +159,8 @@ Process (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-         "Unable to open table file '%S' (error %u).",
-         szDirectory, GetLastError()
+         "[!] %sUnable to open table file '%S'%s (error %u).",
+         COLOR_RED, szDirectory, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }
@@ -218,7 +219,7 @@ Process (
             {
                Log(
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-                  "Processing extra domain in forest: %S",
+                  "[.] Processing extra domain in forest: %S",
                   szOtherDomain
                );
                pProcessDomain(pGlobalConfig, &pOtherRootDse, szDirectory, szServer, szRootDns, TRUE, TRUE);
@@ -246,7 +247,7 @@ Process (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "Unable to enumerate trust (error %u).", dwResult
+            "[!] %sUnable to enumerate trust (error %u).%s", COLOR_RED, dwResult, COLOR_RESET
          );
       }
       else
@@ -255,7 +256,7 @@ Process (
 
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "Find %u domains in forest.", ulDomainCount
+            "[.] Find %u domains in forest.", ulDomainCount
          );
 
          pRootDse = (PROOTDSE_CONFIG)_HeapAlloc(sizeof(ROOTDSE_CONFIG) * ulDomainCount);
@@ -266,7 +267,7 @@ Process (
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-               "Domain in forest: %S (Attribute: %u / Type: %u)",
+               "[.] Domain in forest: %S (Attribute: %u / Type: %u)",
                pTrust[i].DnsDomainName, pTrust[i].TrustAttributes, pTrust[i].TrustType
             );
 
@@ -335,14 +336,14 @@ pLocateDc (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "Unable to locate DC for domain '%S' (error %u).", szDomainName, dwResult
+         "[!] %sUnable to locate DC for domain '%S'%s (error %u).", COLOR_RED, szDomainName, COLOR_RESET, dwResult
       );
       return FALSE;
    }
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "DC Locator: DC: %S (flags 0x%x), Domain: %S, Forest: %S",
+      "[.] DC Locator: DC: %S (flags 0x%x), Domain: %S, Forest: %S",
       pDomainControllerInfo->DomainControllerName,
       pDomainControllerInfo->Flags,
       pDomainControllerInfo->DomainName,

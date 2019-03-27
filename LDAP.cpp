@@ -11,6 +11,7 @@
 
 extern GLOBAL_CONFIG g_GlobalConfig;
 extern HANDLE g_hHeap;
+extern BOOL g_bSupportsAnsi;
 
 //
 // Private functions
@@ -93,7 +94,7 @@ LdapGetRootDse (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "Error in ldap_search_s() (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+         "[!] %sError in ldap_search_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       return FALSE;
    }
@@ -223,22 +224,42 @@ LdapProcessRequest (
 
    if (szLdapBase == NULL)
    {
+      DWORD dwIdx = 0;
+
       bIsRootDSE = TRUE;
       dwAttributesCount = pGlobalConfig->dwRootDSEAttributesCount;
 
       // pRootDSEAttributes is array of attributes
       // pAttributes is array of pointers to attributes. Create temporary array.
       pAttributes = (PATTRIBUTE_CONFIG*)_HeapAlloc(dwAttributesCount * sizeof(PATTRIBUTE_CONFIG));
+
       for (DWORD i = 0; i < dwAttributesCount; i++)
       {
-         pAttributes[i] = &(pGlobalConfig->pRootDSEAttributes[i]);
+         if (pGlobalConfig->pRootDSEAttributes[i].dwLevel <= pGlobalConfig->dwLevel)
+         {
+            pAttributes[dwIdx] = &(pGlobalConfig->pRootDSEAttributes[i]);
+            dwIdx++;
+         }
       }
+      dwAttributesCount = dwIdx;
    }
    else
    {
+      DWORD dwIdx = 0;
+
       bIsRootDSE = FALSE;
       dwAttributesCount = pRequest->dwAttributesCount;
-      pAttributes = pRequest->pAttributes;
+      pAttributes = (PATTRIBUTE_CONFIG*)_HeapAlloc(dwAttributesCount * sizeof(PATTRIBUTE_CONFIG));
+
+      for (DWORD i = 0; i < dwAttributesCount; i++)
+      {
+         if (pRequest->pAttributes[i]->dwLevel <= pGlobalConfig->dwLevel)
+         {
+            pAttributes[dwIdx] = pRequest->pAttributes[i];
+            dwIdx++;
+         }
+      }
+      dwAttributesCount = dwIdx;
    }
 
    if (_wcsicmp(pRequest->szName, L"top") == 0)
@@ -378,7 +399,7 @@ LdapProcessRequest (
 
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "Dumping '%S/%S/%S/%S'.", szRootDns, szPath1, szPath2, pRequest->szName
+         "[.] Dumping '%S/%S/%S/%S'.", szRootDns, szPath1, szPath2, pRequest->szName
       );
 
       //
@@ -511,7 +532,7 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "Error in ldap_search_ext_s() (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_search_ext_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -707,7 +728,7 @@ LdapProcessRequest (
 
                            Log(
                               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-                              "'%S' has attribute '%S' with range.",
+                              "[.] '%S' has attribute '%S' with range.",
                               szDn, szRangeAttrName
                               );
 
@@ -772,13 +793,13 @@ LdapProcessRequest (
                      }
                      else
                      {
-                        // We exclude 'msDS-RevealedList' attribute which can be
+                        // We exclude 'msDS-RevealedList' and 'msDS-RevealedDSAs' attributes which can be
                         // returned even null
-                        if (wcscmp(pAttribute, L"msDS-RevealedList") != 0)
+                        if (wcscmp(pAttribute, L"msDS-RevealedList") != 0 && wcscmp(pAttribute, L"msDS-RevealedDSAs") != 0)
                         {
                            Log(
                               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
-                              "ldap_get_values(%S, %S) has no value but is not with range.", szDn, pAttribute
+                              "[x] %sldap_get_values(%S, %S) has no value but is not with range.%s", COLOR_YELLOW, szDn, pAttribute, COLOR_RESET
                            );
                         }
                      }
@@ -805,7 +826,7 @@ LdapProcessRequest (
                      {
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "Unable to convert SID."
+                           "[!] %sUnable to convert SID.%s", COLOR_RED, COLOR_RESET
                         );
                      }
                   }
@@ -855,7 +876,7 @@ LdapProcessRequest (
                      {
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "Unable to convert SDDL."
+                           "[!] %sUnable to convert SDDL.%s", COLOR_RED, COLOR_RESET
                         );
                      }
                   }
@@ -958,7 +979,7 @@ LdapProcessRequest (
                      else
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "Unknwon boolean value ('%S').", ppValue[0]
+                           "[!] %sUnknwon boolean value ('%S').%s", COLOR_RED, ppValue[0], COLOR_RESET
                         );
                   }
                }
@@ -1036,7 +1057,7 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "Error in ldap_parse_result() (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_parse_result()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -1046,7 +1067,7 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "Error in ldap_parse_page_control() (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_parse_page_control()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -1067,7 +1088,7 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "Error in ldap_create_page_control() (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_create_page_control()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -1094,12 +1115,14 @@ LdapProcessRequest (
 
       BufferClose(&Buffer);
 
+      _SafeHeapRelease(pszAttributes);
+
       dwEndTime = GetTickCount();
       dwEndTime = (dwEndTime - dwStartTime) / 1000;
 
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "   Finished: elapsed time: %u second%s, %u object%s.",
+         "   [+] %sFinished%s: elapsed time: %u second%s, %u object%s.", COLOR_GREEN, COLOR_RESET,
          dwEndTime,
          dwEndTime > 1 ? "s" : "",
          dwObjectCount,
@@ -1112,8 +1135,7 @@ LdapProcessRequest (
       pWriteTableInfo(pGlobalConfig, pRequest, bIsTop, bIsRootDSE, szRelativePath, szTableName, szTableNameNoDomain, dwAttributesCount, pAttributes);
    }
 
-   if (bIsRootDSE == TRUE)
-      _SafeHeapRelease(pAttributes);
+   _SafeHeapRelease(pAttributes);
 
    return TRUE;
 }
@@ -1142,7 +1164,8 @@ pLdapOpenConnection (
       ulResult = LdapGetLastError();
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "Unable to open LDAP connection to %S (error %u: %s).", szServerName, ulResult, ldap_err2stringA(ulResult)
+         "[!] %sUnable to open LDAP connection to %S%s (error %u: %s).",
+         COLOR_RED, szServerName, COLOR_RESET,  ulResult, ldap_err2stringA(ulResult)
       );
       return NULL;
    }
@@ -1152,7 +1175,7 @@ pLdapOpenConnection (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "Unable to connect to LDAP server (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+         "[!] %sUnable to connect to LDAP server%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       ldap_unbind(pLdapHandle);
       return NULL;
@@ -1185,7 +1208,7 @@ pLdapOpenConnection (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "Unable to bind to LDAP server (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+         "[!] %sUnable to bind to LDAP server%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       ldap_unbind(pLdapHandle);
       return NULL;
@@ -1193,7 +1216,7 @@ pLdapOpenConnection (
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "Successfully bind to %S.", szServerName
+      "[+] %sSuccessfully bind to %S.%s", COLOR_GREEN, szServerName, COLOR_RESET
    );
 
    return pLdapHandle;
@@ -1364,7 +1387,7 @@ pWriteTableInfo (
             {
                Log(
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                  "Data type unknown."
+                  "[!] %sData type unknown.%s", COLOR_RED, COLOR_RESET
                );
                return FALSE;
             }
@@ -1395,7 +1418,7 @@ pHasAttributeWithRange (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-            "'%S' has at least one attribute with range ('%S').",
+            "[.] '%S' has at least one attribute with range ('%S').",
             szDn, szAttrName
          );
          bReturn = TRUE;
@@ -1490,7 +1513,7 @@ pGetRangedAttribute (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "Error in ldap_search_s() (error %u: %s).", ulResult, ldap_err2stringA(ulResult)
+         "[!] %sError in ldap_search_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       goto End;
    }

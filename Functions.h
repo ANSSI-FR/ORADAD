@@ -7,6 +7,13 @@ XmlReadConfigFile(
    _In_ PGLOBAL_CONFIG pGlobalConfig
 );
 
+PVOID
+XmlReadSchemaFile(
+   _In_z_ LPTSTR szConfigPath,
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ PVOID pXMLDocConfig
+);
+
 //
 // Engine.cpp
 //
@@ -81,6 +88,12 @@ LPWSTRtoLPSTR(
 );
 
 BOOL
+GetFileVersion(
+   _Out_ wchar_t* szVersion,
+   _In_  size_t BufferCount
+);
+
+BOOL
 MetadataWriteFile(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPCWSTR szKey,
@@ -91,6 +104,22 @@ BOOL
 MetadataCreateFile(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szRootDns
+);
+
+BOOL
+cmdOptionExists(
+   _In_ wchar_t *argv[],
+   _In_ int argc,
+   _In_z_ const wchar_t *szOption
+);
+
+BOOL
+GetCmdOption(
+   _In_ wchar_t *argv[],
+   _In_ int argc,
+   _In_z_ const wchar_t *szOption,
+   _In_ TYPE_CONFIG ElementType,
+   _Out_ PVOID pvElementValue
 );
 
 //

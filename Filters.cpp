@@ -5,6 +5,7 @@
 #include "Constants.h"
 
 extern HANDLE g_hHeap;
+extern BOOL g_bSupportsAnsi;
 
 #define NEVER_VALUE                 9223372036854775808
 #define STR_UNABLE_CONVERT_SID      L"Unable to convert SID"
@@ -119,7 +120,7 @@ GetFilter (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "Unknown filter '%S'.", szFilter
+         "[!] %sUnknown filter '%S'.%s", COLOR_RED, szFilter, COLOR_RESET
       );
       return FALSE;
    }

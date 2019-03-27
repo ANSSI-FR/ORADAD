@@ -11,9 +11,11 @@
 #pragma comment(lib, "Version.lib")
 
 HANDLE g_hHeap = NULL;
+HANDLE g_hStdOut;
 HANDLE g_hLogFile = NULL;
 
 GLOBAL_CONFIG g_GlobalConfig = { 0 };
+BOOL g_bSupportsAnsi;
 
 //__declspec(dllexport)
 int
@@ -22,15 +24,20 @@ wmain (
    wchar_t *argv[]
 )
 {
+   BOOL bResult;
    HRESULT hr;
    SYSTEMTIME st;
-   IXMLDOMDocument2 *pXMLDoc = NULL;
+   IXMLDOMDocument2 *pXMLDocConfig = NULL;
+   IXMLDOMDocument2 *pXMLDocSchema = NULL;
    TCHAR szPath[MAX_PATH];
+   WCHAR szVersion[MAX_PATH];
+   LPWSTR szConfigPath = NULL;
+   LPWSTR szSchemaPath = NULL;
 
    //
    // Check command line parameters
    //
-   if (argc != 2)
+   if (argc < 2)
    {
       fprintf_s(stderr, "Usage: oradad.exe <outdir>\n");
       return EXIT_FAILURE;
@@ -49,6 +56,29 @@ wmain (
    //
    // Start logging
    //
+   g_hStdOut = CreateFile(L"CONOUT$", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+   if (g_hStdOut == INVALID_HANDLE_VALUE)
+   {
+      return EXIT_FAILURE;
+   }
+
+   // Set console output to 'ISO 8859-1 Latin 1; Western European (ISO)'
+   SetConsoleOutputCP(28591);
+
+   g_bSupportsAnsi = SetConsoleMode(g_hStdOut, ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+   SetConsoleTitle(L"ORADAD");
+
+   // Get version
+   bResult = GetFileVersion(szVersion, MAX_PATH);
+   if (bResult == FALSE)
+      return EXIT_FAILURE;
+
+   if (cmdOptionExists(argv, argc, L"--version"))
+   {
+      wprintf_s(L"%s\n", szVersion);
+      return EXIT_SUCCESS;
+   }
+
    DuplicateString(argv[1], &g_GlobalConfig.szOutDirectory);
    _stprintf_s(szPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szOutDirectory);
 
@@ -61,18 +91,62 @@ wmain (
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-      "Starting."
+      "[.] %sStarting%s.", COLOR_CYAN, COLOR_RESET
    );
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "Output directory is '%S'.", g_GlobalConfig.szOutDirectory
+      "[.] Output directory is '%S'.", g_GlobalConfig.szOutDirectory
    );
 
    //
    // Read configuration
    //
-   pXMLDoc = (IXMLDOMDocument2 *)XmlReadConfigFile((LPTSTR)TEXT("config-oradad.xml"), &g_GlobalConfig);
-   if (pXMLDoc == NULL)
+   if (cmdOptionExists(argv, argc, L"-c"))
+   {
+      if (GetCmdOption(argv, argc, L"-c", ConfigTypeString, &szConfigPath) == FALSE)
+      {
+         szConfigPath = NULL;
+      }
+   }
+
+   if (szConfigPath == NULL)
+   {
+      szConfigPath = (LPWSTR)_HeapAlloc(MAX_PATH);
+      swprintf_s(szConfigPath, MAX_PATH, L"config-oradad.xml");
+   }
+
+   pXMLDocConfig = (IXMLDOMDocument2 *)XmlReadConfigFile(szConfigPath, &g_GlobalConfig);
+   if (pXMLDocConfig == NULL)
+      goto End;
+
+   //
+   // Read schema
+   //
+   if (cmdOptionExists(argv, argc, L"-s"))
+   {
+      if (GetCmdOption(argv, argc, L"-s", ConfigTypeString, &szSchemaPath) == FALSE)
+      {
+         szSchemaPath = NULL;
+      }
+   }
+
+   if (szSchemaPath == NULL)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+         "[.] Using Resource Schema."
+      );
+   }
+   else
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+         "[.] Using Alternative Schema %S.", szSchemaPath
+      );
+   }
+
+   pXMLDocSchema = (IXMLDOMDocument2 *)XmlReadSchemaFile(szSchemaPath, &g_GlobalConfig, (PVOID)pXMLDocConfig);  // Use NULL for resource
+   if (pXMLDocSchema == NULL)
       goto End;
 
    //
@@ -94,7 +168,7 @@ wmain (
 End:
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-      "End."
+      "[.] %sEnd.%s", COLOR_GREEN, COLOR_RESET
    );
    CloseHandle(g_hLogFile);
 
@@ -107,10 +181,13 @@ End:
       MoveFile(szPath, szFinalPath);
    }
 
+   _SafeHeapRelease(szConfigPath);
+   _SafeHeapRelease(szSchemaPath);
    _SafeHeapRelease(g_GlobalConfig.szOutDirectory);
    HeapDestroy(g_hHeap);
 
-   _SafeCOMRelease(pXMLDoc);
+   _SafeCOMRelease(pXMLDocConfig);
+   _SafeCOMRelease(pXMLDocSchema);
    CoUninitialize();
 
    return EXIT_SUCCESS;

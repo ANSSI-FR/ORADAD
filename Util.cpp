@@ -8,6 +8,7 @@
 
 extern HANDLE g_hHeap;
 extern HANDLE g_hLogFile;
+extern BOOL g_bSupportsAnsi;
 
 VOID
 Log (
@@ -207,7 +208,7 @@ LPWSTRtoLPSTR (
 Fail:
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR, 0,
-      "LPWSTRtoLPSTR(%S) failed.", szToConvert
+      "[!] %sLPWSTRtoLPSTR(%S) failed.%s", COLOR_RED, szToConvert, COLOR_RESET
    );
 
    return NULL;
@@ -217,41 +218,47 @@ Fail:
 // Metadata
 //
 BOOL
-pGetFileVersion (
+GetFileVersion (
    _Out_ wchar_t* const szVersion,
    _In_  size_t   const _BufferCount
 )
 {
    WCHAR szFilename[MAX_PATH];
+   VS_FIXEDFILEINFO * pvi;
+   DWORD dwHandle;
+   DWORD dwSize;
+   PBYTE pbBuf;
 
    GetModuleFileNameW(NULL, szFilename, MAX_PATH);
-   DWORD dwHandle;
-   DWORD sz = GetFileVersionInfoSizeW(szFilename, &dwHandle);
-   if (0 == sz)
+   dwSize = GetFileVersionInfoSizeW(szFilename, &dwHandle);
+   if (0 == dwSize)
    {
       return FALSE;
    }
-   PBYTE pbBuf = (PBYTE)_HeapAlloc(sz);
-   if (GetFileVersionInfoW(szFilename, dwHandle, sz, pbBuf) == FALSE)
-   {
-      _SafeHeapRelease(pbBuf);
-      return FALSE;
-   }
-   VS_FIXEDFILEINFO * pvi;
-   sz = sizeof(VS_FIXEDFILEINFO);
-   if (!VerQueryValueW(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&sz))
+
+   pbBuf = (PBYTE)_HeapAlloc(dwSize);
+   if (GetFileVersionInfoW(szFilename, dwHandle, dwSize, pbBuf) == FALSE)
    {
       _SafeHeapRelease(pbBuf);
       return FALSE;
    }
+
+   dwSize = sizeof(VS_FIXEDFILEINFO);
+   if (!VerQueryValueW(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&dwSize))
+   {
+      _SafeHeapRelease(pbBuf);
+      return FALSE;
+   }
+
    swprintf(szVersion, _BufferCount, L"%d.%d.%d.%d",
       pvi->dwProductVersionMS >> 16,
       pvi->dwFileVersionMS & 0xFFFF,
       pvi->dwFileVersionLS >> 16,
       pvi->dwFileVersionLS & 0xFFFF
    );
+
    _SafeHeapRelease(pbBuf);
-   return 0;
+   return TRUE;
 }
 
 BOOL
@@ -295,7 +302,7 @@ MetadataCreateFile (
    if (bResult != FALSE)
    {
       // Exe version
-      pGetFileVersion(szMetadata, MAX_METADATA_VALUE);
+      GetFileVersion(szMetadata, MAX_METADATA_VALUE);
       MetadataWriteFile(pGlobalConfig, L"oradad_version", szMetadata);
 
       // Level
@@ -303,5 +310,105 @@ MetadataCreateFile (
       MetadataWriteFile(pGlobalConfig, L"oradad_level", szMetadata);
    }
 
+   return TRUE;
+}
+
+BOOL
+cmdOptionExists (
+   _In_ wchar_t *argv[],
+   _In_ int argc,
+   _In_z_ const wchar_t *szOption
+)
+{
+   for (int i = 1; i < argc; i++)
+   {
+      if (!wcscmp(argv[i], szOption))
+         return TRUE;
+   }
+   return FALSE;
+}
+
+int
+pConvertStringToInt (
+   _In_z_ LPWSTR szInput
+)
+{
+   int i;
+   if (swscanf_s(szInput, L"%i", &i) > 0)
+   {
+      return i;
+   }
+   return 0;
+}
+
+BOOL
+GetCmdOption (
+   _In_ wchar_t *argv[],
+   _In_ int argc,
+   _In_z_ const wchar_t *szOption,
+   _In_ TYPE_CONFIG ElementType,
+   _Out_ PVOID pvElementValue
+)
+{
+   size_t SizeArg;
+
+   for (int i = 1; i < argc; i++)
+   {
+      if (!wcscmp(argv[i], szOption))
+      {
+         LPWSTR szNextArg;
+
+         if (i < (argc - 1))
+            szNextArg = argv[i + 1];
+         else
+            szNextArg = NULL;
+
+         switch (ElementType)
+         {
+         case ConfigTypeBool:
+            *(PBOOL)pvElementValue = TRUE;
+            break;
+
+         case ConfigTypeString:
+            if (szNextArg == NULL)
+            {
+               Log(
+                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+                  "[!] %sNot enough arguments%s.", COLOR_RED, COLOR_RESET
+               );
+               return FALSE;
+            }
+            if ((SizeArg = wcslen(szNextArg)) > 0)
+            {
+               *(LPWSTR*)pvElementValue = (LPWSTR)_HeapAlloc((SizeArg + 1) * sizeof(wchar_t));
+               memcpy(*(LPWSTR*)pvElementValue, szNextArg, SizeArg * sizeof(wchar_t));
+            }
+            else
+               *(LPWSTR*)pvElementValue = NULL;
+            break;
+
+         case ConfigTypeUnsignedInterger:
+            if (szNextArg == NULL)
+            {
+               Log(
+                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+                  "[!] %sNot enough arguments%s.", COLOR_RED, COLOR_RESET
+               );
+               return FALSE;
+            }
+            *(PDWORD)pvElementValue = pConvertStringToInt(szNextArg);
+            break;
+
+         default:
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+               "[!] %sUnknown config type%s.", COLOR_RED, COLOR_RESET
+            );
+            return FALSE;
+         }
+      }
+   }
+
+   // No error (but argument may be not present)
    return TRUE;
 }

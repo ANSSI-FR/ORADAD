@@ -3,6 +3,7 @@
 #include "ORADAD.h"
 
 extern HANDLE g_hHeap;
+extern BOOL g_bSupportsAnsi;
 
 //
 // Public functions
@@ -21,7 +22,7 @@ BufferInitialize (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "Unable to open outfile %S (error %u).", szFilename, GetLastError()
+         "[!] %sUnable to open outfile %S%s (error %u).", COLOR_RED, szFilename, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }

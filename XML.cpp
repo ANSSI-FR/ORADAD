@@ -2,8 +2,10 @@
 #include <msxml6.h>
 #include <atlcomcli.h>
 #include "ORADAD.h"
+#include "resource.h"
 
 extern HANDLE g_hHeap;
+extern BOOL g_bSupportsAnsi;
 
 //
 // Private functions
@@ -82,7 +84,6 @@ XmlReadConfigFile (
    _In_ PGLOBAL_CONFIG pGlobalConfig
 )
 {
-   BOOL bResult;
    HRESULT hr;
    VARIANT_BOOL bSuccess = false;
 
@@ -94,7 +95,7 @@ XmlReadConfigFile (
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "Read config file."
+      "[.] Read config file."
    );
 
    hr = CoCreateInstance(CLSID_FreeThreadedDOMDocument60, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument2, (void**)&pXMLDoc);
@@ -102,7 +103,7 @@ XmlReadConfigFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-         "Unable to create XML object (error 0x%08x).", hr
+         "[!] %sUnable to create config XML object (error 0x%08x).%s", COLOR_RED, hr, COLOR_RESET
       );
       return NULL;
    }
@@ -131,7 +132,7 @@ XmlReadConfigFile (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-            "Unable to parse XML (%s).", szError
+            "[!] %sUnable to parse config XML (%s).%s", COLOR_RED, szError, COLOR_RESET
          );
          _SafeHeapRelease(szError);
       }
@@ -195,20 +196,132 @@ XmlReadConfigFile (
       pGlobalConfig->bAllDomainsInForest = FALSE;
    }
 
+   return pXMLDoc;
+}
+
+PVOID
+XmlReadSchemaFile (
+   _In_z_ LPTSTR szConfigPath,
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ PVOID pXMLDocConfig
+)
+{
+   BOOL bResult;
+   HRESULT hr;
+   VARIANT_BOOL bSuccess = false;
+
+   IXMLDOMDocument2 *pXMLDoc = NULL;
+   IXMLDOMDocument2 *pXMLDocConfig2 = (IXMLDOMDocument2 *)pXMLDocConfig;
+   IXMLDOMNode *pXMLNode = NULL;
+   IXMLDOMNodeList *pXMLNodeList = NULL;
+
+   HMODULE hCurrentProcess;
+   DWORD dwSchemaSize;
+   HRSRC hrSchema;
+   HGLOBAL hResource;
+   PBYTE pSchema = NULL;
+   SAFEARRAY* psaSchema;
+
+   long lLength;
+
+   Log(
+      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
+      "[.] Read schema file."
+   );
+
+   hr = CoCreateInstance(CLSID_FreeThreadedDOMDocument60, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument2, (void**)&pXMLDoc);
+   if ((hr != S_OK) || (pXMLDoc == NULL))
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+         "[!] %sUnable to create XML object (error 0x%08x).%s", COLOR_RED, hr, COLOR_RESET
+      );
+      return NULL;
+   }
+
+   hr = pXMLDoc->put_async(VARIANT_FALSE);
+
    //
-   // Read Attributes
+   // Load file
    //
-   bResult = pReadAttributes(pXMLDoc, L"/configORADAD/schema/rootDSEAttributes/attribute", &pGlobalConfig->dwRootDSEAttributesCount, &pGlobalConfig->pRootDSEAttributes);
+   if (szConfigPath != NULL)
+   {
+      hr = pXMLDoc->load(CComVariant(szConfigPath), &bSuccess);
+   }
+   else
+   {
+      // Load config from resource
+      hCurrentProcess = GetModuleHandle(NULL);
+      hrSchema = FindResource(hCurrentProcess, MAKEINTRESOURCE(IDR_SCHEMA), TEXT("SCHEMA"));
+      if (hrSchema != NULL)
+      {
+         hResource = LoadResource(hCurrentProcess, hrSchema);
+         if (hResource != NULL)
+         {
+            dwSchemaSize = SizeofResource(hCurrentProcess, hrSchema);
+            pSchema = (PBYTE)LockResource(hResource);
+         }
+      }
+      if (pSchema == NULL)
+      {
+         _SafeCOMRelease(pXMLDoc);
+         return NULL;
+      }
+
+      SAFEARRAYBOUND rgsabound[1];
+      rgsabound[0].lLbound = 0;
+      rgsabound[0].cElements = dwSchemaSize;
+      psaSchema = SafeArrayCreate(VT_UI1, 1, rgsabound);
+      memcpy(psaSchema->pvData, pSchema, dwSchemaSize);
+
+      VARIANT v;
+      VariantInit(&v);
+      V_VT(&v) = VT_ARRAY | VT_UI1;
+      V_ARRAY(&v) = psaSchema;
+
+      hr = pXMLDoc->load(v, &bSuccess);
+   }
+
+   if ((hr != S_OK) || (bSuccess == FALSE))
+   {
+      IXMLDOMParseError *pXmlParseError = NULL;
+      BSTR strError;
+      LPSTR szError;
+
+      hr = pXMLDoc->get_parseError(&pXmlParseError);
+      hr = pXmlParseError->get_reason(&strError);
+
+      RemoveSpecialChars(strError);
+      szError = LPWSTRtoLPSTR(strError);
+
+      if (szError != NULL)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+            "[!] %sUnable to parse schema XML (%s).%s", COLOR_RED, szError, COLOR_RESET
+         );
+         _SafeHeapRelease(szError);
+      }
+
+      _SafeCOMRelease(pXmlParseError);
+      _SafeCOMRelease(pXMLDoc);
+      return NULL;
+   }
+
+   //
+// Read Attributes
+//
+   bResult = pReadAttributes(pXMLDoc, L"/schema/rootDSEAttributes/attribute", &pGlobalConfig->dwRootDSEAttributesCount, &pGlobalConfig->pRootDSEAttributes);
    if (bResult == FALSE)
       return NULL;
-   bResult = pReadAttributes(pXMLDoc, L"/configORADAD/schema/attributes/attribute", &pGlobalConfig->dwAttributesCount, &pGlobalConfig->pAttributes);
+   bResult = pReadAttributes(pXMLDoc, L"/schema/attributes/attribute", &pGlobalConfig->dwAttributesCount, &pGlobalConfig->pAttributes);
    if (bResult == FALSE)
       return NULL;
 
    //
    // Read Requests
    //
-   hr = pXMLDoc->selectNodes((BSTR)TEXT("/configORADAD/requests/request"), &pXMLNodeList);
+   hr = pXMLDocConfig2->selectNodes((BSTR)TEXT("/configORADAD/requests/request"), &pXMLNodeList);
    hr = pXMLNodeList->get_length(&lLength);
 
    pGlobalConfig->dwRequestCount = lLength;
@@ -343,7 +456,7 @@ pReadAttributes (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-            "Unknown type (%S).", szType
+            "[!] %sUnknown type (%S).%s", COLOR_RED, szType, COLOR_RESET
          );
          return FALSE;
       }
@@ -424,7 +537,7 @@ pAddClassAttributes (
 
    BOOL bAttributeNotFound = FALSE;
 
-   swprintf_s(szXPath, MAX_PATH, L"/configORADAD/schema/classes/class[@name=\"%s\"]/attribute", szClassName);
+   swprintf_s(szXPath, MAX_PATH, L"/schema/classes/class[@name=\"%s\"]/attribute", szClassName);
 
    hr = pXMLDoc->selectNodes(szXPath, &pXMLNodeList);
    hr = pXMLNodeList->get_length(&lLength);
@@ -463,7 +576,7 @@ pAddClassAttributes (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-            "Attribute not found (%S).", szAttributeName
+            "[!] %sAttribute not found (%S).%s", COLOR_RED, szAttributeName, COLOR_RESET
          );
          bAttributeNotFound = TRUE;
       }
@@ -517,7 +630,7 @@ pGetAttributeByNameForRequest (
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-      "Attribute '%S' not found.", szAttributeName
+      "[!] %sAttribute '%S' not found.%s", COLOR_RED, szAttributeName, COLOR_RESET
    );
    return FALSE;
 }
@@ -551,7 +664,7 @@ pAddClassToRequest (
    //
    // Find class
    //
-   swprintf_s(szXPath, MAX_PATH, L"/configORADAD/schema/classes/class[@name=\"%s\"]", szClassName);
+   swprintf_s(szXPath, MAX_PATH, L"/schema/classes/class[@name=\"%s\"]", szClassName);
 
    hr = pXMLDoc->selectNodes(szXPath, &pXMLNodeListClass);
    hr = pXMLNodeListClass->get_length(&lLength);
@@ -559,7 +672,7 @@ pAddClassToRequest (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-         "Class '%S' not found for request '%S'.", szClassName, pRequest->szName
+         "[!] %sClass '%S' not found for request '%S'.%s", COLOR_RED, szClassName, pRequest->szName, COLOR_RESET
       );
       return FALSE;
    }
