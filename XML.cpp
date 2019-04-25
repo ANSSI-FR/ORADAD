@@ -179,6 +179,14 @@ XmlReadConfigFile (
          pGlobalConfig->dwSleepTime = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"writeHeader") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->bWriteHeader = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"compression") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bCompressionEnabled = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"encryption") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bEncryptionEnabled = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"tar_output") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bTarballEnabled = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"public_key") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->szPublicKey = strNodeText;
 
       _SafeCOMRelease(pXmlNodeConfig);
    }
@@ -309,8 +317,8 @@ XmlReadSchemaFile (
    }
 
    //
-// Read Attributes
-//
+   // Read Attributes
+   //
    bResult = pReadAttributes(pXMLDoc, L"/schema/rootDSEAttributes/attribute", &pGlobalConfig->dwRootDSEAttributesCount, &pGlobalConfig->pRootDSEAttributes);
    if (bResult == FALSE)
       return NULL;

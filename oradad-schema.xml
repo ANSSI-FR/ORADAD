@@ -288,35 +288,35 @@
         <attribute name="friendlyNames" level="9" type="STRS" />
         <attribute name="fromEntry" level="9" type="BOOL" />
         <attribute name="fromServer" level="1" type="STR" />
-        <attribute name="frsComputerReference" level="9" type="STR" />
-        <attribute name="frsComputerReferenceBL" level="9" type="STRS" />
+        <attribute name="frsComputerReference" level="1" type="STR" />
+        <attribute name="frsComputerReferenceBL" level="1" type="STRS" />
         <attribute name="fRSControlDataCreation" level="9" type="STR" />
         <attribute name="fRSControlInboundBacklog" level="9" type="STR" />
         <attribute name="fRSControlOutboundBacklog" level="9" type="STR" />
         <attribute name="fRSDirectoryFilter" level="9" type="STR" />
         <attribute name="fRSDSPoll" level="9" type="INT" />
-        <attribute name="fRSExtensions" level="9" type="BIN" />
+        <attribute name="fRSExtensions" level="2" type="BIN" />
         <attribute name="fRSFaultCondition" level="9" type="STR" />
-        <attribute name="fRSFileFilter" level="9" type="STR" />
-        <attribute name="fRSFlags" level="9" type="INT" />
+        <attribute name="fRSFileFilter" level="3" type="STR" />
+        <attribute name="fRSFlags" level="2" type="INT" />
         <attribute name="fRSLevelLimit" level="9" type="INT" />
-        <attribute name="fRSMemberReference" level="9" type="STR" />
-        <attribute name="fRSMemberReferenceBL" level="9" type="STRS" />
+        <attribute name="fRSMemberReference" level="1" type="STR" />
+        <attribute name="fRSMemberReferenceBL" level="1" type="STRS" />
         <attribute name="fRSPartnerAuthLevel" level="9" type="INT" />
         <attribute name="fRSPrimaryMember" level="9" type="STR" />
-        <attribute name="fRSReplicaSetGUID" level="9" type="BIN" />
-        <attribute name="fRSReplicaSetType" level="9" type="INT" />
+        <attribute name="fRSReplicaSetGUID" level="3" type="GUID" />
+        <attribute name="fRSReplicaSetType" level="2" type="INT" />
         <attribute name="fRSRootPath" level="2" type="STR" />
         <attribute name="fRSRootSecurity" level="9" type="SD" />
         <attribute name="fRSServiceCommand" level="9" type="STR" />
         <attribute name="fRSServiceCommandStatus" level="9" type="STR" />
-        <attribute name="fRSStagingPath" level="9" type="STR" />
+        <attribute name="fRSStagingPath" level="2" type="STR" />
         <attribute name="fRSTimeLastCommand" level="9" type="DATE" />
         <attribute name="fRSTimeLastConfigChange" level="9" type="DATE" />
         <attribute name="fRSUpdateTimeout" level="9" type="INT" />
-        <attribute name="fRSVersion" level="9" type="STR" />
-        <attribute name="fRSVersionGUID" level="9" type="BIN" />
-        <attribute name="fRSWorkingPath" level="9" type="STR" />
+        <attribute name="fRSVersion" level="3" type="STR" />
+        <attribute name="fRSVersionGUID" level="3" type="GUID" />
+        <attribute name="fRSWorkingPath" level="2" type="STR" />
         <attribute name="fSMORoleOwner" level="1" type="STR" />
         <attribute name="garbageCollPeriod" level="2" type="INT" />
         <attribute name="gecos" level="9" type="STR" />
@@ -494,61 +494,61 @@
         <attribute name="msCOM-UserPartitionSetLink" level="9" type="STR" />
         <attribute name="mscopeId" level="9" type="STR" />
         <attribute name="msDFS-Commentv2" level="9" type="STR" />
-        <attribute name="msDFS-GenerationGUIDv2" level="9" type="BIN" />
-        <attribute name="msDFS-LastModifiedv2" level="9" type="DATE" />
+        <attribute name="msDFS-GenerationGUIDv2" level="2" type="GUID" />
+        <attribute name="msDFS-LastModifiedv2" level="2" type="DATE" />
         <attribute name="msDFS-LinkIdentityGUIDv2" level="9" type="BIN" />
         <attribute name="msDFS-LinkPathv2" level="9" type="STR" />
         <attribute name="msDFS-LinkSecurityDescriptorv2" level="9" type="SD" />
-        <attribute name="msDFS-NamespaceIdentityGUIDv2" level="9" type="BIN" />
-        <attribute name="msDFS-Propertiesv2" level="9" type="STRS" />
+        <attribute name="msDFS-NamespaceIdentityGUIDv2" level="2" type="GUID" />
+        <attribute name="msDFS-Propertiesv2" level="2" type="STRS" />
         <attribute name="msDFSR-CachePolicy" level="9" type="INT" />
-        <attribute name="msDFSR-CommonStagingPath" level="9" type="STR" />
+        <attribute name="msDFSR-CommonStagingPath" level="2" type="STR" />
         <attribute name="msDFSR-CommonStagingSizeInMb" level="9" type="INT64" />
-        <attribute name="msDFSR-ComputerReference" level="9" type="STR" />
-        <attribute name="msDFSR-ComputerReferenceBL" level="9" type="STRS" />
-        <attribute name="msDFSR-ConflictPath" level="9" type="STR" />
+        <attribute name="msDFSR-ComputerReference" level="2" type="STR" />
+        <attribute name="msDFSR-ComputerReferenceBL" level="2" type="STRS" />
+        <attribute name="msDFSR-ConflictPath" level="2" type="STR" />
         <attribute name="msDFSR-ConflictSizeInMb" level="9" type="INT64" />
-        <attribute name="msDFSR-ContentSetGuid" level="9" type="BIN" />
-        <attribute name="msDFSR-DefaultCompressionExclusionFilter" level="9" type="STR" />
-        <attribute name="msDFSR-DeletedPath" level="9" type="STR" />
+        <attribute name="msDFSR-ContentSetGuid" level="1" type="GUID" />
+        <attribute name="msDFSR-DefaultCompressionExclusionFilter" level="3" type="STR" />
+        <attribute name="msDFSR-DeletedPath" level="2" type="STR" />
         <attribute name="msDFSR-DeletedSizeInMb" level="9" type="INT64" />
         <attribute name="msDFSR-DfsLinkTarget" level="9" type="STR" />
-        <attribute name="msDFSR-DfsPath" level="9" type="STR" />
-        <attribute name="msDFSR-DirectoryFilter" level="9" type="STR" />
+        <attribute name="msDFSR-DfsPath" level="2" type="STR" />
+        <attribute name="msDFSR-DirectoryFilter" level="3" type="STR" />
         <attribute name="msDFSR-DisablePacketPrivacy" level="9" type="BOOL" />
-        <attribute name="msDFSR-Enabled" level="9" type="BOOL" />
-        <attribute name="msDFSR-Extension" level="9" type="BIN" />
-        <attribute name="msDFSR-FileFilter" level="9" type="STR" />
-        <attribute name="msDFSR-Flags" level="9" type="INT" />
+        <attribute name="msDFSR-Enabled" level="2" type="BOOL" />
+        <attribute name="msDFSR-Extension" level="2" type="BIN" />
+        <attribute name="msDFSR-FileFilter" level="3" type="STR" />
+        <attribute name="msDFSR-Flags" level="2" type="INT" />
         <attribute name="msDFSR-Keywords" level="9" type="STR" />
         <attribute name="msDFSR-MaxAgeInCacheInMin" level="9" type="INT" />
-        <attribute name="msDFSR-MemberReference" level="9" type="STR" />
-        <attribute name="msDFSR-MemberReferenceBL" level="9" type="STRS" />
+        <attribute name="msDFSR-MemberReference" level="2" type="STR" />
+        <attribute name="msDFSR-MemberReferenceBL" level="2" type="STRS" />
         <attribute name="msDFSR-MinDurationCacheInMin" level="9" type="INT" />
-        <attribute name="msDFSR-OnDemandExclusionDirectoryFilter" level="9" type="STR" />
-        <attribute name="msDFSR-OnDemandExclusionFileFilter" level="9" type="STR" />
-        <attribute name="msDFSR-Options" level="9" type="INT" />
+        <attribute name="msDFSR-OnDemandExclusionDirectoryFilter" level="3" type="STR" />
+        <attribute name="msDFSR-OnDemandExclusionFileFilter" level="3" type="STR" />
+        <attribute name="msDFSR-Options" level="2" type="INT" />
         <attribute name="msDFSR-Options2" level="9" type="INT" />
         <attribute name="msDFSR-Priority" level="9" type="INT" />
         <attribute name="msDFSR-RdcEnabled" level="9" type="BOOL" />
         <attribute name="msDFSR-RdcMinFileSizeInKb" level="9" type="INT64" />
-        <attribute name="msDFSR-ReadOnly" level="9" type="BOOL" />
-        <attribute name="msDFSR-ReplicationGroupGuid" level="9" type="BIN" />
-        <attribute name="msDFSR-ReplicationGroupType" level="9" type="INT" />
+        <attribute name="msDFSR-ReadOnly" level="2" type="BOOL" />
+        <attribute name="msDFSR-ReplicationGroupGuid" level="1" type="GUID" />
+        <attribute name="msDFSR-ReplicationGroupType" level="1" type="INT" />
         <attribute name="msDFSR-RootFence" level="9" type="INT" />
-        <attribute name="msDFSR-RootPath" level="9" type="STR" />
+        <attribute name="msDFSR-RootPath" level="2" type="STR" />
         <attribute name="msDFSR-RootSizeInMb" level="9" type="INT64" />
-        <attribute name="msDFSR-Schedule" level="9" type="BIN" />
+        <attribute name="msDFSR-Schedule" level="3" type="BIN" />
         <attribute name="msDFSR-StagingCleanupTriggerInPercent" level="9" type="INT" />
-        <attribute name="msDFSR-StagingPath" level="9" type="STR" />
+        <attribute name="msDFSR-StagingPath" level="2" type="STR" />
         <attribute name="msDFSR-StagingSizeInMb" level="9" type="INT64" />
         <attribute name="msDFSR-TombstoneExpiryInMin" level="9" type="INT" />
-        <attribute name="msDFSR-Version" level="9" type="STR" />
-        <attribute name="msDFS-SchemaMajorVersion" level="9" type="INT" />
-        <attribute name="msDFS-SchemaMinorVersion" level="9" type="INT" />
+        <attribute name="msDFSR-Version" level="1" type="STR" />
+        <attribute name="msDFS-SchemaMajorVersion" level="1" type="INT" />
+        <attribute name="msDFS-SchemaMinorVersion" level="2" type="INT" />
         <attribute name="msDFS-ShortNameLinkPathv2" level="9" type="STR" />
-        <attribute name="msDFS-TargetListv2" level="9" type="BIN" />
-        <attribute name="msDFS-Ttlv2" level="9" type="INT" />
+        <attribute name="msDFS-TargetListv2" level="2" type="BIN" />
+        <attribute name="msDFS-Ttlv2" level="2" type="INT" />
         <attribute name="msDNS-DNSKEYRecords" level="9" type="BIN" />
         <attribute name="msDNS-DNSKEYRecordSetTTL" level="2" type="INT" />
         <attribute name="msDNS-DSRecordAlgorithms" level="3" type="INT" />
@@ -3696,10 +3696,10 @@
         <attribute name="msWMI-Int8Min" level="9" type="INT64" />
         <attribute name="msWMI-Int8ValidValues" level="9" type="INT64" />
         <attribute name="msWMI-IntDefault" level="9" type="INT" />
-        <attribute name="msWMI-intFlags1" level="4" type="INT" />
-        <attribute name="msWMI-intFlags2" level="4" type="INT" />
-        <attribute name="msWMI-intFlags3" level="4" type="INT" />
-        <attribute name="msWMI-intFlags4" level="4" type="INT" />
+        <attribute name="msWMI-intFlags1" level="9" type="INT" />
+        <attribute name="msWMI-intFlags2" level="9" type="INT" />
+        <attribute name="msWMI-intFlags3" level="9" type="INT" />
+        <attribute name="msWMI-intFlags4" level="9" type="INT" />
         <attribute name="msWMI-IntMax" level="9" type="INT" />
         <attribute name="msWMI-IntMin" level="9" type="INT" />
         <attribute name="msWMI-IntValidValues" level="9" type="INT" />
@@ -3708,8 +3708,8 @@
         <attribute name="msWMI-NormalizedClass" level="9" type="STRS" />
         <attribute name="msWMI-Parm1" level="1" type="STR" />
         <attribute name="msWMI-Parm2" level="1" type="STR" />
-        <attribute name="msWMI-Parm3" level="4" type="STR" />
-        <attribute name="msWMI-Parm4" level="4" type="STR" />
+        <attribute name="msWMI-Parm3" level="9" type="STR" />
+        <attribute name="msWMI-Parm4" level="9" type="STR" />
         <attribute name="msWMI-PropertyName" level="9" type="STR" />
         <attribute name="msWMI-Query" level="9" type="STR" />
         <attribute name="msWMI-QueryLanguage" level="9" type="STR" />
@@ -3830,8 +3830,8 @@
         <attribute name="pKIKeyUsage" level="9" type="BIN" />
         <attribute name="pKIMaxIssuingDepth" level="9" type="INT" />
         <attribute name="pKIOverlapPeriod" level="9" type="BIN" />
-        <attribute name="pKT" level="9" type="BIN" />
-        <attribute name="pKTGuid" level="9" type="BIN" />
+        <attribute name="pKT" level="2" type="BIN" />
+        <attribute name="pKTGuid" level="2" type="GUID" />
         <attribute name="policyReplicationFlags" level="9" type="INT" />
         <attribute name="portName" level="9" type="STRS" />
         <attribute name="possibleInferiors" level="9" type="STRS" />
@@ -3911,7 +3911,7 @@
         <attribute name="name" level="1" type="STR" />
         <attribute name="rDNAttID" level="9" type="STR" />
         <attribute name="registeredAddress" level="9" type="BIN" />
-        <attribute name="remoteServerName" level="9" type="STRS" />
+        <attribute name="remoteServerName" level="2" type="STRS" />
         <attribute name="remoteSource" level="9" type="STR" />
         <attribute name="remoteSourceType" level="9" type="INT" />
         <attribute name="remoteStorageGUID" level="9" type="STR" />

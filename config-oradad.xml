@@ -8,9 +8,27 @@
       <userpassword></userpassword>
       <allDomainsInForest>1</allDomainsInForest>
       <forestDomains></forestDomains>              <!-- When [dsgetdc] is not used and allDomainsInForest=1, add the domain list here, comma separated -->
-      <level>3</level>
+      <level>4</level>
       <writeHeader>0</writeHeader>
       <sleepTime>0</sleepTime>
+      <compression>1</compression>                  <!-- Enable output compression -->
+      <encryption>1</encryption>                    <!-- Enable output encryption -->
+      <tar_output>1</tar_output>                    <!-- Create output tarball -->
+      <public_key><![CDATA[
+-----BEGIN RSA PUBLIC KEY-----
+MIICCgKCAgEAxn4jtdImtMmJt3EvyhpqFJogYTXpYI2Iu/WXcWmP8dVx7UNza9H3
+MUMdMRGTeaWVcOI1kwGCXp4z0zNZORTCeQT6uiqgEJY3YV7JGD5e7jjKrH3C1cjX
+YYCx7AFNUCXmpQCswVwHmrJo7mEmkrfhS4IsZI5S1tyjJ8ed66TnkVWE10350hG6
+78+7lbaisWo5Pikv0lrFUXXT/1x3Hpk+05sUqPQWTFWrpqvBeE2CkgKgXUqPDw5o
+2TgsBIVmHwypyNUnZpg77qFwbC8+4ceDTqRoRfKyTxuT1JAQncMriCBObn1/9lTh
+Y5MhErKInYtKRjIratfYFf2tV7GOdOgFmJWCwOFhOGet0pQIAct76S6kMQB361wz
+1hTmdQlWYdelZyL5/FlJYRv0Trxa/7jgMsnzZN7BVaYufYrX2LKxakaUjQ8fzRJC
+i6XB0IZXwFJa2H3MIU0Bbrz5DMMLuMPIFxJlL8a9HUosk/Ep5WneEY+rd+Kx6YeZ
+TQzRFMuvEUcb5l6nmin0OHvsNWrWJPo6B5Dx9AWbobo+pY3xiyRY8yH6X0jn/FVn
+OjnVBWX4PBU0lkya52E/YCRki8+wLsZiVHNFlHTdBDXmsuDGVt6FC94WBl3eLc8m
+McKq/wdFBJluQrF/2wmvBX8A4xJkEGFu1cyHLue1vbCG3ATpP3kAMtECAwEAAQ==
+-----END RSA PUBLIC KEY-----
+]]></public_key>                                    <!-- RSAPublicKey format: use -RSAPublicKey_out with openssl, -pubout won't work -->
    </config>
    <requests>
       <!-- rootDSE -->
@@ -19,7 +37,52 @@
          <description>rootDSE information</description>
          <base>rootDSE</base>
       </request>
+      <!-- Top -->
+      <request>
+         <name>top</name>
+         <description>All objects general information</description>
+         <base>domain,configuration,schema,domainDNS,forestDNS</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=*)</filter>
+         <classes>top</classes>
+         <controls>
+            <control ctrlType="server" oid="1.2.840.113556.1.4.801" valueType="int" value="7" description="LDAP_SERVER_SD_FLAGS_OID" />
+         </controls>
+      </request>
+      <!-- Schema -->
+      <request>
+         <name>class</name>
+         <description>All classes from schema</description>
+         <base>schema</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=classSchema)</filter>
+         <classes>classSchema</classes>
+      </request>
+      <request>
+         <name>attribute</name>
+         <description>All attributes from schema</description>
+         <base>schema</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=attributeSchema)</filter>
+         <classes>attributeSchema</classes>
+      </request>
       <!-- Domain -->
+      <request>
+         <name>root</name>
+         <description>Root from domain</description>
+         <base>domain</base>
+         <scope>base</scope>
+         <filter>(|(objectClass=domain)(objectClass=domainDNS))</filter>
+         <classes>domain,domainDNS</classes>
+      </request>
+      <request>
+         <name>foreignSecurityPrincipal</name>
+         <description>All foreignSecurityPrincipal from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=foreignSecurityPrincipal)</filter>
+         <classes>foreignSecurityPrincipal</classes>
+      </request>
       <request>
          <name>user</name>
          <description>All users from domain</description>
@@ -29,12 +92,385 @@
          <classes>person,organizationalPerson,user</classes>
       </request>
       <request>
+         <name>computer</name>
+         <description>All computers from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(&amp;(objectClass=computer)(!(|(objectClass=msDS-ManagedServiceAccount)(objectClass=msDS-GroupManagedServiceAccount))))</filter>
+         <classes>person,organizationalPerson,user,computer</classes>
+      </request>
+      <request>
+         <name>trustedDomain</name>
+         <description>All trusts from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=trustedDomain)</filter>
+         <classes>trustedDomain</classes>
+      </request>
+      <request>
+         <name>smsa</name>
+         <description>All sMSA from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDS-ManagedServiceAccount)</filter>
+         <classes>person,organizationalPerson,user,computer,msDS-ManagedServiceAccount</classes>
+      </request>
+      <request>
+         <name>gmsa</name>
+         <description>All gMSA from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDS-GroupManagedServiceAccount)</filter>
+         <classes>person,organizationalPerson,user,computer,msDS-GroupManagedServiceAccount</classes>
+      </request>
+      <request>
          <name>group</name>
          <description>All groups from domain</description>
          <base>domain</base>
          <scope>subtree</scope>
          <filter>(objectClass=group)</filter>
          <classes>group</classes>
+      </request>
+      <request>
+         <name>ou</name>
+         <description>All OU from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=organizationalUnit)</filter>
+         <classes>organizationalUnit</classes>
+      </request>
+      <request>
+         <name>gpo</name>
+         <description>All GPO from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=groupPolicyContainer)</filter>
+         <classes>container,groupPolicyContainer</classes>
+      </request>
+      <request>
+         <name>msWMI-Som</name>
+         <description>All msWMI-Som from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msWMI-Som)</filter>
+         <classes>msWMI-Som</classes>
+      </request>
+      <request>
+         <name>passwordSettings</name>
+         <description>All PSO from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDS-PasswordSettings)</filter>
+         <classes>msDS-PasswordSettings</classes>
+      </request>
+      <request>
+         <name>rIDManager</name>
+         <description>All rIDManager from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=rIDManager)</filter>
+         <classes>rIDManager</classes>
+      </request>
+      <request>
+         <name>infrastructureUpdate</name>
+         <description>All infrastructureUpdate from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=infrastructureUpdate)</filter>
+         <classes>infrastructureUpdate</classes>
+      </request>
+      <!-- DFS DC -->
+      <request>
+         <name>msDFSR-LocalSettings</name>
+         <description>All msDFSR-LocalSettings from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-LocalSettings)</filter>
+         <classes>msDFSR-LocalSettings</classes>
+      </request>
+      <request>
+         <name>msDFSR-Subscriber</name>
+         <description>All msDFSR-Subscriber from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-Subscriber)</filter>
+         <classes>msDFSR-Subscriber</classes>
+      </request>
+      <request>
+         <name>msDFSR-Subscription</name>
+         <description>All msDFSR-Subscription from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-Subscription)</filter>
+         <classes>msDFSR-Subscription</classes>
+      </request>
+      <!-- FRS DC -->
+      <request>
+         <name>nTFRSSubscriptions</name>
+         <description>All nTFRSSubscriptions from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTFRSSubscriptions)</filter>
+         <classes>nTFRSSubscriptions</classes>
+      </request>
+      <request>
+         <name>nTFRSSubscriber</name>
+         <description>All nTFRSSubscriber from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTFRSSubscriber)</filter>
+         <classes>nTFRSSubscriber</classes>
+      </request>
+      <!-- DFSN System -->
+      <!-- Empty
+      <request>
+         <name>dfsConfiguration</name>
+         <description>All dfsConfiguration from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=dfsConfiguration)</filter>
+         <classes>dfsConfiguration</classes>
+      </request>
+       -->
+      <!-- v1 -->
+      <request>
+         <name>fTDfs</name>
+         <description>All fTDfs from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=fTDfs)</filter>
+         <classes>fTDfs</classes>
+      </request>
+      <!-- v2 -->
+      <request>
+         <name>msDFS-NamespaceAnchor</name>
+         <description>All msDFS-NamespaceAnchor from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFS-NamespaceAnchor)</filter>
+         <classes>msDFS-NamespaceAnchor</classes>
+      </request>
+      <request>
+         <name>msDFS-Namespacev2</name>
+         <description>All msDFS-Namespacev2 from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFS-Namespacev2)</filter>
+         <classes>msDFS-Namespacev2</classes>
+      </request>
+      <!-- DFS System -->
+      <request>
+         <name>msDFSR-GlobalSettings</name>
+         <description>All msDFSR-GlobalSettings from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-GlobalSettings)</filter>
+         <classes>msDFSR-GlobalSettings</classes>
+      </request>
+      <request>
+         <name>msDFSR-ReplicationGroup</name>
+         <description>All msDFSR-ReplicationGroup from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-ReplicationGroup)</filter>
+         <classes>msDFSR-ReplicationGroup</classes>
+      </request>
+      <request>
+         <name>msDFSR-Content</name>
+         <description>All msDFSR-Content from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-Content)</filter>
+         <classes>msDFSR-Content</classes>
+      </request>
+      <request>
+         <name>msDFSR-ContentSet</name>
+         <description>All msDFSR-ContentSet from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-ContentSet)</filter>
+         <classes>msDFSR-ContentSet</classes>
+      </request>
+      <request>
+         <name>msDFSR-Connection</name>
+         <description>All msDFSR-Connection from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-Connection)</filter>
+         <classes>msDFSR-Connection</classes>
+      </request>
+      <request>
+         <name>msDFSR-Topology</name>
+         <description>All msDFSR-Topology from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-Topology)</filter>
+         <classes>msDFSR-Topology</classes>
+      </request>
+      <request>
+         <name>msDFSR-Member</name>
+         <description>All msDFSR-Member from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDFSR-Member)</filter>
+         <classes>msDFSR-Member</classes>
+      </request>
+      <!-- FRS System -->
+      <!-- Useless
+      <request>
+         <name>nTFRSSettings</name>
+         <description>All nTFRSSettings from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTFRSSettings)</filter>
+         <classes>nTFRSSettings</classes>
+      </request>
+      -->
+      <request>
+         <name>nTFRSReplicaSet</name>
+         <description>All nTFRSReplicaSet from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTFRSReplicaSet)</filter>
+         <classes>nTFRSReplicaSet</classes>
+      </request>
+      <request>
+         <name>nTFRSMember</name>
+         <description>All nTFRSMember from domain</description>
+         <base>domain</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTFRSMember)</filter>
+         <classes>nTFRSMember</classes>
+      </request>
+      <!-- Configuration -->
+      <request>
+         <name>controlAccessRight</name>
+         <description>All controlAccessRights from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=controlAccessRight)</filter>
+         <classes>controlAccessRight</classes>
+      </request>
+      <request>
+         <name>foreignSecurityPrincipal</name>
+         <description>All foreignSecurityPrincipal from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=foreignSecurityPrincipal)</filter>
+         <classes>foreignSecurityPrincipal</classes>
+      </request>
+      <request>
+         <name>site</name>
+         <description>All sites from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=site)</filter>
+         <classes>site</classes>
+      </request>
+      <request>
+         <name>siteLink</name>
+         <description>All site-links from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=siteLink)</filter>
+         <classes>siteLink</classes>
+      </request>
+      <request>
+         <name>subnet</name>
+         <description>All subnets from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=subnet)</filter>
+         <classes>subnet</classes>
+      </request>
+      <request>
+         <name>server</name>
+         <description>All servers from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=server)</filter>
+         <classes>server</classes>
+      </request>
+      <request>
+         <name>nTDSDSA</name>
+         <description>All nTDSDSA from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(&amp;(objectClass=nTDSDSA)(objectClass=applicationSettings))</filter>
+         <classes>nTDSDSA,applicationSettings</classes>
+      </request>
+      <request>
+         <name>nTDSConnection</name>
+         <description>All nTDSConnection from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTDSConnection)</filter>
+         <classes>nTDSConnection</classes>
+      </request>
+      <request>
+         <name>certificationauthority</name>
+         <description>All certificationAuthority from configuration</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=certificationAuthority)</filter>
+         <classes>certificationAuthority</classes>
+      </request>
+      <request>
+         <name>authNPolicy</name>
+         <description>All Authentication policies from configuration partitions</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDS-AuthNPolicy)</filter>
+         <classes>msDS-AuthNPolicy</classes>
+      </request>
+      <request>
+         <name>authNPolicySilo</name>
+         <description>All Authentication policiy silos from configuration partitions</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=msDS-AuthNPolicySilo)</filter>
+         <classes>msDS-AuthNPolicySilo</classes>
+      </request>
+      <request>
+         <name>crossRefContainer</name>
+         <description>All crossRefContainer from configuration partitions</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=crossRefContainer)</filter>
+         <classes>crossRefContainer</classes>
+      </request>
+      <request>
+         <name>crossRef</name>
+         <description>All crossRef from configuration partitions</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=crossRef)</filter>
+         <classes>crossRef</classes>
+      </request>
+      <request>
+         <name>nTDSService</name>
+         <description>All nTDSService from configuration partitions</description>
+         <base>configuration</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=nTDSService)</filter>
+         <classes>nTDSService</classes>
+      </request>
+      <!-- DNS -->
+      <request>
+         <name>dnsZone</name>
+         <description>All DNS zones from DNS partitions</description>
+         <base>domainDNS,forestDNS</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=dnsZone)</filter>
+         <classes>dnsZone</classes>
+      </request>
+      <request>
+         <name>dnsNode</name>
+         <description>All DNS entries from DNS partitions</description>
+         <base>domainDNS,forestDNS</base>
+         <scope>subtree</scope>
+         <filter>(objectClass=dnsNode)</filter>
+         <classes>dnsNode</classes>
       </request>
    </requests>
 </configORADAD>

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <Winber.h>
 #include <sddl.h>
+#include <intsafe.h>
 #include "ORADAD.h"
 
 #define MAX_ATTRIBUTE_NAME       64
@@ -93,8 +94,8 @@ LdapGetRootDse (
    if (ulResult != LDAP_SUCCESS)
    {
       Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "[!] %sError in ldap_search_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sError in ldap_search_s(rootdse)%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       return FALSE;
    }
@@ -531,7 +532,7 @@ LdapProcessRequest (
       if (ulResult != LDAP_SUCCESS)
       {
          Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
             "[!] %sError in ldap_search_ext_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
@@ -1056,7 +1057,7 @@ LdapProcessRequest (
       if (ulResult != LDAP_SUCCESS)
       {
          Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
             "[!] %sError in ldap_parse_result()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
@@ -1066,7 +1067,7 @@ LdapProcessRequest (
       if (ulResult != LDAP_SUCCESS)
       {
          Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
             "[!] %sError in ldap_parse_page_control()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
@@ -1087,7 +1088,7 @@ LdapProcessRequest (
       if (ulResult != LDAP_SUCCESS)
       {
          Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
             "[!] %sError in ldap_create_page_control()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
@@ -1197,9 +1198,9 @@ pLdapOpenConnection (
       Auth.User = (USHORT*)pGlobalConfig->szUsername;
       Auth.Domain = (USHORT*)pGlobalConfig->szUserDomain;
       Auth.Password = (USHORT*)pGlobalConfig->szUserPassword;
-      Auth.UserLength = wcslen(pGlobalConfig->szUsername);
-      Auth.DomainLength = wcslen(pGlobalConfig->szUserDomain);
-      Auth.PasswordLength = wcslen(pGlobalConfig->szUserPassword);
+      SIZETToULong(wcslen(pGlobalConfig->szUsername), &(Auth.UserLength));
+      SIZETToULong(wcslen(pGlobalConfig->szUserDomain), &(Auth.DomainLength));
+      SIZETToULong(wcslen(pGlobalConfig->szUserPassword), &(Auth.PasswordLength));
 
       ulResult = ldap_bind_s(pLdapHandle, NULL, (PWCHAR)&Auth, LDAP_AUTH_NEGOTIATE);
    }
@@ -1512,8 +1513,8 @@ pGetRangedAttribute (
    if (ulResult != LDAP_SUCCESS)
    {
       Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "[!] %sError in ldap_search_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sError in ldap_search_s(%S)%s (error %u: %s).", COLOR_RED, szRangeAttrName, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       goto End;
    }

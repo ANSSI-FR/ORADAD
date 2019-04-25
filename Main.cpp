@@ -2,6 +2,7 @@
 #include <msxml6.h>
 #include <stdio.h>
 #include <tchar.h>
+#include <stdlib.h>
 #include "ORADAD.h"
 
 #pragma comment(lib, "msxml6.lib")
@@ -9,6 +10,8 @@
 #pragma comment(lib, "rpcrt4.lib")
 #pragma comment(lib, "NetApi32.lib")
 #pragma comment(lib, "Version.lib")
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "shlwapi.lib")
 
 HANDLE g_hHeap = NULL;
 HANDLE g_hStdOut;
@@ -24,6 +27,7 @@ wmain (
    wchar_t *argv[]
 )
 {
+   LPWSTR szResult;
    BOOL bResult;
    HRESULT hr;
    SYSTEMTIME st;
@@ -44,8 +48,8 @@ wmain (
    }
 
    //
-      // Initialization
-      //
+   // Initialization
+   //
    g_hHeap = HeapCreate(0, 0, 0);
    if (g_hHeap == NULL)
    {
@@ -79,7 +83,14 @@ wmain (
       return EXIT_SUCCESS;
    }
 
-   DuplicateString(argv[1], &g_GlobalConfig.szOutDirectory);
+   g_GlobalConfig.szOutDirectory = (LPWSTR)_HeapAlloc(MAX_PATH * sizeof(WCHAR));
+   szResult = _wfullpath(g_GlobalConfig.szOutDirectory, argv[1], MAX_PATH);
+   if (szResult == NULL)
+   {
+      fprintf_s(stderr, "[!] Unable to get absolute path. Exit.\n");
+      return EXIT_FAILURE;
+   }
+
    _stprintf_s(szPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szOutDirectory);
 
    g_hLogFile = CreateFile(szPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
@@ -111,7 +122,7 @@ wmain (
 
    if (szConfigPath == NULL)
    {
-      szConfigPath = (LPWSTR)_HeapAlloc(MAX_PATH);
+      szConfigPath = (LPWSTR)_HeapAlloc(MAX_PATH * sizeof(WCHAR));
       swprintf_s(szConfigPath, MAX_PATH, L"config-oradad.xml");
    }
 
@@ -181,14 +192,14 @@ End:
       MoveFile(szPath, szFinalPath);
    }
 
+   _SafeCOMRelease(pXMLDocConfig);
+   _SafeCOMRelease(pXMLDocSchema);
+   CoUninitialize();
+
    _SafeHeapRelease(szConfigPath);
    _SafeHeapRelease(szSchemaPath);
    _SafeHeapRelease(g_GlobalConfig.szOutDirectory);
    HeapDestroy(g_hHeap);
-
-   _SafeCOMRelease(pXMLDocConfig);
-   _SafeCOMRelease(pXMLDocSchema);
-   CoUninitialize();
 
    return EXIT_SUCCESS;
 }

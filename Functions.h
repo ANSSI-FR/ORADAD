@@ -1,3 +1,4 @@
+#pragma once
 //
 // XML.cpp
 //
@@ -126,8 +127,7 @@ GetCmdOption(
 // Buffer.cpp
 //
 BOOL
-BufferInitialize
-(
+BufferInitialize(
    _Out_ PBUFFER_DATA pBuffer,
    _In_z_ LPWSTR szFilename
 );
@@ -174,7 +174,8 @@ BufferWriteSemicolon(
 
 BOOL
 BufferSave(
-   _In_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ BOOL bFinal
 );
 
 //

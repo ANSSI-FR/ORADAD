@@ -1,3 +1,7 @@
+#pragma once
+#include <Windows.h>
+#include "lz4/lz4frame.h"
+
 //
 // Log levels
 //
@@ -167,9 +171,36 @@ typedef struct _BUFFER_DATA
    SIZE_T BufferSize;
    SIZE_T Position;
    PBYTE pbData;
+   SIZE_T PositionCompress;
+   SIZE_T DataCompressSize;
+   PBYTE pbDataCompress;
+   SIZE_T PositionEncrypt;
+   DWORD dwEncryptBlockLen;
+   SIZE_T DataEncryptSize;
+   PBYTE pbDataEncrypt;
    HANDLE hOutputFile;
    TCHAR szFileName[MAX_PATH];
+   LZ4F_cctx* lz4Ctx;
+   HCRYPTPROV hProv;
+   HCRYPTHASH hHash;
+   HCRYPTKEY hCryptKey;
 } BUFFER_DATA, *PBUFFER_DATA;
+
+#define BUFFER_VERSION        1
+#define BUFFER_COMPRESSED     1
+#define BUFFER_ENCRYPTED      2
+
+#pragma pack(push,1)
+#pragma warning(disable : 4200)
+typedef struct _BUFFER_HEADER
+{
+   CHAR Magic[6];
+   CHAR BufferVersion;
+   CHAR Flags;
+   DWORD dwExtraDataLen;
+   BYTE bExtraData[0];
+} BUFFER_HEADER, *PBUFFER_HEADER;
+#pragma pack(pop)
 
 typedef struct _GLOBAL_CONFIG
 {
@@ -189,6 +220,11 @@ typedef struct _GLOBAL_CONFIG
    DWORD dwLevel;
    BOOL bAllDomainsInForest;
    BOOL dwSleepTime;
+
+   BOOL bCompressionEnabled;
+   BOOL bEncryptionEnabled;
+   BOOL bTarballEnabled;
+   LPWSTR szPublicKey;
 
    LPWSTR szForestDomains;
 

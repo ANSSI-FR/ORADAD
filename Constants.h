@@ -45,20 +45,20 @@ CONST_TXT cUserAccountControl[] =
 #define FLAG_DISALLOW_MOVE_ON_DELETE                  0x02000000
 CONST_TXT cSystemFlags [] =
 {
-   { ADS_SYSTEMFLAG_ATTR_NOT_REPLICATED,                       L"NOT_REPLICATED/NC" },
+   { (DWORD)ADS_SYSTEMFLAG_ATTR_NOT_REPLICATED,                L"NOT_REPLICATED/NC" },
    { FLAG_ATTR_REQ_PARTIAL_SET_MEMBER,                         L"PARTIAL_SET_MEMBER/DOMAIN" },
-   { ADS_SYSTEMFLAG_ATTR_IS_CONSTRUCTED,                       L"CONSTRUCTED/NOT_GC_REPLICATED" },
+   { (DWORD)ADS_SYSTEMFLAG_ATTR_IS_CONSTRUCTED,                L"CONSTRUCTED/NOT_GC_REPLICATED" },
    { FLAG_ATTR_IS_OPERATIONAL,                                 L"OPERATIONAL" },
    { FLAG_SCHEMA_BASE_OBJECT,                                  L"BASE_OBJECT" },
    { FLAG_ATTR_IS_RDN,                                         L"RDN" },
 
    { FLAG_DISALLOW_MOVE_ON_DELETE,                             L"DISALLOW_MOVE_ON_DELETE" },
-   { ADS_SYSTEMFLAG_DOMAIN_DISALLOW_MOVE,                      L"DISALLOW_MOVE" },
-   { ADS_SYSTEMFLAG_DOMAIN_DISALLOW_RENAME,                    L"DISALLOW_RENAME" },
-   { ADS_SYSTEMFLAG_CONFIG_ALLOW_LIMITED_MOVE,                 L"ALLOW_LIMITED_MOVE" },
-   { ADS_SYSTEMFLAG_CONFIG_ALLOW_MOVE,                         L"ALLOW_MOVE" },
-   { ADS_SYSTEMFLAG_CONFIG_ALLOW_RENAME,                       L"ALLOW_RENAME" },
-   { ADS_SYSTEMFLAG_DISALLOW_DELETE,                           L"DISALLOW_DELETE" },
+   { (DWORD)ADS_SYSTEMFLAG_DOMAIN_DISALLOW_MOVE,               L"DISALLOW_MOVE" },
+   { (DWORD)ADS_SYSTEMFLAG_DOMAIN_DISALLOW_RENAME,             L"DISALLOW_RENAME" },
+   { (DWORD)ADS_SYSTEMFLAG_CONFIG_ALLOW_LIMITED_MOVE,          L"ALLOW_LIMITED_MOVE" },
+   { (DWORD)ADS_SYSTEMFLAG_CONFIG_ALLOW_MOVE,                  L"ALLOW_MOVE" },
+   { (DWORD)ADS_SYSTEMFLAG_CONFIG_ALLOW_RENAME,                L"ALLOW_RENAME" },
+   { (DWORD)ADS_SYSTEMFLAG_DISALLOW_DELETE,                    L"DISALLOW_DELETE" },
 
    { FILTER_FLAG, NULL }
 };
@@ -143,7 +143,16 @@ CONST_TXT cSupportedEncryptionTypes[] =
    { FILTER_FLAG, NULL }
 };
 
-#define TRUST_ATTRIBUTE_USES_RC4_ENCRYPTION                 0x00000080
+#define TRUST_ATTRIBUTE_USES_RC4_ENCRYPTION           0x00000080
+#ifndef TRUST_ATTRIBUTE_TREE_PARENT
+#define TRUST_ATTRIBUTE_TREE_PARENT    0x00400000     // Denotes that we are setting the trust
+                                                      // to our parent in the org tree
+#endif // !TRUST_ATTRIBUTE_TREE_PARENT
+#ifndef TRUST_ATTRIBUTE_TREE_ROOT
+#define TRUST_ATTRIBUTE_TREE_ROOT      0x00800000     // Denotes that we are setting the trust
+                                                      // to another tree root in a forest
+#endif // !TRUST_ATTRIBUTE_TREE_ROOT
+
 CONST_TXT cTrustAttributes[] =
 {
    { TRUST_ATTRIBUTE_NON_TRANSITIVE,                        L"NON_TRANSITIVE" },
@@ -156,6 +165,8 @@ CONST_TXT cTrustAttributes[] =
    { TRUST_ATTRIBUTE_USES_RC4_ENCRYPTION,                   L"USES_RC4_ENCRYPTION" },
    { TRUST_ATTRIBUTE_CROSS_ORGANIZATION_NO_TGT_DELEGATION,  L"CROSS_ORGANIZATION_NO_TGT_DELEGATION" },
    { TRUST_ATTRIBUTE_PIM_TRUST,                             L"PIM_TRUST" },
+   { TRUST_ATTRIBUTE_TREE_PARENT,                           L"O_TREE_PARENT" },
+   { TRUST_ATTRIBUTE_TREE_ROOT,                             L"O_TREE_ROOT" },
    { FILTER_FLAG, NULL }
 };
 

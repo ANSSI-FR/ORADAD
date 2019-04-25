@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <intsafe.h>
 #include "ORADAD.h"
 
 #define MSG_MAX_SIZE       8192
@@ -101,7 +102,9 @@ ConvertDnToDns (
    {
       DWORD dwSize;
 
-      dwSize = szNext - szCurrent;
+      if (Int64ToDWord(szNext - szCurrent, &dwSize) != S_OK)
+         break;
+
       memcpy(szReturn + dwPosition, szCurrent, dwSize * sizeof(WCHAR));
       memset(szReturn + dwPosition + dwSize, 0, sizeof(WCHAR));         // Null terminates szReturn (otherwise wcscat_s failed)
       wcscat_s(szReturn, SizeString, L".");

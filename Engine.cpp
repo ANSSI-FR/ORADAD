@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <DsGetDC.h>
 #include <Lm.h>
+#include <Shlwapi.h>
 #include "ORADAD.h"
+#include "tar/tar.h"
 
 extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
@@ -22,6 +24,20 @@ pProcessDomain(
    _In_z_ LPWSTR szRootDns,
    _In_ BOOL bRequestLdap,
    _In_ BOOL bWriteTableInfo
+);
+
+BOOL
+pTarFile(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFileName,
+   _In_ HANDLE hTarFile
+);
+
+VOID
+pTarFilesRecursively(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFolder,
+   _In_ HANDLE hTarFile
 );
 
 BOOL
@@ -310,6 +326,39 @@ End:
    if (pGlobalConfig->hTableFile != NULL)
       CloseHandle(pGlobalConfig->hTableFile);
 
+   if (pGlobalConfig->bTarballEnabled)
+   {
+      // Create TAR
+      HANDLE hTarFile;
+      WCHAR szTarFile[MAX_PATH];
+
+      swprintf(
+         szTarFile, MAX_PATH,
+         L"%s\\%s_%s.tar",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+
+      bResult = TarInitialize(&hTarFile, szTarFile);
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot create tar file%S%s (error %u).", COLOR_RED, szTarFile, COLOR_RESET, GetLastError()
+         );
+         bReturn = FALSE;
+      }
+
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+         "[.] Create output file: %S",
+         szTarFile
+      );
+
+      pTarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullOutDirectory, hTarFile);
+   }
+
    _SafeHeapRelease(szRootDns);
    return bReturn;
 }
@@ -455,4 +504,92 @@ pProcessDomain (
    _SafeHeapRelease(szDomainDns);
 
    return TRUE;
+}
+
+VOID
+pTarFilesRecursively (
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFolder,
+   _In_ HANDLE hTarFile
+)
+{
+   TCHAR szFullPattern[MAX_PATH];
+   WIN32_FIND_DATA FindFileData;
+   HANDLE hFindFile;
+
+   // first we are going to process any subdirectories 
+   PathCombine(szFullPattern, szFolder, L"*");
+   hFindFile = FindFirstFile(szFullPattern, &FindFileData);
+   if (hFindFile != INVALID_HANDLE_VALUE)
+   {
+      do
+      {
+         if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+         {
+            // found a subdirectory; recurse into it
+            if (FindFileData.cFileName[0] == '.')
+               continue;
+            PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
+            pTarFilesRecursively(pGlobalConfig, szFullPattern, hTarFile);
+         }
+      } while (FindNextFile(hFindFile, &FindFileData));
+      FindClose(hFindFile);
+   }
+   // now we are going to look for the matching files 
+   PathCombine(szFullPattern, szFolder, L"*");
+   hFindFile = FindFirstFile(szFullPattern, &FindFileData);
+   if (hFindFile != INVALID_HANDLE_VALUE)
+   {
+      do
+      {
+         if (!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+         {
+            // found a file; do something with it 
+            PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
+            pTarFile(pGlobalConfig, szFullPattern, hTarFile);
+         }
+      } while (FindNextFile(hFindFile, &FindFileData));
+      FindClose(hFindFile);
+   }
+}
+
+BOOL
+pTarFile (
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFileName,
+   _In_ HANDLE hTarFile
+)
+{
+   BOOL bResult = FALSE;
+   WCHAR szRelativePath[MAX_PATH] = { 0 };
+   size_t stOutDirectoryLength;
+   size_t stPathLen;
+
+   Log(
+      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
+      "[.] Processing file '%S'.", szFileName
+   );
+
+   // SKIP prefix
+   stOutDirectoryLength = wcslen(pGlobalConfig->szOutDirectory) + 1;
+   memcpy_s(szRelativePath, MAX_PATH, szFileName + stOutDirectoryLength, MAX_PATH - stOutDirectoryLength);
+
+   stPathLen = wcslen(szRelativePath);
+   // Replace '\' by '/' for tar name
+   for (size_t i = 0; i < stPathLen; ++i)
+   {
+      if (szRelativePath[i] == L'\\')
+         szRelativePath[i] = L'/';
+   }
+   bResult = TarWriteFile(hTarFile, szFileName, szRelativePath);
+   if (bResult == FALSE)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sCannot write to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+      );
+      return FALSE;
+   }
+
+   return bResult;
 }
