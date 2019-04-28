@@ -192,3 +192,24 @@ ApplyFilter(
    _In_  PATTRIBUTE_CONFIG pAttributes,
    _In_z_ PVOID pvData
 );
+
+//
+// tar.cpp
+//
+BOOL
+TarInitialize(
+   _Out_ PHANDLE phTarFile,
+   _In_z_ LPWSTR szFilename
+);
+
+VOID
+TarFilesRecursively(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFolder,
+   _In_ HANDLE hTarFile
+);
+
+BOOL
+TarClose(
+   _In_ HANDLE hTarFile
+);

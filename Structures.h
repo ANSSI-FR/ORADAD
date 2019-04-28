@@ -123,7 +123,7 @@ typedef struct _ROOTDSE_CONFIG
    LPWSTR rootDomainNamingContext;
    LPWSTR configurationNamingContext;
    LPWSTR schemaNamingContext;
-   LPWSTR domainDnsNamingContext; 
+   LPWSTR domainDnsNamingContext;
    LPWSTR forestDnsNamingContext;
 
    LPWSTR domainControllerFunctionality;

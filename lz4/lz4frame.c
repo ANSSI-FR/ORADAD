@@ -37,14 +37,12 @@ You can contact the author at :
 *  All related operations, including memory management, are handled by the library.
 * */
 
-
 /*-************************************
 *  Compiler Options
 **************************************/
 #ifdef _MSC_VER    /* Visual Studio */
 #  pragma warning(disable : 4127)        /* disable: C4127: conditional expression is constant */
 #endif
-
 
 /*-************************************
 *  Tuning parameters
@@ -58,7 +56,6 @@ You can contact the author at :
 #  define LZ4F_HEAPMODE 0
 #endif
 
-
 /*-************************************
 *  Memory routines
 **************************************/
@@ -68,7 +65,6 @@ You can contact the author at :
 #define FREEMEM        free
 #include <string.h>   /* memset, memcpy, memmove */
 #define MEM_INIT       memset
-
 
 /*-************************************
 *  Includes
@@ -81,7 +77,6 @@ You can contact the author at :
 #include "lz4hc.h"
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"
-
 
 /*-************************************
 *  Debug
@@ -109,7 +104,6 @@ static int g_debuglog_enable = 1;
 #  define DEBUGLOG(l, ...)      {}    /* disabled */
 #endif
 
-
 /*-************************************
 *  Basic Types
 **************************************/
@@ -127,7 +121,6 @@ static int g_debuglog_enable = 1;
   typedef   signed int        S32;
   typedef unsigned long long  U64;
 #endif
-
 
 /* unoptimized version; solves endianess & alignment issues */
 static U32 LZ4F_readLE32 (const void* src)
@@ -176,7 +169,6 @@ static void LZ4F_writeLE64 (void* dst, U64 value64)
     dstPtr[7] = (BYTE)(value64 >> 56);
 }
 
-
 /*-************************************
 *  Constants
 **************************************/
@@ -199,7 +191,6 @@ static const size_t minFHSize = 7;
 static const size_t maxFHSize = LZ4F_HEADER_SIZE_MAX;   /* 19 */
 static const size_t BHSize = 4;
 
-
 /*-************************************
 *  Structures and local types
 **************************************/
@@ -221,13 +212,11 @@ typedef struct LZ4F_cctx_s
     U16    lz4CtxState; /* in use as: 0 = none, 1 = lz4 ctx, 2 = lz4hc ctx */
 } LZ4F_cctx_t;
 
-
 /*-************************************
 *  Error management
 **************************************/
 #define LZ4F_GENERATE_STRING(STRING) #STRING,
 static const char* LZ4F_errorStrings[] = { LZ4F_LIST_ERRORS(LZ4F_GENERATE_STRING) };
-
 
 unsigned LZ4F_isError(LZ4F_errorCode_t code)
 {
@@ -258,7 +247,6 @@ unsigned LZ4F_getVersion(void) { return LZ4F_VERSION; }
 
 int LZ4F_compressionLevel_max(void) { return LZ4HC_CLEVEL_MAX; }
 
-
 /*-************************************
 *  Private functions
 **************************************/
@@ -279,7 +267,6 @@ static BYTE LZ4F_headerChecksum (const void* header, size_t length)
     U32 const xxh = XXH32(header, length, 0);
     return (BYTE)(xxh >> 8);
 }
-
 
 /*-************************************
 *  Simple-pass compression functions
@@ -344,7 +331,6 @@ size_t LZ4F_compressFrameBound(size_t srcSize, const LZ4F_preferences_t* prefere
     return headerSize + LZ4F_compressBound_internal(srcSize, &prefs, 0);;
 }
 
-
 /*! LZ4F_compressFrame_usingCDict() :
  *  Compress srcBuffer using a dictionary, in a single step.
  *  cdict can be NULL, in which case, no dictionary is used.
@@ -399,7 +385,6 @@ size_t LZ4F_compressFrame_usingCDict(LZ4F_cctx* cctx,
     return (dstPtr - dstStart);
 }
 
-
 /*! LZ4F_compressFrame() :
  *  Compress an entire srcBuffer into a valid LZ4 frame, in a single step.
  *  dstBuffer MUST be >= LZ4F_compressFrameBound(srcSize, preferencesPtr).
@@ -451,7 +436,6 @@ size_t LZ4F_compressFrame(void* dstBuffer, size_t dstCapacity,
     return result;
 }
 
-
 /*-***************************************************
 *   Dictionary compression
 *****************************************************/
@@ -501,7 +485,6 @@ void LZ4F_freeCDict(LZ4F_CDict* cdict)
     FREEMEM(cdict);
 }
 
-
 /*-*********************************
 *  Advanced compression functions
 ***********************************/
@@ -527,7 +510,6 @@ LZ4F_errorCode_t LZ4F_createCompressionContext(LZ4F_compressionContext_t* LZ4F_c
     return LZ4F_OK_NoError;
 }
 
-
 LZ4F_errorCode_t LZ4F_freeCompressionContext(LZ4F_compressionContext_t LZ4F_compressionContext)
 {
     LZ4F_cctx_t* const cctxPtr = (LZ4F_cctx_t*)LZ4F_compressionContext;
@@ -540,7 +522,6 @@ LZ4F_errorCode_t LZ4F_freeCompressionContext(LZ4F_compressionContext_t LZ4F_comp
 
     return LZ4F_OK_NoError;
 }
-
 
 /**
  * This function prepares the internal LZ4(HC) stream for a new compression,
@@ -570,7 +551,6 @@ static void LZ4F_initStream(void* ctx,
         LZ4_attach_HC_dictionary((LZ4_streamHC_t *)ctx, cdict ? cdict->HCCtx : NULL);
     }
 }
-
 
 /*! LZ4F_compressBegin_usingCDict() :
  *  init streaming compression and writes frame header into dstBuffer.
@@ -680,7 +660,6 @@ size_t LZ4F_compressBegin_usingCDict(LZ4F_cctx* cctxPtr,
     return (dstPtr - dstStart);
 }
 
-
 /*! LZ4F_compressBegin() :
  *  init streaming compression and writes frame header into dstBuffer.
  *  dstBuffer must be >= LZ4F_HEADER_SIZE_MAX bytes.
@@ -696,7 +675,6 @@ size_t LZ4F_compressBegin(LZ4F_cctx* cctxPtr,
                                          NULL, preferencesPtr);
 }
 
-
 /*  LZ4F_compressBound() :
  * @return minimum capacity of dstBuffer for a given srcSize to handle worst case scenario.
  *  LZ4F_preferences_t structure is optional : if NULL, preferences will be set to cover worst case scenario.
@@ -707,9 +685,7 @@ size_t LZ4F_compressBound(size_t srcSize, const LZ4F_preferences_t* preferencesP
     return LZ4F_compressBound_internal(srcSize, preferencesPtr, (size_t)-1);
 }
 
-
 typedef int (*compressFunc_t)(void* ctx, const char* src, char* dst, int srcSize, int dstSize, int level, const LZ4F_CDict* cdict);
-
 
 /*! LZ4F_makeBlock():
  *  compress a single block, add header and checksum
@@ -734,7 +710,6 @@ static size_t LZ4F_makeBlock(void* dst, const void* src, size_t srcSize,
     }
     return 4 + cSize + ((U32)crcFlag)*4;
 }
-
 
 static int LZ4F_compressBlock(void* ctx, const char* src, char* dst, int srcSize, int dstCapacity, int level, const LZ4F_CDict* cdict)
 {
@@ -893,7 +868,6 @@ size_t LZ4F_compressUpdate(LZ4F_cctx* cctxPtr,
     return dstPtr - dstStart;
 }
 
-
 /*! LZ4F_flush() :
  *  Should you need to create compressed data immediately, without waiting for a block to be filled,
  *  you can call LZ4_flush(), which will immediately compress any remaining data stored within compressionContext.
@@ -931,7 +905,6 @@ size_t LZ4F_flush(LZ4F_cctx* cctxPtr, void* dstBuffer, size_t dstCapacity, const
 
     return dstPtr - dstStart;
 }
-
 
 /*! LZ4F_compressEnd() :
  * When you want to properly finish the compressed frame, just call LZ4F_compressEnd().
@@ -971,7 +944,6 @@ size_t LZ4F_compressEnd(LZ4F_cctx* cctxPtr, void* dstBuffer, size_t dstMaxSize, 
     return dstPtr - dstStart;
 }
 
-
 /*-***************************************************
 *   Frame Decompression
 *****************************************************/
@@ -1009,7 +981,6 @@ struct LZ4F_dctx_s {
     BYTE   header[LZ4F_HEADER_SIZE_MAX];
 };  /* typedef'd to LZ4F_dctx in lz4frame.h */
 
-
 /*! LZ4F_createDecompressionContext() :
  *  Create a decompressionContext object, which will track all decompression operations.
  *  Provides a pointer to a fully allocated and initialized LZ4F_decompressionContext object.
@@ -1038,7 +1009,6 @@ LZ4F_errorCode_t LZ4F_freeDecompressionContext(LZ4F_dctx* dctx)
     return result;
 }
 
-
 /*==---   Streaming Decompression operations   ---==*/
 
 void LZ4F_resetDecompressionContext(LZ4F_dctx* dctx)
@@ -1047,7 +1017,6 @@ void LZ4F_resetDecompressionContext(LZ4F_dctx* dctx)
     dctx->dict = NULL;
     dctx->dictSize = 0;
 }
-
 
 /*! LZ4F_headerSize() :
  *   @return : size of frame header
@@ -1072,7 +1041,6 @@ static size_t LZ4F_headerSize(const void* src, size_t srcSize)
         return minFHSize + (contentSizeFlag*8) + (dictIDFlag*4);
     }
 }
-
 
 /*! LZ4F_decodeHeader() :
  *  input   : `src` points at the **beginning of the frame**
@@ -1168,7 +1136,6 @@ static size_t LZ4F_decodeHeader(LZ4F_dctx* dctx, const void* src, size_t srcSize
     return frameHeaderSize;
 }
 
-
 /*! LZ4F_getFrameInfo() :
  *  This function extracts frame parameters (max blockSize, frame checksum, etc.).
  *  Usage is optional. Objective is to provide relevant information for allocation purposes.
@@ -1219,7 +1186,6 @@ LZ4F_errorCode_t LZ4F_getFrameInfo(LZ4F_dctx* dctx, LZ4F_frameInfo_t* frameInfoP
             return decodeResult;
     }   }
 }
-
 
 /* LZ4F_updateDict() :
  * only used for LZ4F_blockLinked mode */
@@ -1287,8 +1253,6 @@ static void LZ4F_updateDict(LZ4F_dctx* dctx,
     }
 }
 
-
-
 /*! LZ4F_decompress() :
  *  Call this function repetitively to regenerate compressed data in srcBuffer.
  *  The function will attempt to decode up to *srcSizePtr bytes from srcBuffer
@@ -1322,7 +1286,6 @@ size_t LZ4F_decompress(LZ4F_dctx* dctx,
     const BYTE* selectedIn = NULL;
     unsigned doAnotherStage = 1;
     size_t nextSrcSizeHint = 1;
-
 
     MEM_INIT(&optionsNull, 0, sizeof(optionsNull));
     if (decompressOptionsPtr==NULL) decompressOptionsPtr = &optionsNull;

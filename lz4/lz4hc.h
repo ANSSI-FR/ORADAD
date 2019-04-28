@@ -42,13 +42,11 @@ extern "C" {
 /* note : lz4hc requires lz4.h/lz4.c for compilation */
 #include "lz4.h"   /* stddef, LZ4LIB_API, LZ4_DEPRECATED */
 
-
 /* --- Useful constants --- */
 #define LZ4HC_CLEVEL_MIN         3
 #define LZ4HC_CLEVEL_DEFAULT     9
 #define LZ4HC_CLEVEL_OPT_MIN    10
 #define LZ4HC_CLEVEL_MAX        12
-
 
 /*-************************************
  *  Block Compression
@@ -65,11 +63,9 @@ extern "C" {
  */
 LZ4LIB_API int LZ4_compress_HC (const char* src, char* dst, int srcSize, int dstCapacity, int compressionLevel);
 
-
 /* Note :
  *   Decompression functions are provided within "lz4.h" (BSD license)
  */
-
 
 /*! LZ4_compress_HC_extStateHC() :
  *  Same as LZ4_compress_HC(), but using an externally allocated memory segment for `state`.
@@ -78,7 +74,6 @@ LZ4LIB_API int LZ4_compress_HC (const char* src, char* dst, int srcSize, int dst
  */
 LZ4LIB_API int LZ4_sizeofStateHC(void);
 LZ4LIB_API int LZ4_compress_HC_extStateHC(void* state, const char* src, char* dst, int srcSize, int maxDstSize, int compressionLevel);
-
 
 /*-************************************
  *  Streaming Compression
@@ -122,7 +117,6 @@ LZ4LIB_API int LZ4_saveDictHC (LZ4_streamHC_t* streamHCPtr, char* safeBuffer, in
   Return value of LZ4_saveDictHC() is the size of dictionary effectively saved into 'safeBuffer'.
 */
 
-
 /*-**************************************************************
  * PRIVATE DEFINITIONS :
  * Do not use these definitions.
@@ -136,7 +130,6 @@ LZ4LIB_API int LZ4_saveDictHC (LZ4_streamHC_t* streamHCPtr, char* safeBuffer, in
 #define LZ4HC_HASH_LOG 15
 #define LZ4HC_HASHTABLESIZE (1 << LZ4HC_HASH_LOG)
 #define LZ4HC_HASH_MASK (LZ4HC_HASHTABLESIZE - 1)
-
 
 #if defined(__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */)
 #include <stdint.h>
@@ -192,7 +185,6 @@ union LZ4_streamHC_u {
   When invoking LZ4 from a DLL, use create/free functions instead, which are API and ABI stable.
 */
 
-
 /*-************************************
 *  Deprecated Functions
 **************************************/
@@ -226,13 +218,11 @@ LZ4_DEPRECATED("use LZ4_compress_HC_continue() instead") LZ4LIB_API int LZ4_comp
 LZ4_DEPRECATED("use LZ4_createStreamHC() instead") LZ4LIB_API int   LZ4_sizeofStreamStateHC(void);
 LZ4_DEPRECATED("use LZ4_resetStreamHC() instead") LZ4LIB_API  int   LZ4_resetStreamStateHC(void* state, char* inputBuffer);
 
-
 #if defined (__cplusplus)
 }
 #endif
 
 #endif /* LZ4_HC_H_19834876238432 */
-
 
 /*-**************************************************
  * !!!!!     STATIC LINKING ONLY     !!!!!

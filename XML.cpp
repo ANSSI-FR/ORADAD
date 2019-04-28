@@ -194,7 +194,6 @@ XmlReadConfigFile (
    _SafeCOMRelease(pXMLNodeList);
    _SafeCOMRelease(pXMLNode);
 
-
    //
    // Check attributes
    //

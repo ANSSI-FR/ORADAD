@@ -71,13 +71,11 @@ XXH32        6.8 GB/s            6.0 GB/s
 extern "C" {
 #endif
 
-
 /* ****************************
 *  Definitions
 ******************************/
 #include <stddef.h>   /* size_t */
 typedef enum { XXH_OK=0, XXH_ERROR } XXH_errorcode;
-
 
 /* ****************************
 *  API modifier
@@ -143,7 +141,6 @@ regular symbol name will be automatically translated by this header.
 #  define XXH64_hashFromCanonical XXH_NAME2(XXH_NAMESPACE, XXH64_hashFromCanonical)
 #endif
 
-
 /* *************************************
 *  Version
 ***************************************/
@@ -152,7 +149,6 @@ regular symbol name will be automatically translated by this header.
 #define XXH_VERSION_RELEASE  2
 #define XXH_VERSION_NUMBER  (XXH_VERSION_MAJOR *100*100 + XXH_VERSION_MINOR *100 + XXH_VERSION_RELEASE)
 XXH_PUBLIC_API unsigned XXH_versionNumber (void);
-
 
 /*-**********************************************************************
 *  32-bits hash
@@ -210,7 +206,6 @@ XXH_PUBLIC_API XXH32_hash_t XXH32_hashFromCanonical(const XXH32_canonical_t* src
 *  This way, hash values can be written into a file / memory, and remain comparable on different systems and programs.
 */
 
-
 #ifndef XXH_NO_LONG_LONG
 /*-**********************************************************************
 *  64-bits hash
@@ -239,7 +234,6 @@ typedef struct { unsigned char digest[8]; } XXH64_canonical_t;
 XXH_PUBLIC_API void XXH64_canonicalFromHash(XXH64_canonical_t* dst, XXH64_hash_t hash);
 XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(const XXH64_canonical_t* src);
 #endif  /* XXH_NO_LONG_LONG */
-
 
 #ifdef XXH_STATIC_LINKING_ONLY
 
@@ -284,7 +278,6 @@ XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(const XXH64_canonical_t* src
 #  endif
 
 #endif /* XXH_STATIC_LINKING_ONLY */
-
 
 #if defined (__cplusplus)
 }

@@ -105,7 +105,7 @@ GetRsaPrivateKey (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to open rsa key file %S%s (error %u).", COLOR_RED, szRsaKeyPath, COLOR_RESET, GetLastError()
+         "[!] %sUnable to open rsa key file '%S'%s (error %u).", COLOR_RED, szRsaKeyPath, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }
@@ -231,7 +231,7 @@ ProcessFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to open file %S%s (error %u).", COLOR_RED, szFileName, COLOR_RESET, GetLastError()
+         "[!] %sUnable to open file '%S'%s (error %u).", COLOR_RED, szFileName, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }
@@ -290,7 +290,7 @@ ProcessFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnsupported file version: %x%s.", COLOR_RED, pBufferHeader->BufferVersion ,COLOR_RESET
+         "[!] %sUnsupported file version%s (%x).", COLOR_RED ,COLOR_RESET, pBufferHeader->BufferVersion
       );
       return FALSE;
    }
@@ -331,7 +331,7 @@ ProcessFile (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to create decompression context %s (error %u - %s).", COLOR_RED, COLOR_RESET, lz4err, LZ4F_getErrorName(lz4err)
+            "[!] %sUnable to create decompression context%s (error %u - %s).", COLOR_RED, COLOR_RESET, lz4err, LZ4F_getErrorName(lz4err)
          );
          return FALSE;
       }
@@ -391,7 +391,7 @@ ProcessFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to open output file %S%s (error %u).", COLOR_RED, szDestFileName, COLOR_RESET, GetLastError()
+         "[!] %sUnable to open output file '%S'%s (error %u).", COLOR_RED, szDestFileName, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }
@@ -458,7 +458,7 @@ ProcessFile (
             {
                Log(
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                  "[!] %sCannot decompress data.%s (error %d - %s).", COLOR_RED, COLOR_RESET, ret, LZ4F_getErrorName(ret)
+                  "[!] %sCannot decompress data%s (error %d - %s).", COLOR_RED, COLOR_RESET, ret, LZ4F_getErrorName(ret)
                );
                return FALSE;
             }
@@ -502,7 +502,8 @@ ProcessFilesRecursively (
    TCHAR szFullPattern[MAX_PATH];
    WIN32_FIND_DATA FindFileData;
    HANDLE hFindFile;
-   // first we are going to process any subdirectories 
+
+   // first we are going to process any subdirectories
    PathCombine(szFullPattern, szFolder, L"*");
    hFindFile = FindFirstFile(szFullPattern, &FindFileData);
    if (hFindFile != INVALID_HANDLE_VALUE)
@@ -521,7 +522,8 @@ ProcessFilesRecursively (
       while (FindNextFile(hFindFile, &FindFileData));
       FindClose(hFindFile);
    }
-   // now we are going to look for the matching files 
+
+   // now we are going to look for the matching files
    PathCombine(szFullPattern, szFolder, L"*.oradad");
    hFindFile = FindFirstFile(szFullPattern, &FindFileData);
    if (hFindFile != INVALID_HANDLE_VALUE)
@@ -530,7 +532,7 @@ ProcessFilesRecursively (
       {
          if (!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
          {
-            // found a file; do something with it 
+            // found a file; do something with it
             PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
             ProcessFile(szFullPattern, hRsaKey);
          }
@@ -603,7 +605,6 @@ wmain (
       "[.] Processing directory is '%S'.", szDirectory
    );
    ProcessFilesRecursively(szDirectory, hRsaKey);
-   
 
 End:
    Log(
