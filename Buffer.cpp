@@ -55,7 +55,7 @@ BufferInitialize (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to open outfile %S%s (error %u).", COLOR_RED, pBuffer->szFileName, COLOR_RESET, GetLastError()
+         "[!] %sUnable to open outfile '%S'%s (error %u).", COLOR_RED, pBuffer->szFileName, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }

@@ -1165,7 +1165,7 @@ pLdapOpenConnection (
       ulResult = LdapGetLastError();
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to open LDAP connection to %S%s (error %u: %s).",
+         "[!] %sUnable to open LDAP connection to '%S'%s (error %u: %s).",
          COLOR_RED, szServerName, COLOR_RESET,  ulResult, ldap_err2stringA(ulResult)
       );
       return NULL;

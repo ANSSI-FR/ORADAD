@@ -33,7 +33,6 @@ wmain (
    SYSTEMTIME st;
    IXMLDOMDocument2 *pXMLDocConfig = NULL;
    IXMLDOMDocument2 *pXMLDocSchema = NULL;
-   TCHAR szPath[MAX_PATH];
    WCHAR szVersion[MAX_PATH];
    LPWSTR szConfigPath = NULL;
    LPWSTR szSchemaPath = NULL;
@@ -91,12 +90,12 @@ wmain (
       return EXIT_FAILURE;
    }
 
-   _stprintf_s(szPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szOutDirectory);
+   _stprintf_s(g_GlobalConfig.szLogfilePath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szOutDirectory);
 
-   g_hLogFile = CreateFile(szPath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
+   g_hLogFile = CreateFile(g_GlobalConfig.szLogfilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
    if (g_hLogFile == INVALID_HANDLE_VALUE)
    {
-      fprintf_s(stderr, "[!] Unable to open log file. Exit.\n");
+      fprintf_s(stderr, "[!] Unable to open log file '%S'. Exit.\n", g_GlobalConfig.szLogfilePath);
       return EXIT_FAILURE;
    }
 
@@ -189,7 +188,7 @@ End:
       TCHAR szFinalPath[MAX_PATH];
 
       _stprintf_s(szFinalPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szFullOutDirectory);
-      MoveFile(szPath, szFinalPath);
+      MoveFile(g_GlobalConfig.szLogfilePath, szFinalPath);
    }
 
    _SafeCOMRelease(pXMLDocConfig);

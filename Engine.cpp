@@ -310,6 +310,9 @@ End:
    if (pGlobalConfig->hTableFile != NULL)
       CloseHandle(pGlobalConfig->hTableFile);
 
+   //
+   // Tar output files
+   //
    if (pGlobalConfig->bTarballEnabled)
    {
       // Create TAR
@@ -341,10 +344,13 @@ End:
       );
 
       TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullOutDirectory, hTarFile);
-
+      TarFile(pGlobalConfig, pGlobalConfig->szLogfilePath, hTarFile);
       TarClose(hTarFile);
    }
 
+   //
+   // Release
+   //
    _SafeHeapRelease(szRootDns);
    return bReturn;
 }

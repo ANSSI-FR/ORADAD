@@ -152,8 +152,8 @@ struct xstar_header {
    char t_gname[TGNMLEN];       /* 297 Group Name               */
    char t_devmajor[8];          /* 329 Major for devices        */
    char t_devminor[8];          /* 337 Minor for devices        */
-   char t_prefix[PFXSIZ];          /* 345 Prefix for t_name        */
-   char t_padding[12];          /* 345 Prefix for t_name        */
+   char t_prefix[PFXSIZ];       /* 345 Prefix for t_name        */
+   char t_padding[12];
 //   char t_atime[12];            /* 476 st_atime                 */
 //   char t_ctime[12];            /* 488 st_ctime                 */
 //   char t_mfill[8];             /* 500 Filler up to star magic  */

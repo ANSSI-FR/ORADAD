@@ -11,10 +11,10 @@ extern BOOL g_bSupportsAnsi;
 #define TAR_END_BLOCK_SIZE       1024
 
 BOOL
-pTarFile(
-   _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szFileName,
-   _In_ HANDLE hTarFile
+pTarWriteFile(
+   _In_ HANDLE hTarFile,
+   _In_z_ LPWSTR szFilename,
+   _In_z_ LPWSTR szArchiveName
 );
 
 //
@@ -52,6 +52,8 @@ TarFilesRecursively (
    _In_ HANDLE hTarFile
 )
 {
+   BOOL bResult;
+
    TCHAR szFullPattern[MAX_PATH];
    WIN32_FIND_DATA FindFileData;
    HANDLE hFindFile;
@@ -86,11 +88,55 @@ TarFilesRecursively (
          {
             // found a file; do something with it
             PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
-            pTarFile(pGlobalConfig, szFullPattern, hTarFile);
+            bResult = TarFile(pGlobalConfig, szFullPattern, hTarFile);
+            if (bResult == FALSE)
+               return;
          }
       } while (FindNextFile(hFindFile, &FindFileData));
       FindClose(hFindFile);
    }
+}
+
+BOOL
+TarFile (
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFileName,
+   _In_ HANDLE hTarFile
+)
+{
+   BOOL bResult;
+   WCHAR szRelativePath[MAX_PATH] = { 0 };
+   size_t stOutDirectoryLength;
+   size_t stPathLen;
+
+   Log(
+      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
+      "[.] Processing file '%S'.", szFileName
+   );
+
+   // SKIP prefix
+   stOutDirectoryLength = wcslen(pGlobalConfig->szOutDirectory) + 1;
+   memcpy_s(szRelativePath, MAX_PATH * sizeof(WCHAR), szFileName + stOutDirectoryLength, (MAX_PATH - stOutDirectoryLength) * sizeof(WCHAR));
+
+   stPathLen = wcslen(szRelativePath);
+   // Replace '\' by '/' for tar name
+   for (size_t i = 0; i < stPathLen; ++i)
+   {
+      if (szRelativePath[i] == L'\\')
+         szRelativePath[i] = L'/';
+   }
+
+   bResult = pTarWriteFile(hTarFile, szFileName, szRelativePath);
+   if (bResult == FALSE)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sCannot write to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+      );
+      return FALSE;
+   }
+
+   return TRUE;
 }
 
 BOOL
@@ -175,7 +221,8 @@ pTarWriteFile (
       return FALSE;
    }
 
-   hFile = CreateFile(szFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+   // FILE_SHARE_WRITE is necessary for oradad.log which is open by current process
+   hFile = CreateFile(szFilename, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
    if (hFile == INVALID_HANDLE_VALUE)
    {
       Log(
@@ -214,22 +261,22 @@ pTarWriteFile (
    pTarPrepareHeader(&header);
 
    //
-   // Process szArchiveName. Slipt in t_name and t_prefix if necessary.
+   // Process szArchiveName. Split name in t_name and t_prefix if necessary.
    //
    SizeArchiveName = wcslen(szArchiveName);
 
-   if (SizeArchiveName <= NAMSIZ)
+   if (SizeArchiveName < NAMSIZ)
    {
       sprintf_s(header.t_name, NAMSIZ, "%S", szArchiveName);
    }
    else if (SizeArchiveName < (NAMSIZ + PFXSIZ))
    {
-      DWORD dwSplitOffset = PFXSIZ;
+      DWORD dwSplitOffset = PFXSIZ - 1;
       CHAR szArchiveNameA[NAMSIZ + PFXSIZ];
 
-      // Convert to ASCSII
+      // Convert to ASCSI
       sprintf_s(szArchiveNameA, NAMSIZ + PFXSIZ, "%S", szArchiveName);
-      // Find where to split (ie '/')
+      // Find where to split (i.e. szArchiveName -> t_prefix '/' t_name)
       while ((*(szArchiveNameA + dwSplitOffset) != '/') && (dwSplitOffset>0))
       {
          dwSplitOffset--;
@@ -240,10 +287,25 @@ pTarWriteFile (
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
             "[!] %sDomain name is too large to fit in standard tar header%s.", COLOR_RED, COLOR_RESET
          );
+         return FALSE;
       }
-      // Split
-      memcpy(header.t_prefix, szArchiveNameA, dwSplitOffset);
-      sprintf_s(header.t_name, NAMSIZ, "%s", szArchiveNameA + dwSplitOffset + 1);      // +1 to remove '/'
+      else
+      {
+         if ((SizeArchiveName - (dwSplitOffset + 1)) < NAMSIZ)                               // +1 to remove '/'
+         {
+            // Split
+            memcpy(header.t_prefix, szArchiveNameA, dwSplitOffset);
+            sprintf_s(header.t_name, NAMSIZ, "%s", szArchiveNameA + dwSplitOffset + 1);      // +1 to remove '/'
+         }
+         else
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sDomain name is too large to fit in standard tar header%s.", COLOR_RED, COLOR_RESET
+            );
+            return FALSE;
+         }
+      }
    }
    else
    {
@@ -280,7 +342,7 @@ pTarWriteFile (
    while (liPosition.QuadPart < liFileSize.QuadPart)
    {
       DWORD dwRead;
-      CHAR buffer[TBLOCK] = { 0 };
+      CHAR buffer[TBLOCK];
 
       bResult = ReadFile(hFile, buffer, TBLOCK, &dwRead, NULL);
       if (bResult == FALSE)
@@ -310,48 +372,7 @@ pTarWriteFile (
       liPosition.QuadPart += dwRead;
    }
 
+   CloseHandle(hFile);
+
    return TRUE;
 }
-
-BOOL
-pTarFile (
-   _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szFileName,
-   _In_ HANDLE hTarFile
-)
-{
-   BOOL bResult = FALSE;
-   WCHAR szRelativePath[MAX_PATH] = { 0 };
-   size_t stOutDirectoryLength;
-   size_t stPathLen;
-
-   Log(
-      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "[.] Processing file '%S'.", szFileName
-   );
-
-   // SKIP prefix
-   stOutDirectoryLength = wcslen(pGlobalConfig->szOutDirectory) + 1;
-   memcpy_s(szRelativePath, MAX_PATH * sizeof(WCHAR), szFileName + stOutDirectoryLength, (MAX_PATH - stOutDirectoryLength) * sizeof(WCHAR));
-
-   stPathLen = wcslen(szRelativePath);
-   // Replace '\' by '/' for tar name
-   for (size_t i = 0; i < stPathLen; ++i)
-   {
-      if (szRelativePath[i] == L'\\')
-         szRelativePath[i] = L'/';
-   }
-
-   bResult = pTarWriteFile(hTarFile, szFileName, szRelativePath);
-   if (bResult == FALSE)
-   {
-      Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sCannot write to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
-      );
-      return FALSE;
-   }
-
-   return bResult;
-}
-

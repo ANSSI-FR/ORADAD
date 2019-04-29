@@ -210,6 +210,13 @@ TarFilesRecursively(
 );
 
 BOOL
+TarFile(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szFileName,
+   _In_ HANDLE hTarFile
+);
+
+BOOL
 TarClose(
    _In_ HANDLE hTarFile
 );

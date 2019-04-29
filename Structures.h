@@ -208,6 +208,7 @@ typedef struct _GLOBAL_CONFIG
 
    LPWSTR szOutDirectory;
    WCHAR szFullOutDirectory[MAX_PATH];
+   WCHAR szLogfilePath[MAX_PATH];
    HANDLE hTableFile;
    BOOL bWriteHeader;
 
