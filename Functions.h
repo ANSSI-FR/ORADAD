@@ -213,6 +213,7 @@ BOOL
 TarFile(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szFileName,
+   _In_opt_z_ LPWSTR szPrefix,
    _In_ HANDLE hTarFile
 );
 

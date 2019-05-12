@@ -197,8 +197,8 @@ XmlReadConfigFile (
    //
    // Check attributes
    //
-   // Find all domains in forest can only be done with DC locator option
-   if ((wcscmp(pGlobalConfig->szServer, DC_LOCATOR_OPTION) != 0) && (pGlobalConfig->bAllDomainsInForest == TRUE))
+   // Find all domains in forest option can only be done with DC locator option enabled (pGlobalConfig->szServer == NULL)
+   if ((pGlobalConfig->szServer != NULL) && (pGlobalConfig->bAllDomainsInForest == TRUE))
    {
       pGlobalConfig->bAllDomainsInForest = FALSE;
    }

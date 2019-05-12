@@ -260,6 +260,7 @@ BufferInitialize (
       CryptDestroyKey(hRsaKey);
       _SafeHeapRelease(pbKeyExport);
       _SafeHeapRelease(pbKeyBlob);
+      _SafeHeapRelease(pbRsaBuffer);
    }
 
    if (pBufferHeader->Flags != 0)

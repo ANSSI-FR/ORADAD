@@ -88,7 +88,7 @@ TarFilesRecursively (
          {
             // found a file; do something with it
             PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
-            bResult = TarFile(pGlobalConfig, szFullPattern, hTarFile);
+            bResult = TarFile(pGlobalConfig, szFullPattern, NULL, hTarFile);
             if (bResult == FALSE)
                return;
          }
@@ -101,11 +101,12 @@ BOOL
 TarFile (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szFileName,
+   _In_opt_z_ LPWSTR szPrefix,
    _In_ HANDLE hTarFile
 )
 {
    BOOL bResult;
-   WCHAR szRelativePath[MAX_PATH] = { 0 };
+   WCHAR szRelativePath[MAX_PATH];
    size_t stOutDirectoryLength;
    size_t stPathLen;
 
@@ -116,10 +117,13 @@ TarFile (
 
    // SKIP prefix
    stOutDirectoryLength = wcslen(pGlobalConfig->szOutDirectory) + 1;
-   memcpy_s(szRelativePath, MAX_PATH * sizeof(WCHAR), szFileName + stOutDirectoryLength, (MAX_PATH - stOutDirectoryLength) * sizeof(WCHAR));
+   if (szPrefix == NULL)
+      swprintf_s(szRelativePath, MAX_PATH, L"%s", szFileName + stOutDirectoryLength);
+   else
+      swprintf_s(szRelativePath, MAX_PATH, L"%s/%s", szPrefix, szFileName + stOutDirectoryLength);
 
-   stPathLen = wcslen(szRelativePath);
    // Replace '\' by '/' for tar name
+   stPathLen = wcslen(szRelativePath);
    for (size_t i = 0; i < stPathLen; ++i)
    {
       if (szRelativePath[i] == L'\\')
@@ -131,7 +135,7 @@ TarFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sCannot write to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         "[!] %sCannot write file to tar%s.", COLOR_RED, COLOR_RESET
       );
       return FALSE;
    }
@@ -214,6 +218,7 @@ pTarWriteFile (
    LARGE_INTEGER liFileSize;
    LARGE_INTEGER liPosition;
    DWORD dwWritten;
+   LPSTR szArchiveNameA;
    size_t SizeArchiveName;
 
    if (hTarFile == NULL)
@@ -252,32 +257,41 @@ pTarWriteFile (
       return FALSE;
    }
 
+   //
+   // Create TAR
+   //
+   xstar_header TarHeader;
+
+   pTarPrepareHeader(&TarHeader);
+
+   // Convert filename to ASCII and get size
+   szArchiveNameA = LPWSTRtoLPSTR(szArchiveName);
+   if (szArchiveNameA == NULL)
+   {
+      return FALSE;
+   }
+   SizeArchiveName = strlen(szArchiveNameA);
+
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "[+] %sWrite file to tar%s '%S' -> '%S'.", COLOR_CYAN, COLOR_RESET, szFilename, szArchiveName
+      "[+] %sAdd file to tar%s '%S' -> '%s'.",
+      COLOR_CYAN, COLOR_RESET,
+      szFilename, szArchiveNameA
    );
 
-   xstar_header header;
-   pTarPrepareHeader(&header);
-
    //
-   // Process szArchiveName. Split name in t_name and t_prefix if necessary.
+   // Process szArchiveName: split name in t_name and t_prefix if necessary.
    //
-   SizeArchiveName = wcslen(szArchiveName);
-
    if (SizeArchiveName < NAMSIZ)
    {
-      sprintf_s(header.t_name, NAMSIZ, "%S", szArchiveName);
+      strcpy_s(TarHeader.t_name, NAMSIZ, szArchiveNameA);
    }
    else if (SizeArchiveName < (NAMSIZ + PFXSIZ))
    {
-      DWORD dwSplitOffset = PFXSIZ - 1;
-      CHAR szArchiveNameA[NAMSIZ + PFXSIZ];
+      DWORD dwSplitOffset = SizeArchiveName - 1;
 
-      // Convert to ASCSI
-      sprintf_s(szArchiveNameA, NAMSIZ + PFXSIZ, "%S", szArchiveName);
       // Find where to split (i.e. szArchiveName -> t_prefix '/' t_name)
-      while ((*(szArchiveNameA + dwSplitOffset) != '/') && (dwSplitOffset>0))
+      while ((*(szArchiveNameA + dwSplitOffset) != '/') && (dwSplitOffset > 0))
       {
          dwSplitOffset--;
       }
@@ -285,23 +299,27 @@ pTarWriteFile (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sDomain name is too large to fit in standard tar header%s.", COLOR_RED, COLOR_RESET
+            "[!] %sNo slash found in filename%s ('%s').",
+            COLOR_RED, COLOR_RESET, szArchiveNameA
          );
          return FALSE;
       }
       else
       {
-         if ((SizeArchiveName - (dwSplitOffset + 1)) < NAMSIZ)                               // +1 to remove '/'
+         if (((SizeArchiveName - (dwSplitOffset + 1)) <= (NAMSIZ -1))                           // +1 to remove '/', -1 to have '\0'
+            && ((dwSplitOffset <= (PFXSIZ - 1))))                                               // -1 to have '\0'
          {
             // Split
-            memcpy(header.t_prefix, szArchiveNameA, dwSplitOffset);
-            sprintf_s(header.t_name, NAMSIZ, "%s", szArchiveNameA + dwSplitOffset + 1);      // +1 to remove '/'
+            szArchiveNameA[dwSplitOffset] = 0;
+            strcpy_s(TarHeader.t_prefix, PFXSIZ, szArchiveNameA);
+            strcpy_s(TarHeader.t_name, NAMSIZ, szArchiveNameA + dwSplitOffset + 1);
          }
          else
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sDomain name is too large to fit in standard tar header%s.", COLOR_RED, COLOR_RESET
+               "[!] %s Unable to split filename%s ('%s').",
+               COLOR_RED, COLOR_RESET, szArchiveNameA
             );
             return FALSE;
          }
@@ -311,7 +329,8 @@ pTarWriteFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sFile name is too large to fit in standard tar header%s.", COLOR_RED, COLOR_RESET
+         "[!] %sFile name is too long to fit in standard tar header%s ('%s').",
+         COLOR_RED, COLOR_RESET, szArchiveNameA
       );
       return FALSE;
    }
@@ -319,20 +338,23 @@ pTarWriteFile (
    //
    // Fill header
    //
-   sprintf_s(header.t_mode, 8, "%07o", 00777);
-   sprintf_s(header.t_uid, 8, "%o", 0);
-   sprintf_s(header.t_gid, 8, "%o", 0);
-   sprintf_s(header.t_size, 12, "%011llo", liFileSize.QuadPart);
-   header.t_typeflag = REGTYPE;
+   sprintf_s(TarHeader.t_mode, 8, "%07o", 00777);
+   sprintf_s(TarHeader.t_uid, 8, "%o", 0);
+   sprintf_s(TarHeader.t_gid, 8, "%o", 0);
+   sprintf_s(TarHeader.t_size, 12, "%011llo", liFileSize.QuadPart);
+   TarHeader.t_typeflag = REGTYPE;
 
-   pTarComputeChecksum(&header);
+   pTarComputeChecksum(&TarHeader);
 
-   bResult = WriteFile(hTarFile, &header, sizeof(xstar_header), &dwWritten, NULL);
+   //
+   // Write to tar
+   //
+   bResult = WriteFile(hTarFile, &TarHeader, sizeof(TarHeader), &dwWritten, NULL);
    if (bResult == FALSE)
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sCannot write to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         "[!] %sCannot write header to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
       );
       return FALSE;
    }
@@ -364,7 +386,7 @@ pTarWriteFile (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot write to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            "[!] %sCannot write file to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
          );
          return FALSE;
       }
@@ -373,6 +395,7 @@ pTarWriteFile (
    }
 
    CloseHandle(hFile);
+   _SafeHeapRelease(szArchiveNameA);
 
    return TRUE;
 }

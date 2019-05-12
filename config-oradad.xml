@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <configORADAD>
    <config>
-      <server>[dsgetdc]</server>                   <!-- [dsgetdc] for automatic detection -->
-      <port></port>                                <!-- Empty for default port -->
-      <username></username>                        <!-- Empty for implicit authentication -->
+      <server></server>                             <!-- Empty for automatic server location -->
+      <port></port>                                 <!-- Empty for default port -->
+      <username></username>                         <!-- Empty for implicit authentication -->
       <userdomain></userdomain>
       <userpassword></userpassword>
       <allDomainsInForest>1</allDomainsInForest>
-      <forestDomains></forestDomains>              <!-- When [dsgetdc] is not used and allDomainsInForest=1, add the domain list here, comma separated -->
+      <forestDomains></forestDomains>               <!-- When automatic server location is not used and allDomainsInForest=0, add the domain list here, comma separated -->
       <level>4</level>
       <writeHeader>0</writeHeader>
       <sleepTime>0</sleepTime>

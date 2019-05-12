@@ -196,10 +196,10 @@ LdapGetRootDse (
 BOOL
 LdapProcessRequest (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szServer,
+   _In_opt_z_ LPWSTR szServer,
    _In_ BOOL bIsLocalAdmin,
    _In_z_ LPWSTR szRootDns,
-   _In_opt_z_ LPCWSTR szPath1,
+   _In_z_ LPCWSTR szPath1,
    _In_opt_z_ LPCWSTR szPath2,
    _In_opt_z_ LPWSTR szLdapBase,
    _In_ PREQUEST_CONFIG pRequest,
@@ -269,6 +269,11 @@ LdapProcessRequest (
    //
    // Initialize names
    //
+   // szFilename: filename where to write buffer data
+   // szRelativePath:      write in tables.tsv
+   // szTableName:         write in tables.tsv (not used anymore) and metadata.tsv
+   // szTableNameNoDomain: write in tables.tsv (not used anymore), metadata.tsv and metadata.tsv
+   //
    if ((szPath1 != NULL) && (szPath2 != NULL))
    {
       swprintf_s(
@@ -290,20 +295,38 @@ LdapProcessRequest (
          pRequest->szName
       );
 
-      swprintf_s(
-         szTableName, MAX_PATH,
-         L"%s_%s_%s",
-         szPath1,
-         szPath2,
-         pRequest->szName
-      );
+      if (bIsRootDSE == TRUE)
+      {
+         // Special case for rootDSE
+         swprintf_s(
+            szTableName, MAX_PATH,
+            L"%s",
+            pRequest->szName
+         );
 
-      swprintf_s(
-         szTableNameNoDomain, MAX_PATH,
-         L"%s_%s",
-         szPath1,
-         pRequest->szName
-      );
+         swprintf_s(
+            szTableNameNoDomain, MAX_PATH,
+            L"%s",
+            pRequest->szName
+         );
+      }
+      else
+      {
+         swprintf_s(
+            szTableName, MAX_PATH,
+            L"%s_%s_%s",
+            szPath1,
+            szPath2,
+            pRequest->szName
+         );
+
+         swprintf_s(
+            szTableNameNoDomain, MAX_PATH,
+            L"%s_%s",
+            szPath1,
+            pRequest->szName
+         );
+      }
    }
    else if ((szPath1 != NULL) && (szPath2 == NULL))
    {
@@ -338,41 +361,12 @@ LdapProcessRequest (
          pRequest->szName
       );
    }
-   else if ((szPath1 == NULL) && (szPath2 == NULL))
-   {
-      swprintf_s(
-         szFilename, MAX_PATH,
-         L"%s\\%s\\%s\\%s.tsv",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime,
-         pRequest->szName
-      );
-
-      swprintf_s(
-         szRelativePath, MAX_PATH,
-         L"%s.tsv",
-         pRequest->szName
-      );
-
-      swprintf_s(
-         szTableName, MAX_PATH,
-         L"%s",
-         pRequest->szName
-      );
-
-      swprintf_s(
-         szTableNameNoDomain, MAX_PATH,
-         L"%s",
-         pRequest->szName
-      );
-   }
    else
    {
       return FALSE;
    }
 
-   if (bRequestLdap == TRUE)
+   if ((bRequestLdap == TRUE) && (szServer != NULL))
    {
       BUFFER_DATA Buffer;
       PBUFFER_DATA pBuffer;
@@ -1238,13 +1232,6 @@ pWriteTableInfo (
 {
    DWORD dwColumsCount;
 
-   // Results of RootDSE are merged in the same file.
-   // Be sure to write table info only once
-   if ((bIsRootDSE == TRUE) && (pRequest->bTableInfoWritten == TRUE))
-      return TRUE;
-   else
-      pRequest->bTableInfoWritten = TRUE;
-
    //
    // Count columns
    //
@@ -1337,14 +1324,17 @@ pWriteTableInfo (
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
                else
                {
-                  WCHAR szMetadataKey[MAX_METADATA_KEY];
-                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
-
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
 
-                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
-                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
+                  if (pGlobalConfig->bWriteMetadataSize == TRUE)
+                  {
+                     WCHAR szMetadataKey[MAX_METADATA_KEY];
+                     WCHAR szMetadataValue[MAX_METADATA_VALUE];
+
+                     swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+                     swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                     MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
+                  }
                }
                break;
             }
@@ -1359,14 +1349,17 @@ pWriteTableInfo (
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
                else
                {
-                  WCHAR szMetadataKey[MAX_METADATA_KEY];
-                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
-
                   WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
 
-                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
-                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
+                  if (pGlobalConfig->bWriteMetadataSize == TRUE)
+                  {
+                     WCHAR szMetadataKey[MAX_METADATA_KEY];
+                     WCHAR szMetadataValue[MAX_METADATA_VALUE];
+
+                     swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+                     swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                     MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
+                  }
                }
                break;
             }

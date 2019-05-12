@@ -159,8 +159,6 @@ typedef struct _REQUEST_CONFIG
 
    // Per request atttribute text max size
    PDWORD pdwStrintMaxLength;
-
-   BOOL bTableInfoWritten;
 } REQUEST_CONFIG, *PREQUEST_CONFIG;
 
 //
@@ -238,4 +236,5 @@ typedef struct _GLOBAL_CONFIG
    PATTRIBUTE_CONFIG pAttributes;
 
    BUFFER_DATA BufferMetadata;
+   BOOL bWriteMetadataSize;
 } GLOBAL_CONFIG, *PGLOBAL_CONFIG;
