@@ -288,7 +288,7 @@ pTarWriteFile (
    }
    else if (SizeArchiveName < (NAMSIZ + PFXSIZ))
    {
-      DWORD dwSplitOffset = SizeArchiveName - 1;
+      DWORD dwSplitOffset = (DWORD)SizeArchiveName - 1;
 
       // Find where to split (i.e. szArchiveName -> t_prefix '/' t_name)
       while ((*(szArchiveNameA + dwSplitOffset) != '/') && (dwSplitOffset > 0))

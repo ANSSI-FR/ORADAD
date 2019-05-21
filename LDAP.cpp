@@ -95,7 +95,8 @@ LdapGetRootDse (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sError in ldap_search_s(rootdse)%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         "[!] %sError in ldap_search_s(rootdse)%s (error %u: %s).",
+         COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       return FALSE;
    }
@@ -527,7 +528,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_search_ext_s()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_search_ext_s('%S', '%S')%s (error %u: %s).",
+            COLOR_RED, szLdapBase, pRequest->szFilter, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -719,12 +721,15 @@ LdapProcessRequest (
 
                         if ((bResult == TRUE) && (szRangeAttrName != NULL))
                         {
+                           LPWSTR szDnEntry;                   // We can't reuse szDn which was modified
                            LPWSTR *ppValueRange = NULL;
+
+                           szDnEntry = ldap_get_dn(pLdapHandle, pEntry);
 
                            Log(
                               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
                               "[.] '%S' has attribute '%S' with range.",
-                              szDn, szRangeAttrName
+                              szDnEntry, szRangeAttrName
                               );
 
                            //
@@ -762,7 +767,7 @@ LdapProcessRequest (
                               ULONG ulValues;
 
                               dwRangeEnd++;
-                              ppValueRange = pGetRangedAttribute(pLdapHandle, szDn, pAttribute, &dwRangeEnd);
+                              ppValueRange = pGetRangedAttribute(pLdapHandle, szDnEntry, pAttribute, &dwRangeEnd);
 
                               if (ppValueRange != NULL)
                               {
@@ -782,6 +787,8 @@ LdapProcessRequest (
                               if (dwRangeEnd == 0)             // This was the final part of the range
                                  break;
                            } while (TRUE);
+
+                           ldap_memfree(szDnEntry);
                         }
 
                         pRequest->pdwStrintMaxLength[j] = __max(pRequest->pdwStrintMaxLength[j], dwTotalSize);
@@ -794,7 +801,8 @@ LdapProcessRequest (
                         {
                            Log(
                               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
-                              "[x] %sldap_get_values(%S, %S) has no value but is not with range.%s", COLOR_YELLOW, szDn, pAttribute, COLOR_RESET
+                              "[x] %sldap_get_values(%S, %S) has no value but is not with range.%s",
+                              COLOR_YELLOW, szDn, pAttribute, COLOR_RESET
                            );
                         }
                      }
@@ -821,7 +829,8 @@ LdapProcessRequest (
                      {
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "[!] %sUnable to convert SID.%s", COLOR_RED, COLOR_RESET
+                           "[!] %sUnable to convert SID.%s",
+                           COLOR_RED, COLOR_RESET
                         );
                      }
                   }
@@ -871,7 +880,8 @@ LdapProcessRequest (
                      {
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "[!] %sUnable to convert SDDL.%s", COLOR_RED, COLOR_RESET
+                           "[!] %sUnable to convert SDDL.%s",
+                           COLOR_RED, COLOR_RESET
                         );
                      }
                   }
@@ -974,7 +984,8 @@ LdapProcessRequest (
                      else
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "[!] %sUnknwon boolean value ('%S').%s", COLOR_RED, ppValue[0], COLOR_RESET
+                           "[!] %sUnknwon boolean value ('%S').%s",
+                           COLOR_RED, ppValue[0], COLOR_RESET
                         );
                   }
                }
@@ -1052,7 +1063,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_parse_result()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_parse_result()%s (error %u: %s).",
+            COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -1062,7 +1074,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_parse_page_control()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_parse_page_control()%s (error %u: %s).",
+            COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -1083,7 +1096,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_create_page_control()%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            "[!] %sError in ldap_create_page_control()%s (error %u: %s).",
+            COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
          );
          goto End;
       }
@@ -1117,7 +1131,8 @@ LdapProcessRequest (
 
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "   [+] %sFinished%s: elapsed time: %u second%s, %u object%s.", COLOR_GREEN, COLOR_RESET,
+         "   [+] %sFinished%s: elapsed time: %u second%s, %u object%s.",
+         COLOR_GREEN, COLOR_RESET,
          dwEndTime,
          dwEndTime > 1 ? "s" : "",
          dwObjectCount,
@@ -1507,7 +1522,8 @@ pGetRangedAttribute (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sError in ldap_search_s(%S)%s (error %u: %s).", COLOR_RED, szRangeAttrName, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         "[!] %sError in ldap_search_s(%S)%s (error %u: %s).",
+         COLOR_RED, szRangeAttrName, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       goto End;
    }
