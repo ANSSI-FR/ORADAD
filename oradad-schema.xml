@@ -1,4 +1,524 @@
 <schema>
+    <requests>
+        <!-- rootDSE -->
+        <request>
+            <name>rootDSE</name>
+            <description>rootDSE information</description>
+            <base>rootDSE</base>
+        </request>
+        <!-- Top -->
+        <request>
+            <name>top</name>
+            <description>All objects general information</description>
+            <base>domain,configuration,schema,domainDNS,forestDNS</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=*)</filter>
+            <classes>top</classes>
+            <controls>
+                <control ctrlType="server" oid="1.2.840.113556.1.4.801" critical="true" valueType="int" value="0xF" description="LDAP_SERVER_SD_FLAGS_OID" />
+                <control ctrlType="server" oid="1.2.840.113556.1.4.417" critical="false" description="LDAP_SERVER_SHOW_DELETED_OID" />
+                <control ctrlType="server" oid="1.2.840.113556.1.4.2064" critical="false" description="LDAP_SERVER_SHOW_RECYCLED_OID" />
+            </controls>
+        </request>
+        <!-- Schema -->
+        <request>
+            <name>class</name>
+            <description>All classes from schema</description>
+            <base>schema</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=classSchema)</filter>
+            <classes>classSchema</classes>
+        </request>
+        <request>
+            <name>attribute</name>
+            <description>All attributes from schema</description>
+            <base>schema</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=attributeSchema)</filter>
+            <classes>attributeSchema</classes>
+        </request>
+        <!-- Domain -->
+        <request>
+            <name>root</name>
+            <description>Root from domain</description>
+            <base>domain</base>
+            <scope>base</scope>
+            <filter>(|(objectClass=domain)(objectClass=domainDNS))</filter>
+            <classes>domain,domainDNS</classes>
+        </request>
+        <request>
+            <name>foreignSecurityPrincipal</name>
+            <description>All foreignSecurityPrincipal from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=foreignSecurityPrincipal)</filter>
+            <classes>foreignSecurityPrincipal</classes>
+        </request>
+        <request>
+            <name>user</name>
+            <description>All users from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(&amp;(objectClass=user)(!(|(objectClass=computer)(objectClass=msDS-ManagedServiceAccount)(objectClass=msDS-GroupManagedServiceAccount))))</filter>
+            <classes>person,organizationalPerson,user</classes>
+        </request>
+        <request>
+            <name>computer</name>
+            <description>All computers from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(&amp;(objectClass=computer)(!(|(objectClass=msDS-ManagedServiceAccount)(objectClass=msDS-GroupManagedServiceAccount))))</filter>
+            <classes>person,organizationalPerson,user,computer</classes>
+        </request>
+        <request>
+            <name>trustedDomain</name>
+            <description>All trusts from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=trustedDomain)</filter>
+            <classes>trustedDomain</classes>
+        </request>
+        <request>
+            <name>smsa</name>
+            <description>All sMSA from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDS-ManagedServiceAccount)</filter>
+            <classes>person,organizationalPerson,user,computer,msDS-ManagedServiceAccount</classes>
+        </request>
+        <request>
+            <name>gmsa</name>
+            <description>All gMSA from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDS-GroupManagedServiceAccount)</filter>
+            <classes>person,organizationalPerson,user,computer,msDS-GroupManagedServiceAccount</classes>
+        </request>
+        <request>
+            <name>group</name>
+            <description>All groups from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=group)</filter>
+            <classes>group</classes>
+        </request>
+        <request>
+            <name>ou</name>
+            <description>All OU from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=organizationalUnit)</filter>
+            <classes>organizationalUnit</classes>
+        </request>
+        <request>
+            <name>gpo</name>
+            <description>All GPO from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=groupPolicyContainer)</filter>
+            <classes>container,groupPolicyContainer</classes>
+        </request>
+        <request>
+            <name>msWMI-Som</name>
+            <description>All msWMI-Som from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msWMI-Som)</filter>
+            <classes>msWMI-Som</classes>
+        </request>
+        <!-- MSI packages (GPO) -->
+        <request>
+            <name>packageRegistration</name>
+            <description>All GPO packageRegistration from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=packageRegistration)</filter>
+            <classes>packageRegistration</classes>
+        </request>
+        <request>
+            <name>passwordSettings</name>
+            <description>All PSO from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDS-PasswordSettings)</filter>
+            <classes>msDS-PasswordSettings</classes>
+        </request>
+        <request>
+            <name>rIDManager</name>
+            <description>All rIDManager from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=rIDManager)</filter>
+            <classes>rIDManager</classes>
+        </request>
+        <request>
+            <name>infrastructureUpdate</name>
+            <description>All infrastructureUpdate from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=infrastructureUpdate)</filter>
+            <classes>infrastructureUpdate</classes>
+        </request>
+        <!-- DFS DC -->
+        <request>
+            <name>msDFSR-LocalSettings</name>
+            <description>All msDFSR-LocalSettings from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-LocalSettings)</filter>
+            <classes>msDFSR-LocalSettings</classes>
+        </request>
+        <request>
+            <name>msDFSR-Subscriber</name>
+            <description>All msDFSR-Subscriber from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-Subscriber)</filter>
+            <classes>msDFSR-Subscriber</classes>
+        </request>
+        <request>
+            <name>msDFSR-Subscription</name>
+            <description>All msDFSR-Subscription from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-Subscription)</filter>
+            <classes>msDFSR-Subscription</classes>
+        </request>
+        <!-- FRS DC -->
+        <request>
+            <name>nTFRSSubscriptions</name>
+            <description>All nTFRSSubscriptions from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTFRSSubscriptions)</filter>
+            <classes>nTFRSSubscriptions</classes>
+        </request>
+        <request>
+            <name>nTFRSSubscriber</name>
+            <description>All nTFRSSubscriber from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTFRSSubscriber)</filter>
+            <classes>nTFRSSubscriber</classes>
+        </request>
+        <!-- DFSN System -->
+        <!-- Empty
+        <request>
+            <name>dfsConfiguration</name>
+            <description>All dfsConfiguration from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=dfsConfiguration)</filter>
+            <classes>dfsConfiguration</classes>
+        </request>
+         -->
+        <!-- v1 -->
+        <request>
+            <name>fTDfs</name>
+            <description>All fTDfs from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=fTDfs)</filter>
+            <classes>fTDfs</classes>
+        </request>
+        <!-- v2 -->
+        <request>
+            <name>msDFS-NamespaceAnchor</name>
+            <description>All msDFS-NamespaceAnchor from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFS-NamespaceAnchor)</filter>
+            <classes>msDFS-NamespaceAnchor</classes>
+        </request>
+        <request>
+            <name>msDFS-Namespacev2</name>
+            <description>All msDFS-Namespacev2 from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFS-Namespacev2)</filter>
+            <classes>msDFS-Namespacev2</classes>
+        </request>
+        <!-- DFS System -->
+        <request>
+            <name>msDFSR-GlobalSettings</name>
+            <description>All msDFSR-GlobalSettings from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-GlobalSettings)</filter>
+            <classes>msDFSR-GlobalSettings</classes>
+        </request>
+        <request>
+            <name>msDFSR-ReplicationGroup</name>
+            <description>All msDFSR-ReplicationGroup from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-ReplicationGroup)</filter>
+            <classes>msDFSR-ReplicationGroup</classes>
+        </request>
+        <request>
+            <name>msDFSR-Content</name>
+            <description>All msDFSR-Content from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-Content)</filter>
+            <classes>msDFSR-Content</classes>
+        </request>
+        <request>
+            <name>msDFSR-ContentSet</name>
+            <description>All msDFSR-ContentSet from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-ContentSet)</filter>
+            <classes>msDFSR-ContentSet</classes>
+        </request>
+        <request>
+            <name>msDFSR-Connection</name>
+            <description>All msDFSR-Connection from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-Connection)</filter>
+            <classes>msDFSR-Connection</classes>
+        </request>
+        <request>
+            <name>msDFSR-Topology</name>
+            <description>All msDFSR-Topology from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-Topology)</filter>
+            <classes>msDFSR-Topology</classes>
+        </request>
+        <request>
+            <name>msDFSR-Member</name>
+            <description>All msDFSR-Member from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDFSR-Member)</filter>
+            <classes>msDFSR-Member</classes>
+        </request>
+        <!-- FRS System -->
+        <!-- Useless
+        <request>
+            <name>nTFRSSettings</name>
+            <description>All nTFRSSettings from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTFRSSettings)</filter>
+            <classes>nTFRSSettings</classes>
+        </request>
+        -->
+        <request>
+            <name>nTFRSReplicaSet</name>
+            <description>All nTFRSReplicaSet from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTFRSReplicaSet)</filter>
+            <classes>nTFRSReplicaSet</classes>
+        </request>
+        <request>
+            <name>nTFRSMember</name>
+            <description>All nTFRSMember from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTFRSMember)</filter>
+            <classes>nTFRSMember</classes>
+        </request>
+        <!-- Configuration -->
+        <request>
+            <name>controlAccessRight</name>
+            <description>All controlAccessRights from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=controlAccessRight)</filter>
+            <classes>controlAccessRight</classes>
+        </request>
+        <request>
+            <name>foreignSecurityPrincipal</name>
+            <description>All foreignSecurityPrincipal from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=foreignSecurityPrincipal)</filter>
+            <classes>foreignSecurityPrincipal</classes>
+        </request>
+        <request>
+            <name>site</name>
+            <description>All sites from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=site)</filter>
+            <classes>site</classes>
+        </request>
+        <request>
+            <name>siteLink</name>
+            <description>All site-links from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=siteLink)</filter>
+            <classes>siteLink</classes>
+        </request>
+        <request>
+            <name>subnet</name>
+            <description>All subnets from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=subnet)</filter>
+            <classes>subnet</classes>
+        </request>
+        <request>
+            <name>server</name>
+            <description>All servers from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=server)</filter>
+            <classes>server</classes>
+        </request>
+        <request>
+            <name>nTDSDSA</name>
+            <description>All nTDSDSA from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(&amp;(objectClass=nTDSDSA)(objectClass=applicationSettings))</filter>
+            <classes>nTDSDSA,applicationSettings</classes>
+        </request>
+        <request>
+            <name>nTDSConnection</name>
+            <description>All nTDSConnection from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTDSConnection)</filter>
+            <classes>nTDSConnection</classes>
+        </request>
+        <request>
+            <name>certificationauthority</name>
+            <description>All certificationAuthority from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=certificationAuthority)</filter>
+            <classes>certificationAuthority</classes>
+        </request>
+        <request>
+            <name>authNPolicy</name>
+            <description>All Authentication policies from configuration partitions</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDS-AuthNPolicy)</filter>
+            <classes>msDS-AuthNPolicy</classes>
+        </request>
+        <request>
+            <name>authNPolicySilo</name>
+            <description>All Authentication policiy silos from configuration partitions</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDS-AuthNPolicySilo)</filter>
+            <classes>msDS-AuthNPolicySilo</classes>
+        </request>
+        <request>
+            <name>crossRefContainer</name>
+            <description>All crossRefContainer from configuration partitions</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=crossRefContainer)</filter>
+            <classes>crossRefContainer</classes>
+        </request>
+        <request>
+            <name>crossRef</name>
+            <description>All crossRef from configuration partitions</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=crossRef)</filter>
+            <classes>crossRef</classes>
+        </request>
+        <request>
+            <name>nTDSService</name>
+            <description>All nTDSService from configuration partitions</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=nTDSService)</filter>
+            <classes>nTDSService</classes>
+        </request>
+        <!-- DNS -->
+        <request>
+            <name>dnsZone</name>
+            <description>All DNS zones from DNS partitions</description>
+            <base>domainDNS,forestDNS</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=dnsZone)</filter>
+            <classes>dnsZone</classes>
+        </request>
+        <request>
+            <name>dnsNode</name>
+            <description>All DNS entries from DNS partitions</description>
+            <base>domainDNS,forestDNS</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=dnsNode)</filter>
+            <classes>dnsNode</classes>
+        </request>
+        <!-- ADCS -->
+        <request>
+            <name>pKICertificateTemplate</name>
+            <description>pKICertificateTemplate</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=pKICertificateTemplate)</filter>
+            <classes>pKICertificateTemplate</classes>
+        </request>
+        <request>
+            <name>pKIEnrollmentService</name>
+            <description>pKIEnrollmentService</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=pKIEnrollmentService)</filter>
+            <classes>pKIEnrollmentService</classes>
+        </request>
+        <!-- Exchange -->
+        <request>
+            <name>exchange_role</name>
+            <description>RBAC Role list</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectclass=msExchRole)</filter>
+            <classes>msExchRole</classes>
+        </request>
+        <request>
+            <name>exchange_role_assignment</name>
+            <description>RBAC Role Assignment list</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msExchRoleAssignment)</filter>
+            <classes>msExchRoleAssignment</classes>
+        </request>
+        <request>
+            <name>exchange_admin_group</name>
+            <description>msExchAdminGroup informations</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msExchAdminGroup)</filter>
+            <classes>msExchAdminGroup</classes>
+        </request>
+        <request>
+            <name>exchange_rbac_policy</name>
+            <description>msExchRBACPolicy list</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msExchRBACPolicy)</filter>
+            <classes>msExchRBACPolicy</classes>
+        </request>
+        <request>
+            <name>exchange_mdb</name>
+            <description>Database informations</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(|((objectClass=msExchMDB)(objectClass=msExchPrivateMDB)))</filter>
+            <classes>msExchMDB,msExchPrivateMDB</classes>
+        </request>
+        <request>
+            <name>exchange_mdb_copy</name>
+            <description>Copy Exchange Database</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msExchMDBCopy)</filter>
+            <classes>msExchMDBCopy</classes>
+        </request>
+    </requests>
     <rootDSEAttributes>
         <attribute name="approximateHighestInternalObjectID" level="1" type="INT" />
         <attribute name="configurationNamingContext" level="1" type="STR" />
@@ -272,7 +792,7 @@
         <attribute name="employeeType" level="9" type="STR" />
         <attribute name="Enabled" level="1" type="BOOL" />
         <attribute name="enabledConnection" level="1" type="BOOL" />
-        <attribute name="enrollmentProviders" level="9" type="STR" />
+        <attribute name="enrollmentProviders" level="4" type="STR" />
         <attribute name="entryTTL" level="9" type="INT" />
         <attribute name="extendedAttributeInfo" level="9" type="STRS" />
         <attribute name="extendedCharsAllowed" level="9" type="BOOL" />
@@ -355,7 +875,7 @@
         <attribute name="initialAuthIncoming" level="2" type="STR" />
         <attribute name="initialAuthOutgoing" level="2" type="STR" />
         <attribute name="initials" level="9" type="STR" />
-        <attribute name="installUiLevel" level="9" type="INT" />
+        <attribute name="installUiLevel" level="3" type="INT" />
         <attribute name="instanceType" level="9" type="INT" />
         <attribute name="internationalISDNNumber" level="9" type="STRS" />
         <attribute name="interSiteTopologyFailover" level="9" type="INT" />
@@ -395,12 +915,12 @@
         <attribute name="labeledURI" level="9" type="STRS" />
         <attribute name="lastBackupRestorationTime" level="2" type="DATE" />
         <attribute name="lastContentIndexed" level="9" type="INT64" />
-        <attribute name="lastKnownParent" level="9" type="STR" />
+        <attribute name="lastKnownParent" level="3" type="STR" />
         <attribute name="lastLogoff" level="1" type="DATEINT64" />
         <attribute name="lastLogon" level="1" type="DATEINT64" />
         <attribute name="lastLogonTimestamp" level="1" type="DATEINT64" />
         <attribute name="lastSetTime" level="9" type="INT64" />
-        <attribute name="lastUpdateSequence" level="9" type="STR" />
+        <attribute name="lastUpdateSequence" level="3" type="STR" />
         <attribute name="lDAPAdminLimits" level="9" type="STRS" />
         <attribute name="lDAPDisplayName" level="2" type="STR" />
         <attribute name="lDAPIPDenyList" level="9" type="BIN" />
@@ -427,7 +947,7 @@
         <attribute name="lSACreationTime" level="1" type="DATEINT64" />
         <attribute name="lSAModifiedCount" level="1" type="INT64" />
         <attribute name="macAddress" level="9" type="STRS" />
-        <attribute name="machineArchitecture" level="9" type="INT" />
+        <attribute name="machineArchitecture" level="3" type="INT" />
         <attribute name="machinePasswordChangeInterval" level="9" type="INT64" />
         <attribute name="machineRole" level="9" type="INT" />
         <attribute name="machineWidePolicy" level="9" type="BIN" />
@@ -692,7 +1212,7 @@
         <attribute name="msDS-HABSeniorityIndex" level="9" type="INT" />
         <attribute name="msDS-HasDomainNCs" level="2" type="STRS" />
         <attribute name="msDS-hasFullReplicaNCs" level="1" type="STRS" />
-        <attribute name="msDS-HasInstantiatedNCs" level="2" type="BIN" />
+        <attribute name="msDS-HasInstantiatedNCs" level="2" type="STR" />
         <attribute name="msDS-hasMasterNCs" level="2" type="STRS" />
         <attribute name="msDS-HostServiceAccount" level="2" type="STRS" />
         <attribute name="msDS-HostServiceAccountBL" level="1" type="STRS" />
@@ -726,7 +1246,7 @@
         <attribute name="msDS-KrbTgtLink" level="2" type="STR" />
         <attribute name="msDS-KrbTgtLinkBl" level="1" type="STRS" />
         <attribute name="msDS-LastFailedInteractiveLogonTime" level="2" type="DATEINT64" />
-        <attribute name="msDS-LastKnownRDN" level="9" type="STR" />
+        <attribute name="msDS-LastKnownRDN" level="3" type="STR" />
         <attribute name="msDS-LastSuccessfulInteractiveLogonTime" level="2" type="DATEINT64" />
         <attribute name="msDS-LocalEffectiveDeletionTime" level="9" type="DATE" />
         <attribute name="msDS-LocalEffectiveRecycleTime" level="9" type="DATE" />
@@ -871,7 +1391,7 @@
         <attribute name="msExchAccessSSLFlags" level="9" type="INT" />
         <attribute name="msExchAccountForestBL" level="9" type="STRS" />
         <attribute name="msExchAccountForestLink" level="9" type="STR" />
-        <attribute name="msExchActivationConfig" level="9" type="INT" />
+        <attribute name="msExchActivationConfig" level="3" type="INT" />
         <attribute name="msExchActivationPreference" level="9" type="INT" />
         <attribute name="activationSchedule" level="9" type="BIN" />
         <attribute name="activationStyle" level="9" type="INT" />
@@ -901,7 +1421,7 @@
         <attribute name="msExchAddressRewriteMappingType" level="9" type="INT" />
         <attribute name="msExchAdfsAuthenticationRawConfiguration" level="9" type="STR" />
         <attribute name="aDMD" level="9" type="STR" />
-        <attribute name="msExchAdminACL" level="9" type="STR" />
+        <attribute name="msExchAdminACL" level="3" type="STR" />
         <attribute name="msExchAdminAuditLogAgeLimit" level="9" type="INT" />
         <attribute name="msExchAdminAuditLogCmdlets" level="9" type="STRS" />
         <attribute name="msExchAdminAuditLogExcludedCmdlets" level="9" type="STRS" />
@@ -909,12 +1429,12 @@
         <attribute name="msExchAdminAuditLogMailbox" level="9" type="STR" />
         <attribute name="msExchAdminAuditLogParameters" level="9" type="STRS" />
         <attribute name="adminExtensionDLL" level="9" type="STR" />
-        <attribute name="msExchAdminGroupMode" level="9" type="INT" />
-        <attribute name="msExchAdminGroupsEnabled" level="9" type="BOOL" />
+        <attribute name="msExchAdminGroupMode" level="3" type="INT" />
+        <attribute name="msExchAdminGroupsEnabled" level="3" type="BOOL" />
         <attribute name="msExchAdministrativeUnitBL" level="9" type="STRS" />
         <attribute name="msExchAdministrativeUnitLink" level="9" type="STRS" />
         <attribute name="msExchAdminMailbox" level="9" type="STR" />
-        <attribute name="msExchAdmins" level="9" type="STRS" />
+        <attribute name="msExchAdmins" level="3" type="STRS" />
         <attribute name="msExchAgentsFlags" level="9" type="INT" />
         <attribute name="msExchAggregationSubscriptionCredential" level="9" type="STRS" />
         <attribute name="msExchAgingKeepTime" level="9" type="INT" />
@@ -1182,7 +1702,7 @@
         <attribute name="msExchConferenceZoneBL" level="9" type="STR" />
         <attribute name="msExchConfigFilter" level="9" type="STRS" />
         <attribute name="msExchConfigRestrictionBL" level="9" type="STRS" />
-        <attribute name="msExchConfigRestrictionLink" level="9" type="STR" />
+        <attribute name="msExchConfigRestrictionLink" level="3" type="STR" />
         <attribute name="msExchConfigurationUnitBL" level="9" type="STRS" />
         <attribute name="msExchConfigurationUnitLink" level="9" type="STRS" />
         <attribute name="msExchConfigurationXML" level="9" type="STR" />
@@ -1238,7 +1758,7 @@
         <attribute name="msExchCustomProxyAddresses" level="9" type="STRS" />
         <attribute name="msExchDatabaseBeingRestored" level="9" type="BOOL" />
         <attribute name="msExchDatabaseCreated" level="9" type="BOOL" />
-        <attribute name="msExchDatabaseGroup" level="9" type="STR" />
+        <attribute name="msExchDatabaseGroup" level="3" type="STR" />
         <attribute name="msExchDatabaseSessionAddend" level="9" type="INT" />
         <attribute name="msExchDatabaseSessionIncrement" level="9" type="INT" />
         <attribute name="msExchDatacenterActivationMode" level="9" type="INT" />
@@ -1246,9 +1766,9 @@
         <attribute name="msExchDataEncryptionPolicyLink" level="9" type="STR" />
         <attribute name="msExchDataLossForAutoDatabaseMount" level="9" type="INT" />
         <attribute name="msExchDataMoveReplicationConstraint" level="9" type="INT" />
-        <attribute name="msExchDataPath" level="9" type="STR" />
-        <attribute name="msExchDefaultAdminGroup" level="9" type="BOOL" />
-        <attribute name="msExchDefaultDomain" level="9" type="STR" />
+        <attribute name="msExchDataPath" level="3" type="STR" />
+        <attribute name="msExchDefaultAdminGroup" level="3" type="BOOL" />
+        <attribute name="msExchDefaultDomain" level="3" type="STR" />
         <attribute name="msExchDefaultLoadFile" level="9" type="STR" />
         <attribute name="msExchDefaultLogonDomain" level="9" type="STR" />
         <attribute name="defaultMessageFormat" level="9" type="BOOL" />
@@ -1331,7 +1851,7 @@
         <attribute name="msExchDomainLocalGroupSid" level="9" type="STR" />
         <attribute name="domainName" level="9" type="STR" />
         <attribute name="msExchDomainRestrictionBL" level="9" type="STRS" />
-        <attribute name="msExchDomainRestrictionLink" level="9" type="STR" />
+        <attribute name="msExchDomainRestrictionLink" level="3" type="STR" />
         <attribute name="doOABVersion" level="9" type="INT" />
         <attribute name="msExchDownGradeMultipartSigned" level="9" type="BOOL" />
         <attribute name="msExchDS2MBOptions" level="9" type="INT" />
@@ -1695,11 +2215,11 @@
         <attribute name="msExchHABShowInDepartments" level="9" type="STRS" />
         <attribute name="msExchHABShowInDepartmentsBL" level="9" type="STRS" />
         <attribute name="msExchHasLocalCopy" level="9" type="INT" />
-        <attribute name="heuristics" level="9" type="INT" />
+        <attribute name="heuristics" level="4" type="INT" />
         <attribute name="hideDLMembership" level="9" type="BOOL" />
         <attribute name="msExchHideFromAddressLists" level="9" type="BOOL" />
-        <attribute name="homeMDB" level="9" type="STR" />
-        <attribute name="homeMDBBL" level="9" type="STRS" />
+        <attribute name="homeMDB" level="3" type="STR" />
+        <attribute name="homeMDBBL" level="3" type="STRS" />
         <attribute name="msExchHomeMDBSL" level="9" type="BIN" />
         <attribute name="homeMTA" level="9" type="STR" />
         <attribute name="msExchHomeMTASL" level="9" type="BIN" />
@@ -1710,8 +2230,8 @@
         <attribute name="msExchHomeSyncService" level="9" type="STR" />
         <attribute name="msExchHostedContentFilterConfigLink" level="9" type="STR" />
         <attribute name="msExchHostServerBL" level="9" type="STRS" />
-        <attribute name="msExchHostServerLink" level="9" type="STRS" />
-        <attribute name="msExchHostServerName" level="9" type="STR" />
+        <attribute name="msExchHostServerLink" level="3" type="STRS" />
+        <attribute name="msExchHostServerName" level="3" type="STR" />
         <attribute name="msExchHouseIdentifier" level="9" type="STR" />
         <attribute name="msExchHttpProtocolLogAgeQuotaInHours" level="9" type="INT64" />
         <attribute name="msExchHTTPProtocolLogDirectorySizeQuota" level="9" type="INT64" />
@@ -2027,10 +2547,10 @@
         <attribute name="msExchMigrationLogLoggingLevel" level="9" type="INT" />
         <attribute name="msExchMigrationLogPerFileSizeQuota" level="9" type="INT" />
         <attribute name="msExchMimeTypes" level="9" type="BIN" />
-        <attribute name="msExchMinAdminVersion" level="9" type="INT" />
+        <attribute name="msExchMinAdminVersion" level="3" type="INT" />
         <attribute name="msExchMinimumThreads" level="9" type="INT" />
         <attribute name="msExchMinorPartnerId" level="9" type="INT" />
-        <attribute name="msExchMixedMode" level="9" type="BOOL" />
+        <attribute name="msExchMixedMode" level="3" type="BOOL" />
         <attribute name="msExchMLSDomainGatewaySMTPAddress" level="9" type="STR" />
         <attribute name="msExchMLSEncryptedDecryptionP12Current" level="9" type="BIN" />
         <attribute name="msExchMLSEncryptedDecryptionP12Previous" level="9" type="BIN" />
@@ -2316,7 +2836,7 @@
         <attribute name="msExchOwningOrg" level="9" type="STR" />
         <attribute name="msExchOwningPFTree" level="9" type="STR" />
         <attribute name="msExchOwningPFTreeBL" level="9" type="STRS" />
-        <attribute name="msExchOwningServer" level="9" type="STR" />
+        <attribute name="msExchOwningServer" level="3" type="STR" />
         <attribute name="msExchParentPlanBL" level="9" type="STRS" />
         <attribute name="msExchParentPlanLink" level="9" type="STR" />
         <attribute name="msExchPartnerCP" level="9" type="INT" />
@@ -2327,8 +2847,8 @@
         <attribute name="msExchPatchMDB" level="9" type="BOOL" />
         <attribute name="msExchPermittedAuthN" level="9" type="INT" />
         <attribute name="pFContacts" level="9" type="STRS" />
-        <attribute name="msExchPfCreation" level="9" type="STRS" />
-        <attribute name="msExchPFDefaultAdminACL" level="9" type="SD" />
+        <attribute name="msExchPfCreation" level="3" type="STRS" />
+        <attribute name="msExchPFDefaultAdminACL" level="3" type="SD" />
         <attribute name="msExchPFDSContainer" level="9" type="STR" />
         <attribute name="msExchPfRootUrl" level="9" type="STR" />
         <attribute name="msExchPFTreeType" level="9" type="INT" />
@@ -2423,7 +2943,7 @@
         <attribute name="rASPhoneNumber" level="9" type="STR" />
         <attribute name="rASRemoteSRVRName" level="9" type="STR" />
         <attribute name="msExchRBACPolicyBL" level="9" type="STRS" />
-        <attribute name="msExchRBACPolicyFlags" level="9" type="INT" />
+        <attribute name="msExchRBACPolicyFlags" level="3" type="INT" />
         <attribute name="msExchRBACPolicyLink" level="9" type="STR" />
         <attribute name="msExchRCAThrottlingPolicyState" level="9" type="STR" />
         <attribute name="msExchRCAThrottlingPolicyStateEx" level="9" type="STR" />
@@ -2513,17 +3033,17 @@
         <attribute name="msExchRMSPublishingLocationUrl" level="9" type="STR" />
         <attribute name="msExchRMSServiceLocationUrl" level="9" type="STR" />
         <attribute name="msExchRMSTemplatePath" level="9" type="STR" />
-        <attribute name="msExchRoleAssignmentFlags" level="9" type="INT64" />
+        <attribute name="msExchRoleAssignmentFlags" level="3" type="INT64" />
         <attribute name="msExchRoleBL" level="9" type="STRS" />
-        <attribute name="msExchRoleEntries" level="9" type="STRS" />
-        <attribute name="msExchRoleEntriesExt" level="9" type="STRS" />
-        <attribute name="msExchRoleFlags" level="9" type="INT" />
-        <attribute name="msExchRoleGroupType" level="9" type="INT" />
-        <attribute name="msExchRoleIncludes" level="9" type="STRS" />
-        <attribute name="msExchRoleLink" level="9" type="STR" />
+        <attribute name="msExchRoleEntries" level="3" type="STRS" />
+        <attribute name="msExchRoleEntriesExt" level="3" type="STRS" />
+        <attribute name="msExchRoleFlags" level="3" type="INT" />
+        <attribute name="msExchRoleGroupType" level="3" type="INT" />
+        <attribute name="msExchRoleIncludes" level="3" type="STRS" />
+        <attribute name="msExchRoleLink" level="3" type="STR" />
         <attribute name="msExchRoleLocalizedNames" level="9" type="BIN" />
-        <attribute name="msExchRoleRights" level="9" type="BIN" />
-        <attribute name="msExchRoleType" level="9" type="INT" />
+        <attribute name="msExchRoleRights" level="3" type="BIN" />
+        <attribute name="msExchRoleType" level="3" type="INT" />
         <attribute name="rootNewsgroupsFolderID" level="9" type="BIN" />
         <attribute name="msExchRoutingAcceptMessageType" level="9" type="INT" />
         <attribute name="msExchRoutingDisallowPriority" level="9" type="INT" />
@@ -3268,7 +3788,7 @@
         <attribute name="msExchUserCulture" level="9" type="STR" />
         <attribute name="msExchUserDisplayName" level="9" type="STR" />
         <attribute name="msExchUserHoldPolicies" level="9" type="STRS" />
-        <attribute name="msExchUserLink" level="9" type="STR" />
+        <attribute name="msExchUserLink" level="3" type="STR" />
         <attribute name="useSiteValues" level="9" type="BOOL" />
         <attribute name="msExchVersion" level="9" type="INT64" />
         <attribute name="msExchVirtualDirectoryFlags" level="9" type="INT" />
@@ -3315,17 +3835,17 @@
         <attribute name="msieee80211-Data" level="9" type="BIN" />
         <attribute name="msieee80211-DataType" level="9" type="INT" />
         <attribute name="msieee80211-ID" level="9" type="STR" />
-        <attribute name="msiFileList" level="9" type="STRS" />
+        <attribute name="msiFileList" level="3" type="STRS" />
         <attribute name="msIIS-FTPDir" level="9" type="STR" />
         <attribute name="msIIS-FTPRoot" level="9" type="STR" />
         <attribute name="msImaging-HashAlgorithm" level="9" type="STR" />
         <attribute name="msImaging-PSPIdentifier" level="9" type="BIN" />
         <attribute name="msImaging-PSPString" level="9" type="STR" />
         <attribute name="msImaging-ThumbprintHash" level="9" type="BIN" />
-        <attribute name="msiScript" level="9" type="BIN" />
-        <attribute name="msiScriptName" level="9" type="STR" />
-        <attribute name="msiScriptPath" level="9" type="STR" />
-        <attribute name="msiScriptSize" level="9" type="INT" />
+        <attribute name="msiScript" level="3" type="BIN" />
+        <attribute name="msiScriptName" level="3" type="STR" />
+        <attribute name="msiScriptPath" level="3" type="STR" />
+        <attribute name="msiScriptSize" level="3" type="INT" />
         <attribute name="msKds-CreateTime" level="9" type="INT64" />
         <attribute name="msKds-DomainID" level="9" type="STR" />
         <attribute name="msKds-KDFAlgorithmID" level="9" type="STR" />
@@ -3337,8 +3857,8 @@
         <attribute name="msKds-SecretAgreementParam" level="9" type="BIN" />
         <attribute name="msKds-UseStartTime" level="9" type="INT64" />
         <attribute name="msKds-Version" level="9" type="INT" />
-        <attribute name="ms-Mcs-AdmPwd" level="9" type="STR" />
-        <attribute name="ms-Mcs-AdmPwdExpirationTime" level="9" type="INT64" />
+        <attribute name="ms-Mcs-AdmPwd" level="10" type="STR" />
+        <attribute name="ms-Mcs-AdmPwdExpirationTime" level="4" type="INT64" />
         <attribute name="mSMQAuthenticate" level="9" type="BOOL" />
         <attribute name="mSMQBasePriority" level="9" type="INT" />
         <attribute name="mSMQComputerType" level="9" type="STR" />
@@ -3413,29 +3933,29 @@
         <attribute name="msOrg-Leaders" level="9" type="STRS" />
         <attribute name="msOrg-LeadersBL" level="9" type="STRS" />
         <attribute name="msOrg-OtherDisplayNames" level="9" type="STRS" />
-        <attribute name="msPKIAccountCredentials" level="9" type="BIN" />
-        <attribute name="msPKI-Certificate-Application-Policy" level="9" type="STRS" />
-        <attribute name="msPKI-Certificate-Name-Flag" level="9" type="INT" />
-        <attribute name="msPKI-Certificate-Policy" level="9" type="STRS" />
-        <attribute name="msPKI-Cert-Template-OID" level="9" type="STR" />
-        <attribute name="msPKI-CredentialRoamingTokens" level="9" type="BIN" />
-        <attribute name="msPKIDPAPIMasterKeys" level="9" type="BIN" />
-        <attribute name="msPKI-Enrollment-Flag" level="9" type="INT" />
-        <attribute name="msPKI-Enrollment-Servers" level="9" type="STRS" />
-        <attribute name="msPKI-Minimal-Key-Size" level="9" type="INT" />
-        <attribute name="msPKI-OID-Attribute" level="9" type="INT" />
-        <attribute name="msPKI-OID-CPS" level="9" type="STRS" />
-        <attribute name="msPKI-OIDLocalizedName" level="9" type="STRS" />
-        <attribute name="msPKI-OID-User-Notice" level="9" type="STRS" />
-        <attribute name="msPKI-Private-Key-Flag" level="9" type="INT" />
-        <attribute name="msPKI-RA-Application-Policies" level="9" type="STRS" />
-        <attribute name="msPKI-RA-Policies" level="9" type="STRS" />
-        <attribute name="msPKI-RA-Signature" level="9" type="INT" />
-        <attribute name="msPKIRoamingTimeStamp" level="9" type="BIN" />
-        <attribute name="msPKI-Site-Name" level="9" type="STR" />
-        <attribute name="msPKI-Supersede-Templates" level="9" type="STRS" />
-        <attribute name="msPKI-Template-Minor-Revision" level="9" type="INT" />
-        <attribute name="msPKI-Template-Schema-Version" level="9" type="INT" />
+        <attribute name="msPKIAccountCredentials" level="4" type="BIN" />
+        <attribute name="msPKI-Certificate-Application-Policy" level="4" type="STRS" />
+        <attribute name="msPKI-Certificate-Name-Flag" level="4" type="INT" />
+        <attribute name="msPKI-Certificate-Policy" level="4" type="STRS" />
+        <attribute name="msPKI-Cert-Template-OID" level="4" type="STR" />
+        <attribute name="msPKI-CredentialRoamingTokens" level="4" type="BIN" />
+        <attribute name="msPKIDPAPIMasterKeys" level="4" type="BIN" />
+        <attribute name="msPKI-Enrollment-Flag" level="4" type="INT" />
+        <attribute name="msPKI-Enrollment-Servers" level="4" type="STRS" />
+        <attribute name="msPKI-Minimal-Key-Size" level="4" type="INT" />
+        <attribute name="msPKI-OID-Attribute" level="4" type="INT" />
+        <attribute name="msPKI-OID-CPS" level="4" type="STRS" />
+        <attribute name="msPKI-OIDLocalizedName" level="4" type="STRS" />
+        <attribute name="msPKI-OID-User-Notice" level="4" type="STRS" />
+        <attribute name="msPKI-Private-Key-Flag" level="4" type="INT" />
+        <attribute name="msPKI-RA-Application-Policies" level="4" type="STRS" />
+        <attribute name="msPKI-RA-Policies" level="4" type="STRS" />
+        <attribute name="msPKI-RA-Signature" level="4" type="INT" />
+        <attribute name="msPKIRoamingTimeStamp" level="4" type="BIN" />
+        <attribute name="msPKI-Site-Name" level="4" type="STR" />
+        <attribute name="msPKI-Supersede-Templates" level="4" type="STRS" />
+        <attribute name="msPKI-Template-Minor-Revision" level="4" type="INT" />
+        <attribute name="msPKI-Template-Schema-Version" level="4" type="INT" />
         <attribute name="msRADIUSCallbackNumber" level="9" type="STR" />
         <attribute name="msRADIUS-FramedInterfaceId" level="9" type="STR" />
         <attribute name="msRADIUSFramedIPAddress" level="9" type="INT" />
@@ -3791,9 +4311,9 @@
         <attribute name="middleName" level="9" type="STR" />
         <attribute name="otherWellKnownObjects" level="9" type="BIN" />
         <attribute name="owner" level="9" type="STR" />
-        <attribute name="packageFlags" level="9" type="INT" />
-        <attribute name="packageName" level="9" type="STR" />
-        <attribute name="packageType" level="9" type="INT" />
+        <attribute name="packageFlags" level="3" type="INT" />
+        <attribute name="packageName" level="3" type="STR" />
+        <attribute name="packageType" level="3" type="INT" />
         <attribute name="parentCA" level="9" type="STR" />
         <attribute name="parentCACertificateChain" level="9" type="BIN" />
         <attribute name="parentGUID" level="1" type="GUID" />
@@ -3821,15 +4341,15 @@
         <attribute name="physicalDeliveryOfficeName" level="9" type="STR" />
         <attribute name="physicalLocationObject" level="1" type="STR" />
         <attribute name="thumbnailPhoto" level="9" type="BIN" />
-        <attribute name="pKICriticalExtensions" level="9" type="STRS" />
-        <attribute name="pKIDefaultCSPs" level="9" type="STRS" />
-        <attribute name="pKIDefaultKeySpec" level="9" type="INT" />
-        <attribute name="pKIEnrollmentAccess" level="9" type="SD" />
-        <attribute name="pKIExpirationPeriod" level="9" type="BIN" />
-        <attribute name="pKIExtendedKeyUsage" level="9" type="STRS" />
-        <attribute name="pKIKeyUsage" level="9" type="BIN" />
-        <attribute name="pKIMaxIssuingDepth" level="9" type="INT" />
-        <attribute name="pKIOverlapPeriod" level="9" type="BIN" />
+        <attribute name="pKICriticalExtensions" level="4" type="STRS" />
+        <attribute name="pKIDefaultCSPs" level="4" type="STRS" />
+        <attribute name="pKIDefaultKeySpec" level="4" type="INT" />
+        <attribute name="pKIEnrollmentAccess" level="4" type="SD" />
+        <attribute name="pKIExpirationPeriod" level="4" type="BIN" />
+        <attribute name="pKIExtendedKeyUsage" level="4" type="STRS" />
+        <attribute name="pKIKeyUsage" level="4" type="BIN" />
+        <attribute name="pKIMaxIssuingDepth" level="4" type="INT" />
+        <attribute name="pKIOverlapPeriod" level="4" type="BIN" />
         <attribute name="pKT" level="2" type="BIN" />
         <attribute name="pKTGuid" level="2" type="GUID" />
         <attribute name="policyReplicationFlags" level="9" type="INT" />
@@ -3890,7 +4410,7 @@
         <attribute name="privilegeDisplayName" level="9" type="STR" />
         <attribute name="privilegeHolder" level="9" type="STRS" />
         <attribute name="privilegeValue" level="9" type="INT64" />
-        <attribute name="productCode" level="9" type="BIN" />
+        <attribute name="productCode" level="3" type="BIN" />
         <attribute name="profilePath" level="9" type="STR" />
         <attribute name="proxiedObjectName" level="9" type="BIN" />
         <attribute name="proxyAddresses" level="9" type="STRS" />
@@ -3980,7 +4500,7 @@
         <attribute name="serviceDNSNameType" level="9" type="STR" />
         <attribute name="serviceInstanceVersion" level="9" type="BIN" />
         <attribute name="servicePrincipalName" level="1" type="STRS" />
-        <attribute name="setupCommand" level="9" type="STR" />
+        <attribute name="setupCommand" level="3" type="STR" />
         <attribute name="shadowExpire" level="9" type="INT" />
         <attribute name="shadowFlag" level="9" type="INT" />
         <attribute name="shadowInactive" level="9" type="INT" />
@@ -3994,7 +4514,7 @@
         <attribute name="showInAddressBook" level="2" type="STRS" />
         <attribute name="showInAdvancedViewOnly" level="9" type="BOOL" />
         <attribute name="sIDHistory" level="1" type="SID" />
-        <attribute name="signatureAlgorithms" level="9" type="STR" />
+        <attribute name="signatureAlgorithms" level="4" type="STR" />
         <attribute name="siteGUID" level="9" type="BIN" />
         <attribute name="siteLinkList" level="9" type="STRS" />
         <attribute name="siteList" level="1" type="STRS" />
@@ -4065,13 +4585,13 @@
         <attribute name="unixUserPassword" level="2" type="BIN" />
         <attribute name="unstructuredAddress" level="9" type="STRS" />
         <attribute name="unstructuredName" level="9" type="STRS" />
-        <attribute name="upgradeProductCode" level="9" type="BIN" />
+        <attribute name="upgradeProductCode" level="3" type="BIN" />
         <attribute name="uPNSuffixes" level="1" type="STRS" />
         <attribute name="userAccountControl" level="1" type="INT" filter="userAccountControl" />
         <attribute name="userCert" level="2" type="BIN" />
         <attribute name="userClass" level="9" type="STRS" />
         <attribute name="comment" level="1" type="STR" />
-        <attribute name="userParameters" level="9" type="STR" />
+        <attribute name="userParameters" level="2" type="STR" />
         <attribute name="userPassword" level="2" type="BIN" />
         <attribute name="userPKCS12" level="9" type="BIN" />
         <attribute name="userPrincipalName" level="1" type="STR" />
@@ -4086,10 +4606,10 @@
         <attribute name="uSNLastObjRem" level="9" type="INT64" />
         <attribute name="uSNSource" level="9" type="INT64" />
         <attribute name="validAccesses" level="1" type="INT" />
-        <attribute name="vendor" level="9" type="STR" />
+        <attribute name="vendor" level="3" type="STR" />
         <attribute name="versionNumber" level="1" type="INT" />
-        <attribute name="versionNumberHi" level="9" type="INT" />
-        <attribute name="versionNumberLo" level="9" type="INT" />
+        <attribute name="versionNumberHi" level="3" type="INT" />
+        <attribute name="versionNumberLo" level="3" type="INT" />
         <attribute name="volTableGUID" level="9" type="BIN" />
         <attribute name="volTableIdxGUID" level="9" type="BIN" />
         <attribute name="volumeCount" level="9" type="INT" />

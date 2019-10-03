@@ -14,6 +14,7 @@ extern BOOL g_bSupportsAnsi;
 //
 // Filter functions
 //
+_Success_(return)
 BOOL
 pFilterFlagsType(
    _In_ PVOID pvData,
@@ -32,14 +33,14 @@ BOOL
 pFilterFiletime(
    _In_ PVOID pvData,
    _In_ PVOID pvParam,
-   _Outptr_ LPWSTR *szResult
+   _Out_ LPWSTR *szResult
 );
 
 BOOL
 pFilterNegFiletime(
    _In_ PVOID pvData,
    _In_ PVOID pvParam,
-   _Outptr_ LPWSTR *szResult
+   _Out_ LPWSTR *szResult
 );
 
 //
@@ -156,6 +157,7 @@ ApplyFilter (
 //
 // Filter functions
 //
+_Success_(return)
 BOOL
 pFilterFlagsType (
    _In_ PVOID pvData,
@@ -219,7 +221,7 @@ pFilterFlagsType (
             WCHAR szRest[SIZE_NUMBER_TXT];
             swprintf_s(szRest, SIZE_NUMBER_TXT, L"%lu", dwRest);
 
-            if (!bFirst)
+            if (bFirst == FALSE)
                wcscat_s(szOut, CONST_MAX_SIZE, L" | ");
 
             wcscat_s(szOut, CONST_MAX_SIZE, szRest);
@@ -253,6 +255,8 @@ pFilterSid (
    _Outptr_ LPWSTR *szResult
 )
 {
+   UNREFERENCED_PARAMETER(pvParam);
+
    BOOL bResult;
    LPWSTR szSid;
 
@@ -274,9 +278,11 @@ BOOL
 pFilterFiletime (
    _In_ PVOID pvData,
    _In_ PVOID pvParam,
-   _Outptr_ LPWSTR *szResult
+   _Out_ LPWSTR *szResult
 )
 {
+   UNREFERENCED_PARAMETER(pvParam);
+
    LONGLONG llValue;
 
    *szResult = NULL;
@@ -290,7 +296,7 @@ pFilterFiletime (
       LONGLONG llDay;
       LONG lHour;
       LONG lMinute;
-      LONG lSeconde;
+      LONG lSecond;
 
       llValue = llValue / 10000000;
 
@@ -298,16 +304,19 @@ pFilterFiletime (
       llValue = llValue - (llDay * 86400);
 
       lHour = (LONG)(llValue / 3600);
-      llValue = llValue - (lHour * 3600);
+      llValue = llValue - ((LONGLONG)lHour * 3600);
 
       lMinute = (LONG)(llValue / 60);
-      llValue = llValue - (lMinute * 60);
+      llValue = llValue - ((LONGLONG)lMinute * 60);
 
-      lSeconde = (LONG)(llValue / 60);
-      llValue = llValue - (lSeconde * 60);
+      lSecond = (LONG)(llValue / 60);
+      llValue = llValue - ((LONGLONG)lSecond * 60);
 
       *szResult = (LPWSTR)_HeapAlloc(15 * sizeof(WCHAR));
-      swprintf_s(*szResult, 15, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSeconde);
+      if (*szResult != NULL)
+      {
+         swprintf_s(*szResult, 15, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSecond);
+      }
    }
 
    return TRUE;
@@ -317,9 +326,11 @@ BOOL
 pFilterNegFiletime (
    _In_ PVOID pvData,
    _In_ PVOID pvParam,
-   _Outptr_ LPWSTR *szResult
+   _Out_ LPWSTR *szResult
 )
 {
+   UNREFERENCED_PARAMETER(pvParam);
+
    LONGLONG llValue;
 
    *szResult = NULL;
@@ -335,7 +346,7 @@ pFilterNegFiletime (
       LONGLONG llDay;
       LONG lHour;
       LONG lMinute;
-      LONG lSeconde;
+      LONG lSecond;
 
       llValue = llValue / 10000000;
 
@@ -343,16 +354,19 @@ pFilterNegFiletime (
       llValue = llValue - (llDay * 86400);
 
       lHour = (LONG)(llValue / 3600);
-      llValue = llValue - (lHour * 3600);
+      llValue = llValue - ((LONGLONG)lHour * 3600);
 
       lMinute = (LONG)(llValue / 60);
-      llValue = llValue - (lMinute * 60);
+      llValue = llValue - ((LONGLONG)lMinute * 60);
 
-      lSeconde = (LONG)(llValue / 60);
-      llValue = llValue - (lSeconde * 60);
+      lSecond = (LONG)(llValue / 60);
+      llValue = llValue - ((LONGLONG)lSecond * 60);
 
       *szResult = (LPWSTR)_HeapAlloc(15 * sizeof(WCHAR));
-      swprintf_s(*szResult, 15, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSeconde);
+      if (*szResult != NULL)
+      {
+         swprintf_s(*szResult, 15, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSecond);
+      }
    }
 
    return TRUE;

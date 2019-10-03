@@ -204,7 +204,7 @@ ProcessFile (
    HANDLE hFile;
    LARGE_INTEGER liFileSize;
    LARGE_INTEGER liFilePos;
-   PBUFFER_HEADER pBufferHeader = (PBUFFER_HEADER)_HeapAlloc(sizeof(BUFFER_HEADER));
+   PBUFFER_HEADER pBufferHeader;
    DWORD dwBytesRead = 0;
    WCHAR szDestFileName[MAX_PATH] = { 0 };
    HANDLE hDestFile;
@@ -256,6 +256,8 @@ ProcessFile (
       );
       return FALSE;
    }
+
+   pBufferHeader = (PBUFFER_HEADER)_HeapAlloc(sizeof(BUFFER_HEADER));
 
    if (pBufferHeader == NULL)
    {

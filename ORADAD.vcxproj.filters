@@ -60,6 +60,9 @@
     <ClCompile Include="lz4\xxhash.c">
       <Filter>Fichiers sources\LZ4</Filter>
     </ClCompile>
+    <ClCompile Include="Sysvol.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Functions.h">

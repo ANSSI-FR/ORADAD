@@ -9,6 +9,7 @@
 #pragma comment(lib, "wldap32.lib")
 #pragma comment(lib, "rpcrt4.lib")
 #pragma comment(lib, "NetApi32.lib")
+#pragma comment(lib, "advapi32.lib")
 #pragma comment(lib, "Version.lib")
 #pragma comment(lib, "crypt32.lib")
 #pragma comment(lib, "shlwapi.lib")
@@ -36,15 +37,6 @@ wmain (
    WCHAR szVersion[MAX_PATH];
    LPWSTR szConfigPath = NULL;
    LPWSTR szSchemaPath = NULL;
-
-   //
-   // Check command line parameters
-   //
-   if (argc < 2)
-   {
-      fprintf_s(stderr, "Usage: oradad.exe <outdir>\n");
-      return EXIT_FAILURE;
-   }
 
    //
    // Initialization
@@ -83,7 +75,10 @@ wmain (
    }
 
    g_GlobalConfig.szOutDirectory = (LPWSTR)_HeapAlloc(MAX_PATH * sizeof(WCHAR));
-   szResult = _wfullpath(g_GlobalConfig.szOutDirectory, argv[1], MAX_PATH);
+   if (argc < 2)
+      szResult = _wfullpath(g_GlobalConfig.szOutDirectory, L".", MAX_PATH);
+   else
+      szResult = _wfullpath(g_GlobalConfig.szOutDirectory, argv[1], MAX_PATH);
    if (szResult == NULL)
    {
       fprintf_s(stderr, "[!] Unable to get absolute path. Exit.\n");
@@ -169,6 +164,16 @@ wmain (
       st.wYear, st.wMonth, st.wDay,
       st.wHour, st.wMinute, st.wSecond
    );
+
+   if (cmdOptionExists(argv, argc, L"-name"))
+   {
+      LPWSTR szInstanceName = NULL;
+
+      if (GetCmdOption(argv, argc, L"-name", ConfigTypeString, &szInstanceName) != FALSE)
+      {
+         wcsncpy_s(g_GlobalConfig.szSystemTime, 17, szInstanceName, 16);
+      }
+   }
 
    Process(&g_GlobalConfig);
 

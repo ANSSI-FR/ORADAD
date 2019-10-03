@@ -153,6 +153,14 @@ CONST_TXT cSupportedEncryptionTypes[] =
                                                       // to another tree root in a forest
 #endif // !TRUST_ATTRIBUTE_TREE_ROOT
 
+// Compatibility for SDK v7
+#ifndef TRUST_ATTRIBUTE_CROSS_ORGANIZATION_NO_TGT_DELEGATION
+#define TRUST_ATTRIBUTE_CROSS_ORGANIZATION_NO_TGT_DELEGATION 0x00000200       // do not forward TGT to the other side of the trust which is not part of this enterprise
+#endif
+#ifndef TRUST_ATTRIBUTE_PIM_TRUST
+#define TRUST_ATTRIBUTE_PIM_TRUST      0x00000400     // Outgoing trust to a PIM forest.
+#endif
+
 CONST_TXT cTrustAttributes[] =
 {
    { TRUST_ATTRIBUTE_NON_TRANSITIVE,                        L"NON_TRANSITIVE" },

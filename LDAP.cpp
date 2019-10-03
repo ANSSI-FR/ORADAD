@@ -43,6 +43,7 @@ pHasAttributeWithRange(
    _In_z_ LPWSTR szDn
 );
 
+_Success_(return)
 BOOL
 pParseRange(
    _In_ LDAP *pLdapHandle,
@@ -67,7 +68,7 @@ BOOL
 LdapGetRootDse (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szServerName,
-   _Outptr_ PROOTDSE_CONFIG pRootDse
+   _Out_ PROOTDSE_CONFIG pRootDse
 )
 {
    ULONG ulResult;
@@ -90,6 +91,7 @@ LdapGetRootDse (
    if (pLdapHandle == NULL)
       return FALSE;
 
+#pragma warning(suppress : 6387) /* for rootDSE, filter=NULL is required */
    ulResult = ldap_search_s(pLdapHandle, NULL, LDAP_SCOPE_BASE, NULL, (PZPWSTR)szAttrsSearch, FALSE, &pLdapMessage);
    if (ulResult != LDAP_SUCCESS)
    {
@@ -203,9 +205,10 @@ LdapProcessRequest (
    _In_z_ LPCWSTR szPath1,
    _In_opt_z_ LPCWSTR szPath2,
    _In_opt_z_ LPWSTR szLdapBase,
-   _In_ PREQUEST_CONFIG pRequest,
+   _In_opt_ PREQUEST_CONFIG pRequest,
    _In_ BOOL bRequestLdap,
-   _In_ BOOL bWriteTableInfo
+   _In_ BOOL bWriteTableInfo,
+   _In_ BOOL bIsRootDSE
 )
 {
    BOOL bResult;
@@ -217,23 +220,29 @@ LdapProcessRequest (
    DWORD dwAttributesCount;
    PATTRIBUTE_CONFIG *pAttributes;
 
-   BOOL bIsRootDSE;
    BOOL bIsTop = FALSE;
 
    ULONG ulResult;
    ULONG ulReturnCode;
    ULONG ulEntriesCount;
 
-   if (szLdapBase == NULL)
+   if (bIsRootDSE == TRUE)
    {
       DWORD dwIdx = 0;
 
-      bIsRootDSE = TRUE;
       dwAttributesCount = pGlobalConfig->dwRootDSEAttributesCount;
 
       // pRootDSEAttributes is array of attributes
       // pAttributes is array of pointers to attributes. Create temporary array.
       pAttributes = (PATTRIBUTE_CONFIG*)_HeapAlloc(dwAttributesCount * sizeof(PATTRIBUTE_CONFIG));
+      if (pAttributes == NULL)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
 
       for (DWORD i = 0; i < dwAttributesCount; i++)
       {
@@ -249,9 +258,16 @@ LdapProcessRequest (
    {
       DWORD dwIdx = 0;
 
-      bIsRootDSE = FALSE;
       dwAttributesCount = pRequest->dwAttributesCount;
       pAttributes = (PATTRIBUTE_CONFIG*)_HeapAlloc(dwAttributesCount * sizeof(PATTRIBUTE_CONFIG));
+      if (pAttributes == NULL)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
 
       for (DWORD i = 0; i < dwAttributesCount; i++)
       {
@@ -375,10 +391,10 @@ LdapProcessRequest (
       LDAP* pLdapHandle;
       LDAPMessage *pLdapMessage = NULL;
 
-      LPWSTR *pszAttributes;
+      LPWSTR *pszAttributes = NULL;
 
       PLDAPControl pLdapControl = NULL;
-      PLDAPControl controlArray[3] = { 0 };     // 0: paging, 1:LDAP_SERVER_SD_FLAGS_OID, 2: NULL
+      PLDAPControl *controlArray = NULL;
 
       LDAPMessage* pEntry = NULL;
 
@@ -386,12 +402,22 @@ LdapProcessRequest (
       PLDAP_BERVAL pLdapNewCookie = NULL;
       PLDAPControl *currControls = NULL;
 
-      berval *pBerVal = NULL;
-
       DWORD dwObjectCount = 0;
-      DWORD dwStartTime, dwEndTime;
+      ULONGLONG ullStartTime, ullEndTime;
 
-      dwStartTime = GetTickCount();
+      // Allocate controls
+      // 0: paging, 1..n:controls, <last>: NULL
+      controlArray = (PLDAPControl*)_HeapAlloc(((size_t)pRequest->dwControlsCount + 2) * sizeof(LDAPControl*));
+      if (controlArray == NULL)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
+
+      ullStartTime = GetTickCount64();
 
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
@@ -458,177 +484,204 @@ LdapProcessRequest (
          BufferWriteLine(pBuffer);
       }
 
-      //
-      // Process
-      //
-      pLdapHandle = pLdapOpenConnection(pGlobalConfig, szServer);
-      if (pLdapHandle == NULL)
-         return FALSE;
-
-      ulResult = ldap_create_page_control(
-         pLdapHandle,
-         900,
-         &LdapCookie,
-         TRUE,
-         &pLdapControl
-      );
-
-      controlArray[0] = pLdapControl;
-
-      if (bIsTop == TRUE)
+      // If NC doesn't exist (ie DomainDNS), bypass LDAP request
+      // For rootDSE, no NC is provided
+      if ((szLdapBase != NULL) || (bIsRootDSE == TRUE))
       {
-         // For 'top' requests, we ask for Security Descriptor (nTSecurityDescriptor). By default, all parts are requested, including SACL.
-         // We request SACL only if we are local administrator. Overwise, nothing is return.
-         LDAPControl LdapControlSdFlag;
-         BerElement *pBerElmt = NULL;
+         //
+         // Process
+         //
+         pLdapHandle = pLdapOpenConnection(pGlobalConfig, szServer);
+         if (pLdapHandle == NULL)
+            return FALSE;
 
-         pBerElmt = ber_alloc_t(LBER_USE_DER);
-         if (bIsLocalAdmin == TRUE)
-            ber_printf(pBerElmt, (PSTR)"{i}", (OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION));
-         else
-            ber_printf(pBerElmt, (PSTR)"{i}", (OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION));
-         ber_flatten(pBerElmt, &pBerVal);
-
-         LdapControlSdFlag.ldctl_iscritical = TRUE;
-         LdapControlSdFlag.ldctl_oid = (LPWSTR)LDAP_SERVER_SD_FLAGS_OID_W;
-         LdapControlSdFlag.ldctl_value.bv_val = pBerVal->bv_val;
-         LdapControlSdFlag.ldctl_value.bv_len = pBerVal->bv_len;
-
-         controlArray[1] = &LdapControlSdFlag;
-
-         ber_free(pBerElmt, 1);
-      }
-
-      //
-      // Format pszAttributes list
-      // Note: dn can't be requested in attribute list. We get it by ldap_get_dn().
-      //
-      pszAttributes = (LPWSTR*)_HeapAlloc((dwAttributesCount + 1) * sizeof(LPWSTR));   // +1 for NULL (list terminator)
-      for (DWORD i = 0; i < dwAttributesCount; i++)
-         pszAttributes[i] = (*pAttributes[i]).szName;
-
-      //
-      // Process searches
-      //
-   Loop:
-      ulResult = ldap_search_ext_s(
-         pLdapHandle,
-         szLdapBase,
-         pRequest->dwScope,
-         pRequest->szFilter,
-         pszAttributes,       // attrs
-         0,                   // attrsonly
-         controlArray,        // ServerControls
-         NULL,                // ClientControls
-         0,                   // timeout
-         0,                   // SizeLimit
-         &pLdapMessage
-      );
-      if (ulResult != LDAP_SUCCESS)
-      {
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_search_ext_s('%S', '%S')%s (error %u: %s).",
-            COLOR_RED, szLdapBase, pRequest->szFilter, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         // Add page control in controlArray[0]
+         ulResult = ldap_create_page_control(
+            pLdapHandle,
+            900,
+            &LdapCookie,
+            TRUE,
+            &pLdapControl
          );
-         goto End;
-      }
 
-      ulEntriesCount = ldap_count_entries(
-         pLdapHandle,
-         pLdapMessage
-      );
+         controlArray[0] = pLdapControl;
 
-      for (ULONG i = 0; i < ulEntriesCount; i++)
-      {
-         LPWSTR szDn;
-         BOOL bHasRange;
-
-         if (i == 0)
-            pEntry = ldap_first_entry(pLdapHandle, pLdapMessage);
-         else
-            pEntry = ldap_next_entry(pLdapHandle, pEntry);
-
-         szDn = ldap_get_dn(pLdapHandle, pEntry);
-
-         if (bIsRootDSE == TRUE)
+         for (DWORD dwControlIt = 0; dwControlIt < pRequest->dwControlsCount; ++dwControlIt)
          {
-            // For RootDSE, dwStrintMaxLengthShortName is used for 'server' max size
-            _CallWriteAndGetMax(BufferWrite(pBuffer, szServer), pRequest->dwStrintMaxLengthShortName);
-            BufferWriteTab(pBuffer);
-         }
-         else
-         {
-            LPWSTR *ppValue = NULL;
+            LDAPControl* LdapControl;
+            BerElement* pBerElmt = NULL;
+            berval* pBerVal = NULL;
 
-            //
-            // For all files, 'dn' is first column
-            //
-            if (szDn != NULL)
+            LdapControl = (LDAPControl*)_HeapAlloc(sizeof(LDAPControl));
+            if (LdapControl == NULL)
             {
-               _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStrintMaxLengthDn);
+               Log(
+                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+                  "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+               );
+               return FALSE;
             }
-            BufferWriteTab(pBuffer);
+
+            pBerElmt = ber_alloc_t(LBER_USE_DER);
+
+            if (pRequest->pControls[dwControlIt].szValue == NULL)
+            {
+               // Do nothing here, flatten will produce pBerVal with bv_len = 0
+            }
+            else if (_wcsicmp(pRequest->pControls[dwControlIt].szValueType, L"int") == 0)
+            {
+               ULONG ulValue = wcstoul(pRequest->pControls[dwControlIt].szValue, NULL, 0);
+
+               // Special case for OID LDAP_SERVER_SD_FLAGS_OID: Mask SACL_SECURITY_INFORMATION if not admin
+               if (_wcsicmp(pRequest->pControls[dwControlIt].szOid, L"1.2.840.113556.1.4.801") == 0 &&
+                  bIsLocalAdmin == FALSE)
+               {
+                  ulValue &= ~SACL_SECURITY_INFORMATION;
+               }
+
+               ber_printf(pBerElmt, (PSTR)"{i}", ulValue);
+            }
+
+            ber_flatten(pBerElmt, &pBerVal);
+
+            LdapControl->ldctl_iscritical = pRequest->pControls[dwControlIt].isCritical;
+            LdapControl->ldctl_oid = pRequest->pControls[dwControlIt].szOid;
+            LdapControl->ldctl_value.bv_val = pBerVal->bv_val;
+            LdapControl->ldctl_value.bv_len = pBerVal->bv_len;
+
+            controlArray[dwControlIt + 1] = LdapControl;
+
+            ber_free(pBerElmt, 1);
          }
 
          //
-         // Two more columns for 'top'
+         // Format pszAttributes list
+         // Note: dn can't be requested in attribute list. We get it by ldap_get_dn().
          //
-         if (bIsTop == TRUE)
+         pszAttributes = (LPWSTR*)_HeapAlloc(((size_t)dwAttributesCount + 1) * sizeof(LPWSTR));   // +1 for NULL (list terminator)
+         for (DWORD i = 0; i < dwAttributesCount; i++)
+            pszAttributes[i] = (*pAttributes[i]).szName;
+
+         //
+         // Process searches
+         //
+      Loop:
+         ulResult = ldap_search_ext_s(
+            pLdapHandle,
+            szLdapBase,
+            pRequest->dwScope,
+            pRequest->szFilter,
+            pszAttributes,       // attrs
+            0,                   // attrsonly
+            controlArray,        // ServerControls
+            NULL,                // ClientControls
+            0,                   // timeout
+            0,                   // SizeLimit
+            &pLdapMessage
+         );
+         if (ulResult != LDAP_SUCCESS)
          {
-            WCHAR szShortName[MAX_PATH];
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sError in ldap_search_ext_s('%S', '%S')%s (error %u: %s).",
+               COLOR_RED, szLdapBase, pRequest->szFilter, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            );
+            goto End;
+         }
 
-            //
-            // Short name
-            //
-            if (szPath2 != NULL)
-               swprintf_s(szShortName, MAX_PATH, L"%s/%s", szPath1, szPath2);
+         ulEntriesCount = ldap_count_entries(
+            pLdapHandle,
+            pLdapMessage
+         );
+
+         for (ULONG i = 0; i < ulEntriesCount; i++)
+         {
+            LPWSTR szDn;
+            BOOL bHasRange;
+
+            if (i == 0)
+               pEntry = ldap_first_entry(pLdapHandle, pLdapMessage);
             else
-               swprintf_s(szShortName, MAX_PATH, L"%s/%s", szPath1, szRootDns);
-            _CallWriteAndGetMax(BufferWrite(pBuffer, szShortName), pRequest->dwStrintMaxLengthShortName);
-            BufferWriteTab(pBuffer);
+               pEntry = ldap_next_entry(pLdapHandle, pEntry);
 
-            //
-            // Short DN
-            //
-            if (szDn != NULL)
+            szDn = ldap_get_dn(pLdapHandle, pEntry);
+
+            if (bIsRootDSE == TRUE)
             {
-               LPWSTR szBasePosition;
-
-               // Compute short DN
-               szBasePosition = wcsstr(szDn, szLdapBase);
-               if ((szBasePosition != NULL) && (szBasePosition != szDn))
+               // For RootDSE, dwStrintMaxLengthShortName is used for 'server' max size
+               _CallWriteAndGetMax(BufferWrite(pBuffer, szServer), pRequest->dwStrintMaxLengthShortName);
+               BufferWriteTab(pBuffer);
+            }
+            else
+            {
+               //
+               // For all files, 'dn' is first column
+               //
+               if (szDn != NULL)
                {
-                  *(szBasePosition - 1) = 0;       // -1 to remove ','
-                  _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStrintMaxLengthShortDn);
+                  _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStrintMaxLengthDn);
                }
                BufferWriteTab(pBuffer);
             }
-            else
+
+            //
+            // Two more columns for 'top'
+            //
+            if (bIsTop == TRUE)
             {
+               WCHAR szShortName[MAX_PATH];
+
+               //
+               // Short name
+               //
+               if (szPath2 != NULL)
+                  swprintf_s(szShortName, MAX_PATH, L"%s/%s", szPath1, szPath2);
+               else
+                  swprintf_s(szShortName, MAX_PATH, L"%s/%s", szPath1, szRootDns);
+               _CallWriteAndGetMax(BufferWrite(pBuffer, szShortName), pRequest->dwStrintMaxLengthShortName);
                BufferWriteTab(pBuffer);
+
+               //
+               // Short DN
+               //
+               if (szDn != NULL)
+               {
+                  LPWSTR szBasePosition;
+
+                  // Compute short DN
+                  szBasePosition = wcsstr(szDn, szLdapBase);
+                  if ((szBasePosition != NULL) && (szBasePosition != szDn))
+                  {
+                     *(szBasePosition - 1) = 0;       // -1 to remove ','
+                     _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStrintMaxLengthShortDn);
+                  }
+                  BufferWriteTab(pBuffer);
+               }
+               else
+               {
+                  BufferWriteTab(pBuffer);
+               }
             }
-         }
 
-         //
-         // Check range
-         //
-         bHasRange = pHasAttributeWithRange(pLdapHandle, pEntry, szDn);
+            //
+            // Check range
+            //
+            bHasRange = pHasAttributeWithRange(pLdapHandle, pEntry, szDn);
 
-         //
-         // Other attributes
-         //
-         for (DWORD j = 0; j < dwAttributesCount; j++)
-         {
-            LPWSTR pAttribute = NULL;
-            LPWSTR *ppValue = NULL;
-            berval **ppval = NULL;
-
-            ppval = NULL;
-            pAttribute = pszAttributes[j];
-
-            switch ((*pAttributes[j]).Type)
+            //
+            // Other attributes
+            //
+            for (DWORD j = 0; j < dwAttributesCount; j++)
             {
+               LPWSTR pAttribute = NULL;
+               LPWSTR* ppValue = NULL;
+               berval** ppval = NULL;
+
+               ppval = NULL;
+               pAttribute = pszAttributes[j];
+
+               switch ((*pAttributes[j]).Type)
+               {
                case TYPE_STR:
                case TYPE_INT:
                case TYPE_INT64:
@@ -646,7 +699,7 @@ LdapProcessRequest (
                         swscanf_s(ppValue[0], L"%li", &lValue);
 
                         szText = ApplyFilter(&(*pAttributes[j]), &lValue);
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, szText), pRequest->pdwStrintMaxLength[j]);
+                        _CallWriteAndGetMax(BufferWrite(pBuffer, szText), pRequest->pdwStringMaxLength[j]);
                         _SafeHeapRelease(szText);
 
                         BufferWriteTab(pBuffer);
@@ -661,7 +714,7 @@ LdapProcessRequest (
                         swscanf_s(ppValue[0], L"%lli", &llValue);
 
                         szText = ApplyFilter(&(*pAttributes[j]), &llValue);
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, szText), pRequest->pdwStrintMaxLength[j]);
+                        _CallWriteAndGetMax(BufferWrite(pBuffer, szText), pRequest->pdwStringMaxLength[j]);
                         _SafeHeapRelease(szText);
 
                         BufferWriteTab(pBuffer);
@@ -670,12 +723,12 @@ LdapProcessRequest (
                      else
                      {
                         // STR
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, ppValue[0]), pRequest->pdwStrintMaxLength[j]);
+                        _CallWriteAndGetMax(BufferWrite(pBuffer, ppValue[0]), pRequest->pdwStringMaxLength[j]);
                      }
                   }
                   else if ((((*pAttributes[j]).Type == TYPE_INT) || ((*pAttributes[j]).Type == TYPE_INT64)) && ((*pAttributes[j]).fFilter != NULL))
                   {
-                     _CallWriteAndGetMax(BufferWriteTab(pBuffer), pRequest->pdwStrintMaxLength[j]);
+                     _CallWriteAndGetMax(BufferWriteTab(pBuffer), pRequest->pdwStringMaxLength[j]);
                   }
                }
                break;
@@ -706,7 +759,7 @@ LdapProcessRequest (
                            }
                         }
 
-                        pRequest->pdwStrintMaxLength[j] = __max(pRequest->pdwStrintMaxLength[j], dwTotalSize);
+                        pRequest->pdwStringMaxLength[j] = __max(pRequest->pdwStringMaxLength[j], dwTotalSize);
                      }
                      else if (bHasRange == TRUE)
                      {
@@ -763,7 +816,6 @@ LdapProcessRequest (
                            //
                            do
                            {
-                              LPWSTR *ppValueRange = NULL;
                               ULONG ulValues;
 
                               dwRangeEnd++;
@@ -791,7 +843,7 @@ LdapProcessRequest (
                            ldap_memfree(szDnEntry);
                         }
 
-                        pRequest->pdwStrintMaxLength[j] = __max(pRequest->pdwStrintMaxLength[j], dwTotalSize);
+                        pRequest->pdwStringMaxLength[j] = __max(pRequest->pdwStringMaxLength[j], dwTotalSize);
                      }
                      else
                      {
@@ -816,13 +868,12 @@ LdapProcessRequest (
 
                   if (ppval)
                   {
-                     BOOL bResult;
                      LPWSTR szSid;
 
                      bResult = ConvertSidToStringSid(ppval[0]->bv_val, &szSid);
                      if (bResult == TRUE)
                      {
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, szSid), pRequest->pdwStrintMaxLength[j]);
+                        _CallWriteAndGetMax(BufferWrite(pBuffer, szSid), pRequest->pdwStringMaxLength[j]);
                         LocalFree(szSid);
                      }
                      else
@@ -846,7 +897,7 @@ LdapProcessRequest (
                      DWORD dwSize;
 
                      dwSize = BufferWriteHex(pBuffer, (PBYTE)ppval[0]->bv_val, ppval[0]->bv_len);
-                     pRequest->pdwStrintMaxLength[j] = __max(pRequest->pdwStrintMaxLength[j], dwSize);
+                     pRequest->pdwStringMaxLength[j] = __max(pRequest->pdwStringMaxLength[j], dwSize);
                   }
                }
                break;
@@ -857,7 +908,6 @@ LdapProcessRequest (
 
                   if (ppval)
                   {
-                     BOOL bResult;
                      LPWSTR szSddl;
 
                      //
@@ -873,7 +923,7 @@ LdapProcessRequest (
 
                      if (bResult == TRUE)
                      {
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, szSddl), pRequest->pdwStrintMaxLength[j]);
+                        _CallWriteAndGetMax(BufferWrite(pBuffer, szSddl), pRequest->pdwStringMaxLength[j]);
                         LocalFree(szSddl);
                      }
                      else
@@ -896,7 +946,7 @@ LdapProcessRequest (
                   {
                      LPWSTR szGuid = NULL;
 
-                     UuidToString((UUID*)ppval[0]->bv_val, (RPC_WSTR*)&szGuid);
+                     (void)UuidToString((UUID*)ppval[0]->bv_val, (RPC_WSTR*)&szGuid);
 
                      if (szGuid != NULL)
                      {
@@ -1021,120 +1071,125 @@ LdapProcessRequest (
                            dwTotalSize += BufferWriteHex(pBuffer, (PBYTE)ppval[k]->bv_val, ppval[k]->bv_len);
                         }
                      }
-                     pRequest->pdwStrintMaxLength[j] = __max(pRequest->pdwStrintMaxLength[j], dwTotalSize);
+                     pRequest->pdwStringMaxLength[j] = __max(pRequest->pdwStringMaxLength[j], dwTotalSize);
                   }
                }
                break;
+               }
+
+               if ((j + 1) < dwAttributesCount)
+                  BufferWriteTab(pBuffer);
+
+               if (ppValue != NULL)
+               {
+                  ldap_value_free(ppValue);
+               }
+               if (ppval != NULL)
+               {
+                  ldap_value_free_len(ppval);
+               }
             }
 
-            if ((j + 1) < dwAttributesCount)
-               BufferWriteTab(pBuffer);
-
-            if (ppValue != NULL)
-            {
-               ldap_value_free(ppValue);
-            }
-            if (ppval != NULL)
-            {
-               ldap_value_free_len(ppval);
-            }
+            BufferWriteLine(pBuffer);
+            dwObjectCount++;
+            ldap_memfree(szDn);
          }
 
-         BufferWriteLine(pBuffer);
-         dwObjectCount++;
-         ldap_memfree(szDn);
-      }
+         // RootDSA has always 1 entry
+         if (bIsRootDSE == TRUE)
+            goto End;
 
-      // RootDSA has always 1 entry
-      if (bIsRootDSE == TRUE)
-         goto End;
-
-      ulResult = ldap_parse_result(
-         pLdapHandle,
-         pLdapMessage,
-         &ulReturnCode,
-         NULL,
-         NULL,
-         NULL,
-         &currControls,
-         FALSE
-      );
-      if (ulResult != LDAP_SUCCESS)
-      {
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_parse_result()%s (error %u: %s).",
-            COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         ulResult = ldap_parse_result(
+            pLdapHandle,
+            pLdapMessage,
+            &ulReturnCode,
+            NULL,
+            NULL,
+            NULL,
+            &currControls,
+            FALSE
          );
-         goto End;
-      }
+         if (ulResult != LDAP_SUCCESS)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sError in ldap_parse_result()%s (error %u: %s).",
+               COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            );
+            goto End;
+         }
 
-      ulResult = ldap_parse_page_control(pLdapHandle, currControls, NULL, (berval**)&pLdapNewCookie);
-      if (ulResult != LDAP_SUCCESS)
-      {
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_parse_page_control()%s (error %u: %s).",
-            COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         ulResult = ldap_parse_page_control(pLdapHandle, currControls, NULL, (berval * *)& pLdapNewCookie);
+         if (ulResult != LDAP_SUCCESS)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sError in ldap_parse_page_control()%s (error %u: %s).",
+               COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            );
+            goto End;
+         }
+
+         if ((pLdapNewCookie->bv_len == 0) || (pLdapNewCookie->bv_val == 0))
+            goto End;
+
+         controlArray[0] = NULL;
+
+         ulResult = ldap_create_page_control(
+            pLdapHandle,
+            900,
+            pLdapNewCookie,
+            TRUE,
+            &controlArray[0]
          );
-         goto End;
+         if (ulResult != LDAP_SUCCESS)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sError in ldap_create_page_control()%s (error %u: %s).",
+               COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+            );
+            goto End;
+         }
+
+         ldap_msgfree(pLdapMessage);
+
+         //
+         // Wait if requested by config
+         //
+         if (g_GlobalConfig.dwSleepTime > 0)
+            Sleep(g_GlobalConfig.dwSleepTime);
+
+         goto Loop;
+
+      End:
+         ber_bvfree(pLdapNewCookie);
+
+         // Free all HeapAlloc'ed controls (1..dwControlCount+1)
+         for (DWORD dwControlIt = 0; dwControlIt < pRequest->dwControlsCount; ++dwControlIt)
+         {
+            _SafeHeapRelease(controlArray[dwControlIt + 1]);
+         }
+         _SafeHeapRelease(controlArray);
+
+         ulResult = ldap_control_free(pLdapControl);
+         ulResult = ldap_msgfree(pLdapMessage);
+         ulResult = ldap_unbind(pLdapHandle);
       }
-
-      if ((pLdapNewCookie->bv_len == 0) || (pLdapNewCookie->bv_val == 0))
-         goto End;
-
-      controlArray[0] = NULL;
-
-      ulResult = ldap_create_page_control(
-         pLdapHandle,
-         900,
-         pLdapNewCookie,
-         TRUE,
-         &controlArray[0]
-      );
-      if (ulResult != LDAP_SUCCESS)
-      {
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sError in ldap_create_page_control()%s (error %u: %s).",
-            COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
-         );
-         goto End;
-      }
-
-      ldap_msgfree(pLdapMessage);
-
-      //
-      // Wait if requested by config
-      //
-      if (g_GlobalConfig.dwSleepTime > 0)
-         Sleep(g_GlobalConfig.dwSleepTime);
-
-      goto Loop;
-
-   End:
-      if (bIsTop == TRUE)
-         ber_bvfree(pBerVal);
-
-      ber_bvfree(pLdapNewCookie);
-
-      ulResult = ldap_control_free(pLdapControl);
-      ulResult = ldap_msgfree(pLdapMessage);
-      ulResult = ldap_unbind(pLdapHandle);
 
       BufferClose(&Buffer);
 
       _SafeHeapRelease(pszAttributes);
 
-      dwEndTime = GetTickCount();
-      dwEndTime = (dwEndTime - dwStartTime) / 1000;
+      ullEndTime = GetTickCount64();
+      ullEndTime = (ullEndTime - ullStartTime) / 1000;
 
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "   [+] %sFinished%s: elapsed time: %u second%s, %u object%s.",
+         "   [+] %sFinished%s: elapsed time: %llu second%s, %u object%s.",
          COLOR_GREEN, COLOR_RESET,
-         dwEndTime,
-         dwEndTime > 1 ? "s" : "",
+         ullEndTime,
+         ullEndTime > 1 ? "s" : "",
          dwObjectCount,
          dwObjectCount > 1 ? "s" : ""
       );
@@ -1207,9 +1262,9 @@ pLdapOpenConnection (
       Auth.User = (USHORT*)pGlobalConfig->szUsername;
       Auth.Domain = (USHORT*)pGlobalConfig->szUserDomain;
       Auth.Password = (USHORT*)pGlobalConfig->szUserPassword;
-      SIZETToULong(wcslen(pGlobalConfig->szUsername), &(Auth.UserLength));
-      SIZETToULong(wcslen(pGlobalConfig->szUserDomain), &(Auth.DomainLength));
-      SIZETToULong(wcslen(pGlobalConfig->szUserPassword), &(Auth.PasswordLength));
+      (void)SIZETToULong(wcslen(pGlobalConfig->szUsername), &(Auth.UserLength));
+      (void)SIZETToULong(wcslen(pGlobalConfig->szUserDomain), &(Auth.DomainLength));
+      (void)SIZETToULong(wcslen(pGlobalConfig->szUserPassword), &(Auth.PasswordLength));
 
       ulResult = ldap_bind_s(pLdapHandle, NULL, (PWCHAR)&Auth, LDAP_AUTH_NEGOTIATE);
    }
@@ -1301,7 +1356,7 @@ pWriteTableInfo (
       DWORD dwStrintMaxLength;
 
       // +1 to be sure to round to upper value (even) and avoid nvarchar(0)
-      dwStrintMaxLength = (pRequest->pdwStrintMaxLength[i] / 2) + 1;
+      dwStrintMaxLength = (pRequest->pdwStringMaxLength[i] / 2) + 1;
 
       if ((*pAttributes[i]).Type == TYPE_INT)
       {
@@ -1331,75 +1386,75 @@ pWriteTableInfo (
       {
          switch ((*pAttributes[i]).Type)
          {
-            case TYPE_STR:
-            case TYPE_STRS:
+         case TYPE_STR:
+         case TYPE_STRS:
+         {
+            // nvarchar(n) n must be from 1 through 4000
+            if (dwStrintMaxLength < 4000)
+               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
+            else
             {
-               // nvarchar(n) n must be from 1 through 4000
-               if (dwStrintMaxLength < 4000)
-                  WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
-               else
+               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
+
+               if (pGlobalConfig->bWriteMetadataSize == TRUE)
                {
-                  WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
+                  WCHAR szMetadataKey[MAX_METADATA_KEY];
+                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
 
-                  if (pGlobalConfig->bWriteMetadataSize == TRUE)
-                  {
-                     WCHAR szMetadataKey[MAX_METADATA_KEY];
-                     WCHAR szMetadataValue[MAX_METADATA_VALUE];
-
-                     swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                     swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
-                     MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
-                  }
+                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
                }
-               break;
             }
+            break;
+         }
 
-            case TYPE_SID:
-            case TYPE_SD:
-            case TYPE_DACL:
-            case TYPE_BIN:
+         case TYPE_SID:
+         case TYPE_SD:
+         case TYPE_DACL:
+         case TYPE_BIN:
+         {
+            // varchar(n) n must be from 1 through 8000
+            if (dwStrintMaxLength < 8000)
+               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
+            else
             {
-               // varchar(n) n must be from 1 through 8000
-               if (dwStrintMaxLength < 8000)
-                  WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
-               else
+               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
+
+               if (pGlobalConfig->bWriteMetadataSize == TRUE)
                {
-                  WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
+                  WCHAR szMetadataKey[MAX_METADATA_KEY];
+                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
 
-                  if (pGlobalConfig->bWriteMetadataSize == TRUE)
-                  {
-                     WCHAR szMetadataKey[MAX_METADATA_KEY];
-                     WCHAR szMetadataValue[MAX_METADATA_VALUE];
-
-                     swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                     swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
-                     MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
-                  }
+                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
                }
-               break;
             }
+            break;
+         }
 
-            case TYPE_GUID:
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tuniqueidentifier", (*pAttributes[i]).szName);
-               break;
+         case TYPE_GUID:
+            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tuniqueidentifier", (*pAttributes[i]).szName);
+            break;
 
-            case TYPE_DATE:
-            case TYPE_DATEINT64:
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tdatetime2", (*pAttributes[i]).szName);
-               break;
+         case TYPE_DATE:
+         case TYPE_DATEINT64:
+            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tdatetime2", (*pAttributes[i]).szName);
+            break;
 
-            case TYPE_BOOL:
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\ttinyint", (*pAttributes[i]).szName);
-               break;
+         case TYPE_BOOL:
+            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\ttinyint", (*pAttributes[i]).szName);
+            break;
 
-            default:
-            {
-               Log(
-                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                  "[!] %sData type unknown.%s", COLOR_RED, COLOR_RESET
-               );
-               return FALSE;
-            }
+         default:
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sData type unknown.%s", COLOR_RED, COLOR_RESET
+            );
+            return FALSE;
+         }
          }
       }
    }
@@ -1441,6 +1496,7 @@ pHasAttributeWithRange (
    return bReturn;
 }
 
+_Success_(return)
 BOOL
 pParseRange (
    _In_ LDAP *pLdapHandle,
@@ -1453,7 +1509,7 @@ pParseRange (
    BOOL bFound = FALSE;
    BerElement *berElt = NULL;
    LPWSTR szAttrName;
-   WCHAR szRangeAttrName[MAX_ATTRIBUTE_NAME];
+   WCHAR szRangeAttrName[MAX_ATTRIBUTE_NAME] = { 0 };
    DWORD dwStart;
 
    // Search for attributes with range

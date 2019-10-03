@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <Shlwapi.h>
+#include <intsafe.h>
 #include "tar.h"
 #include "../Structures.h"
 #include "../Functions.h"
@@ -288,7 +289,10 @@ pTarWriteFile (
    }
    else if (SizeArchiveName < (NAMSIZ + PFXSIZ))
    {
-      DWORD dwSplitOffset = (DWORD)SizeArchiveName - 1;
+      DWORD dwSplitOffset;
+
+      if (SIZETToDWord(SizeArchiveName - 1, &dwSplitOffset) != S_OK)
+         return FALSE;
 
       // Find where to split (i.e. szArchiveName -> t_prefix '/' t_name)
       while ((*(szArchiveNameA + dwSplitOffset) != '/') && (dwSplitOffset > 0))

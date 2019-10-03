@@ -4,7 +4,7 @@
 #include <intsafe.h>
 #include "ORADAD.h"
 
-#define MSG_MAX_SIZE       8192
+#define MSG_MAX_SIZE       (8192 - 256)
 #define INFO_MAX_SIZE      MSG_MAX_SIZE + 256         // 256: "%04u/%02u/%02u - %02u:%02u:%02u.%03u\t%d\t%s\t%s\t%d\t" + ... + "\r\n",
 
 extern HANDLE g_hHeap;
@@ -17,7 +17,7 @@ Log (
    _In_z_ LPCSTR szFunction,
    _In_ DWORD dwLine,
    _In_ DWORD dwLevel,
-   _In_z_ LPCSTR szFormat,
+   _In_z_ _Printf_format_string_ LPCSTR szFormat,
    ...
 )
 {
@@ -54,7 +54,7 @@ Log (
          szMessage
       );
 
-      dwDataSize = (DWORD)strnlen_s(szLine, INFO_MAX_SIZE);
+      (void)SIZETToDWord(strnlen_s(szLine, INFO_MAX_SIZE), &dwDataSize);
       WriteFile(g_hLogFile, szLine, dwDataSize, &dwDataWritten, NULL);
    }
 }
@@ -72,7 +72,10 @@ DuplicateString (
 
    InputSize = wcslen(szInput);
    *szOutput = (LPWSTR)_HeapAlloc((InputSize + 1) * sizeof(WCHAR));
-   memcpy(*szOutput, szInput, InputSize * sizeof(WCHAR));
+   if (*szOutput != NULL)
+   {
+      memcpy(*szOutput, szInput, InputSize * sizeof(WCHAR));
+   }
 }
 
 //
@@ -130,11 +133,11 @@ RemoveSpecialChars (
    {
       while (*szString)
       {
-         if (*szString == 0x0a)
+         if (*szString == 0x0a)           // \n
             *szString = 0x20;
-         else if (*szString == 0x0d)
+         else if (*szString == 0x0d)      // \r
             *szString = 0x20;
-         else if (*szString == 0x09)
+         else if (*szString == 0x09)      // \t
             *szString = 0x20;
          szString++;
       }
@@ -157,7 +160,7 @@ WriteTextFile (
 
    vsprintf_s(szMessage, MSG_MAX_SIZE, szFormat, argptr);
 
-   dwDataSize = (DWORD)strnlen_s(szMessage, MSG_MAX_SIZE);
+   (void)SIZETToDWord(strnlen_s(szMessage, MSG_MAX_SIZE), &dwDataSize);
    bReturn = WriteFile(hFile, szMessage, dwDataSize, &dwDataWritten, NULL);
 
    return bReturn;
@@ -186,7 +189,7 @@ LPWSTRtoLPSTR (
    if (iSize == 0)
       goto Fail;
 
-   szResult = (LPSTR)HeapAlloc(g_hHeap, HEAP_ZERO_MEMORY, iSize + 1);
+   szResult = (LPSTR)HeapAlloc(g_hHeap, HEAP_ZERO_MEMORY, (SIZE_T)iSize + 1);
 
    if (szResult == NULL)
       goto Fail;
@@ -210,7 +213,7 @@ LPWSTRtoLPSTR (
 
 Fail:
    Log(
-      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR, 0,
+      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
       "[!] %sLPWSTRtoLPSTR(%S) failed.%s", COLOR_RED, szToConvert, COLOR_RESET
    );
 
@@ -220,37 +223,45 @@ Fail:
 //
 // Metadata
 //
+_Success_(return)
 BOOL
 GetFileVersion (
    _Out_ wchar_t* const szVersion,
    _In_  size_t   const _BufferCount
 )
 {
+   BOOL bResult = FALSE;
    WCHAR szFilename[MAX_PATH];
    VS_FIXEDFILEINFO * pvi;
    DWORD dwHandle;
    DWORD dwSize;
    PBYTE pbBuf;
 
-   GetModuleFileNameW(NULL, szFilename, MAX_PATH);
-   dwSize = GetFileVersionInfoSizeW(szFilename, &dwHandle);
+   *szVersion = NULL;
+   GetModuleFileName(NULL, szFilename, MAX_PATH);
+   dwSize = GetFileVersionInfoSize(szFilename, &dwHandle);
    if (0 == dwSize)
    {
       return FALSE;
    }
 
    pbBuf = (PBYTE)_HeapAlloc(dwSize);
-   if (GetFileVersionInfoW(szFilename, dwHandle, dwSize, pbBuf) == FALSE)
+   if (pbBuf == NULL)
    {
-      _SafeHeapRelease(pbBuf);
       return FALSE;
    }
 
-   dwSize = sizeof(VS_FIXEDFILEINFO);
-   if (!VerQueryValueW(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&dwSize))
+   bResult = GetFileVersionInfo(szFilename, 0, dwSize, pbBuf);         // 0: dwHandle -> This parameter is ignored
+   if (bResult == FALSE)
    {
-      _SafeHeapRelease(pbBuf);
-      return FALSE;
+      goto End;
+   }
+
+   dwSize = sizeof(VS_FIXEDFILEINFO);
+   bResult = VerQueryValue(pbBuf, L"\\", (LPVOID*)&pvi, (unsigned int*)&dwSize);
+   if (bResult == FALSE)
+   {
+      goto End;
    }
 
    swprintf(szVersion, _BufferCount, L"%d.%d.%d.%d",
@@ -260,8 +271,9 @@ GetFileVersion (
       pvi->dwFileVersionLS & 0xFFFF
    );
 
+End:
    _SafeHeapRelease(pbBuf);
-   return TRUE;
+   return bResult;
 }
 
 BOOL
@@ -304,13 +316,34 @@ MetadataCreateFile (
    bResult = BufferInitialize(&pGlobalConfig->BufferMetadata, szMetadataFilename);
    if (bResult != FALSE)
    {
+      DWORD dwComputerNameSize = MAX_METADATA_VALUE;
+
       // Exe version
       GetFileVersion(szMetadata, MAX_METADATA_VALUE);
       MetadataWriteFile(pGlobalConfig, L"oradad_version", szMetadata);
 
-      // Level
+      bResult = GetComputerNameEx(ComputerNameDnsFullyQualified, szMetadata, &dwComputerNameSize);
+      if (bResult==TRUE)
+         MetadataWriteFile(pGlobalConfig, L"computer_name", szMetadata);
+
+      // Parameters from config
       swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
-      MetadataWriteFile(pGlobalConfig, L"oradad_level", szMetadata);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|level", szMetadata);
+
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAllDomainsInForest);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|allDomainsInForest", szMetadata);
+
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s", pGlobalConfig->szForestDomains);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|forestDomains", szMetadata);
+
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bCompressionEnabled);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|compression", szMetadata);
+
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bEncryptionEnabled);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|encryption", szMetadata);
+
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s", pGlobalConfig->szServer);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|server", szMetadata);
    }
 
    return TRUE;
@@ -344,6 +377,7 @@ pConvertStringToInt (
    return 0;
 }
 
+_Success_(return)
 BOOL
 GetCmdOption (
    _In_ wchar_t *argv[],
@@ -355,6 +389,7 @@ GetCmdOption (
 {
    size_t SizeArg;
 
+   *(LPWSTR)pvElementValue = NULL;
    for (int i = 1; i < argc; i++)
    {
       if (!wcscmp(argv[i], szOption))
@@ -383,8 +418,19 @@ GetCmdOption (
             }
             if ((SizeArg = wcslen(szNextArg)) > 0)
             {
-               *(LPWSTR*)pvElementValue = (LPWSTR)_HeapAlloc((SizeArg + 1) * sizeof(wchar_t));
-               memcpy(*(LPWSTR*)pvElementValue, szNextArg, SizeArg * sizeof(wchar_t));
+               LPWSTR szTmp;
+               szTmp = (LPWSTR)_HeapAlloc((SizeArg + 1) * sizeof(wchar_t));
+               if (szTmp == NULL)
+               {
+                  Log(
+                     __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+                     "[!] %sCannot allocate memory%s (error %u).",
+                     COLOR_RED, COLOR_RESET, GetLastError()
+                  );
+                  return FALSE;
+               }
+               memcpy(szTmp, szNextArg, SizeArg * sizeof(wchar_t));
+               *(LPWSTR*)pvElementValue = szTmp;
             }
             else
                *(LPWSTR*)pvElementValue = NULL;

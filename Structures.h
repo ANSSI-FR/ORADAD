@@ -136,8 +136,9 @@ typedef struct _ROOTDSE_CONFIG
 typedef struct _CONTROL_LDAP
 {
    LPWSTR szOid;
+   LPWSTR szValueType;
    LPWSTR szValue;
-   BOOL isCritical;
+   BOOLEAN isCritical;
 } CONTROL_LDAP, *PCONTROL_LDAP;
 
 typedef struct _REQUEST_CONFIG
@@ -158,7 +159,7 @@ typedef struct _REQUEST_CONFIG
    DWORD dwStrintMaxLengthShortDn;
 
    // Per request atttribute text max size
-   PDWORD pdwStrintMaxLength;
+   PDWORD pdwStringMaxLength;
 } REQUEST_CONFIG, *PREQUEST_CONFIG;
 
 //
@@ -237,4 +238,8 @@ typedef struct _GLOBAL_CONFIG
 
    BUFFER_DATA BufferMetadata;
    BOOL bWriteMetadataSize;
+
+   BOOL bProcessSysvol;
+   LPWSTR szSysvolFilter;
+   WCHAR szFullSysvolOutDirectory[MAX_PATH];
 } GLOBAL_CONFIG, *PGLOBAL_CONFIG;

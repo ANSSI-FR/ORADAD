@@ -2,11 +2,16 @@
 #include <stdio.h>
 #include <DsGetDC.h>
 #include <Lm.h>
+#include <sddl.h>
 #include "ORADAD.h"
 
 extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 
+static LPWSTR g_ProcessedDomains[1200] = { 0 };  //1200 = max recommended domains per forest.
+static DWORD g_dwProcessedDomainsIdx = 0;
+
+_Success_(return)
 BOOL
 pLocateDc(
    _In_z_ LPWSTR szDomainName,
@@ -17,12 +22,15 @@ BOOL
 pProcessDomain(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _Inout_ PROOTDSE_CONFIG pRootDse,
-   _In_z_ LPWSTR szServer,
+   _In_opt_z_ LPWSTR szServer,
    _In_z_ LPWSTR szRootDns,
    _In_ BOOL bRequestLdap,
    _In_ BOOL bWriteTableInfo
 );
 
+//
+// Public functions
+//
 BOOL
 Process (
    _In_ PGLOBAL_CONFIG pGlobalConfig
@@ -36,9 +44,10 @@ Process (
    ROOTDSE_CONFIG RootDse = { 0 };
 
    WCHAR szMetadata[MAX_METADATA_VALUE];
-   DWORD dwStartTime, dwEndTime, dwForestDomainsCount = 1;
+   ULONGLONG ullStartTime, ullEndTime;
+   DWORD dwForestDomainsCount = 1;
 
-   dwStartTime = GetTickCount();
+   ullStartTime = GetTickCount64();
 
    //
    // Get server by DC Locator, if needed
@@ -62,6 +71,8 @@ Process (
       return FALSE;
 
    szRootDns = ConvertDnToDns(RootDse.rootDomainNamingContext);
+   if (szRootDns == NULL)
+      return FALSE;
 
    //
    // Create subdirectories (root and forest)
@@ -142,6 +153,18 @@ Process (
    );
    CreateDirectory(szDirectory, NULL);
 
+   if (pGlobalConfig->bProcessSysvol)
+   {
+      swprintf(
+         pGlobalConfig->szFullSysvolOutDirectory, MAX_PATH,
+         L"%s\\%s\\%s_SYSVOL",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+      CreateDirectory(pGlobalConfig->szFullSysvolOutDirectory, NULL);
+   }
+
    //
    // Open tables.tsv file
    //
@@ -180,17 +203,17 @@ Process (
    {
       if (pGlobalConfig->pRequests[i].dwBase & BASE_CONFIGURATION)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_CONFIGURATION, NULL, RootDse.configurationNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE);
+         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_CONFIGURATION, NULL, RootDse.configurationNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
       }
 
       if (pGlobalConfig->pRequests[i].dwBase & BASE_SCHEMA)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_SCHEMA, NULL, RootDse.schemaNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE);
+         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_SCHEMA, NULL, RootDse.schemaNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
       }
 
       if (pGlobalConfig->pRequests[i].dwBase & BASE_FOREST_DNS)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_FOREST_DNS, NULL, RootDse.forestDnsNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE);
+         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_FOREST_DNS, NULL, RootDse.forestDnsNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
       }
    }
 
@@ -205,6 +228,7 @@ Process (
       // Process our domain
       //
       pProcessDomain(pGlobalConfig, &RootDse, szServer, szRootDns, TRUE, FALSE);
+      g_ProcessedDomains[g_dwProcessedDomainsIdx++] = szServer;
 
       //
       // Process <forestDomains> list
@@ -242,9 +266,20 @@ Process (
          {
             LPWSTR szDomainServer;
 
+            // Skip domain of we have already processed it
+            for (DWORD dwIdx = 0; dwIdx < g_dwProcessedDomainsIdx; ++dwIdx)
+            {
+               if (_wcsicmp(szOtherDomain, g_ProcessedDomains[dwIdx]) == 0)
+               {
+                  goto NextOtherDomain;
+               }
+            }
+
             bResult = pLocateDc(szOtherDomain, &szDomainServer);
             if (bResult == FALSE)
-               continue;
+            {
+               goto NextOtherDomain;
+            }
 
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
@@ -252,8 +287,12 @@ Process (
                szOtherDomain
             );
             pProcessDomain(pGlobalConfig, &pRootDseForestDomains[dwDomainIndex], szDomainServer, szRootDns, TRUE, FALSE);
+
+            g_ProcessedDomains[g_dwProcessedDomainsIdx++] = szOtherDomain;
+
             _SafeHeapRelease(szDomainServer);
 
+         NextOtherDomain:
             // Move to next token
             szOtherDomain = wcstok_s(NULL, L",", &szContext);
             dwDomainIndex++;
@@ -301,7 +340,7 @@ Process (
       PDS_DOMAIN_TRUSTS pTrust;
       ULONG ulDomainCount;
 
-      dwResult = DsEnumerateDomainTrusts(NULL, DS_DOMAIN_IN_FOREST, &pTrust, &ulDomainCount);
+      dwResult = DsEnumerateDomainTrusts(szServer, DS_DOMAIN_IN_FOREST, &pTrust, &ulDomainCount);
       if (dwResult != ERROR_SUCCESS)
       {
          Log(
@@ -324,6 +363,15 @@ Process (
 
          for (ULONG i = 0; i < ulDomainCount; i++)
          {
+            // Skip domain of we have already processed it
+            for (DWORD dwIdx = 0; dwIdx < g_dwProcessedDomainsIdx; ++dwIdx)
+            {
+               if (_wcsicmp(pTrust[i].DnsDomainName, g_ProcessedDomains[dwIdx]) == 0)
+               {
+                  continue;
+               }
+            }
+
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
                "[.] Domain in forest: %S (Attribute: %u / Type: %u)",
@@ -344,6 +392,9 @@ Process (
                   pTrust[i].DnsDomainName
                );
                pProcessDomain(pGlobalConfig, &pRootDse[i], szDomainServer, szRootDns, TRUE, FALSE);
+
+               g_ProcessedDomains[g_dwProcessedDomainsIdx++] = pTrust[i].DnsDomainName;
+
                _SafeHeapRelease(szDomainServer);
             }
          }
@@ -367,10 +418,10 @@ Process (
       NetApiBufferFree(pTrust);
    }
 
-   dwEndTime = GetTickCount() - dwStartTime;
+   ullEndTime = GetTickCount64() - ullStartTime;
 
    // Metadata: Process Time and close
-   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", dwEndTime);
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%llu", ullEndTime);
    MetadataWriteFile(pGlobalConfig, L"oradad_processtime", szMetadata);
    BufferClose(&pGlobalConfig->BufferMetadata);
 
@@ -382,7 +433,9 @@ Process (
    //
    if (pGlobalConfig->bTarballEnabled)
    {
+      //
       // Create TAR
+      //
       HANDLE hTarFile;
       WCHAR szTarFile[MAX_PATH];
 
@@ -418,6 +471,41 @@ Process (
          TarFile(pGlobalConfig, pGlobalConfig->szLogfilePath, szPrefix, hTarFile);
          TarClose(hTarFile);
       }
+
+      if (pGlobalConfig->bProcessSysvol == TRUE)
+      {
+         swprintf(
+            szTarFile, MAX_PATH,
+            L"%s\\%s_%s_sysvol.tar",
+            pGlobalConfig->szOutDirectory,
+            szRootDns,
+            pGlobalConfig->szSystemTime
+         );
+
+         bResult = TarInitialize(&hTarFile, szTarFile);
+         if (bResult == FALSE)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sCannot create sysvol tar file '%S'%s (error %u).", COLOR_RED, szTarFile, COLOR_RESET, GetLastError()
+            );
+         }
+         else
+         {
+            WCHAR szPrefix[MAX_PATH];
+
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+               "[.] Create sysvol output file '%S'",
+               szTarFile
+            );
+
+            swprintf_s(szPrefix, MAX_PATH, L"%s/%s", szRootDns, pGlobalConfig->szSystemTime);
+
+            TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullSysvolOutDirectory, hTarFile);
+            TarClose(hTarFile);
+         }
+      }
    }
 
    //
@@ -432,6 +520,7 @@ Process (
 //
 // Private functions
 //
+_Success_(return)
 BOOL
 pLocateDc (
    _In_z_ LPWSTR szDomainName,
@@ -499,6 +588,8 @@ pProcessDomain (
          return FALSE;
 
       szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
+      if (szDomainDns == NULL)
+         return FALSE;
 
       //
       // Create subdirectories (domain)
@@ -525,31 +616,36 @@ pProcessDomain (
       );
       CreateDirectory(szDirectory, NULL);
    }
-   else
+   else if (pRootDse->defaultNamingContext != NULL)
    {
       szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
+      if (szDomainDns == FALSE)
+         return FALSE;
+   }
+   else
+   {
+      return FALSE;
    }
 
    //
-   // Process
+   // PROCRESS LDAP
    //
    for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
    {
       if (pGlobalConfig->pRequests[i].dwBase & BASE_ROOTDSE)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, NULL, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo);
+         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, NULL, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, TRUE);
       }
 
       if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, pRootDse->defaultNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo);
+         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, pRootDse->defaultNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
       }
 
       if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN_DNS)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN_DNS, szDomainDns, pRootDse->domainDnsNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo);
+         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN_DNS, szDomainDns, pRootDse->domainDnsNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
       }
-
       /*
       // DEBUG CODE
       for (DWORD j = 0; j < pGlobalConfig->dwRequestCount; j++)
@@ -560,12 +656,27 @@ pProcessDomain (
             for (DWORD k = 0; k < pGlobalConfig->pRequests[j].dwAttributesCount; k++)
             {
                if (wcscmp((*pGlobalConfig->pRequests[j].pAttributes[k]).szName, L"cn") == 0)
-                  wprintf(L" %s:%u", (*pGlobalConfig->pRequests[j].pAttributes[k]).szName, pGlobalConfig->pRequests[j].pdwStrintMaxLength[k]);
+                  wprintf(L" %s:%u", (*pGlobalConfig->pRequests[j].pAttributes[k]).szName, pGlobalConfig->pRequests[j].pdwStringMaxLength[k]);
             }
             printf("\n");
          }
       }
       */
+   }
+
+   //
+   // PROCESS SYSVOL
+   //
+   if (pGlobalConfig->bProcessSysvol)
+   {
+      if (bWriteTableInfo == FALSE)
+      {
+         ProcessSysvol(pGlobalConfig, szRootDns, STR_DOMAIN, szDomainDns, szServer);
+      }
+      else
+      {
+         SysvolWriteTableInfo(pGlobalConfig->hTableFile, szDomainDns);
+      }
    }
 
    _SafeHeapRelease(szDomainDns);

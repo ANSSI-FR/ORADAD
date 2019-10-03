@@ -10,7 +10,7 @@ XmlReadConfigFile(
 
 PVOID
 XmlReadSchemaFile(
-   _In_z_ LPTSTR szConfigPath,
+   _In_opt_z_ LPTSTR szConfigPath,
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_ PVOID pXMLDocConfig
 );
@@ -30,21 +30,40 @@ BOOL
 LdapGetRootDse(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szServerName,
-   _Outptr_ PROOTDSE_CONFIG pRootDse
+   _Out_ PROOTDSE_CONFIG pRootDse
 );
 
 BOOL
 LdapProcessRequest(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szServer,
+   _In_opt_z_ LPWSTR szServer,
    _In_ BOOL bIsLocalAdmin,
    _In_z_ LPWSTR szRootDns,
    _In_z_ LPCWSTR szPath1,
    _In_opt_z_ LPCWSTR szPath2,
-   _In_z_ LPWSTR szLdapBase,
-   _In_ PREQUEST_CONFIG pRequest,
+   _In_opt_z_ LPWSTR szLdapBase,
+   _In_opt_ PREQUEST_CONFIG pRequest,
    _In_ BOOL bRequestLdap,
-   _In_ BOOL bWriteTableInfo
+   _In_ BOOL bWriteTableInfo,
+   _In_ BOOL bIsRootDSE
+);
+
+//
+// Sysvol.cpp
+//
+VOID
+ProcessSysvol(
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_z_ LPWSTR szRootDns,
+   _In_z_ LPCWSTR szPath1,
+   _In_z_ LPCWSTR szPath2,
+   _In_opt_z_ LPWSTR szServer
+);
+
+VOID
+SysvolWriteTableInfo(
+   _In_ HANDLE hTableFile,
+   _In_z_ LPWSTR szDomainDns
 );
 
 //
@@ -56,7 +75,7 @@ Log(
    _In_z_ LPCSTR szFunction,
    _In_ DWORD dwLine,
    _In_ DWORD dwLevel,
-   _In_z_ LPCSTR szFormat,
+   _In_z_ _Printf_format_string_ LPCSTR szFormat,
    ...
 );
 
@@ -88,6 +107,7 @@ LPWSTRtoLPSTR(
    _In_opt_z_ LPWSTR szToConvert
 );
 
+_Success_(return)
 BOOL
 GetFileVersion(
    _Out_ wchar_t* szVersion,
@@ -114,6 +134,7 @@ cmdOptionExists(
    _In_z_ const wchar_t *szOption
 );
 
+_Success_(return)
 BOOL
 GetCmdOption(
    _In_ wchar_t *argv[],
@@ -129,47 +150,78 @@ GetCmdOption(
 BOOL
 BufferInitialize(
    _Out_ PBUFFER_DATA pBuffer,
-   _In_z_ LPWSTR szFilename
+   _In_z_ LPWSTR szFilename,
+   _In_ BOOL bRawBuffer = FALSE
 );
 
 BOOL
 BufferClose(
-   _Out_ PBUFFER_DATA pBuffer
+   _Inout_ PBUFFER_DATA pBuffer
 );
 
 DWORD
 BufferWrite(
-   _Out_ PBUFFER_DATA pBuffer,
-   _In_reads_bytes_(dwNumberOfBytesToWrite) LPVOID pvData,
+   _In_ PBUFFER_DATA pBuffer,
+   _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
    _In_ DWORD dwNumberOfBytesToWrite
 );
 
 DWORD
 BufferWrite(
-   _Out_ PBUFFER_DATA pBuffer,
-   _Inout_opt_ LPWSTR szString
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString
+);
+
+DWORD
+BufferWrite(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ const FILETIME* fileTime
+);
+
+DWORD
+BufferWrite(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ DWORD dwValue
+);
+
+DWORD
+BufferWrite(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ LONGLONG dwValue
+);
+
+DWORD
+BufferWrite(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ unsigned long long dwValue
+);
+
+DWORD
+BufferWriteFromFile(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ HANDLE hFile
 );
 
 DWORD
 BufferWriteHex(
-   _Out_ PBUFFER_DATA pBuffer,
+   _Inout_ PBUFFER_DATA pBuffer,
    _In_reads_(dwDataSize) PBYTE pbData,
    _In_ DWORD dwDataSize
 );
 
 DWORD
 BufferWriteLine(
-   _Out_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer
 );
 
 DWORD
 BufferWriteTab(
-   _Out_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer
 );
 
 DWORD
 BufferWriteSemicolon(
-   _Out_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer
 );
 
 BOOL

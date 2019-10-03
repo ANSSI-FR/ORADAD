@@ -14,8 +14,8 @@ BOOL
 pReadAttributes(
    _In_ IXMLDOMDocument2 *pXMLDoc,
    _In_z_ LPCWSTR szXPath,
-   _Outptr_ PDWORD dwAttributesCount,
-   _Outptr_ PATTRIBUTE_CONFIG *pAttributes
+   _Out_ PDWORD dwAttributesCount,
+   _Out_ PATTRIBUTE_CONFIG *pAttributes
 );
 
 BOOL
@@ -36,7 +36,7 @@ BOOL
 pAddClassAttributes(
    _In_ IXMLDOMDocument2 *pXMLDoc,
    _In_z_ LPWSTR szClassName,
-   _In_z_ PCLASS_CONFIG pClass,
+   _In_ PCLASS_CONFIG pClass,
    _In_ DWORD dwAttributesCount,
    _In_ PATTRIBUTE_CONFIG pAttributes
 );
@@ -59,7 +59,7 @@ pFindAttribute(
 BOOL
 pXmlParseRequest(
    _In_ IXMLDOMDocument2 *pXMLDoc,
-   IXMLDOMNode *pXmlNodeRequet,
+   IXMLDOMNode *pXmlNodeRequest,
    PREQUEST_CONFIG pRequests,
    _In_ PGLOBAL_CONFIG pGlobalConfig
 );
@@ -145,7 +145,7 @@ XmlReadConfigFile (
    //
    // Read Main Config
    //
-   hr = pXMLDoc->selectSingleNode((BSTR)TEXT("/configORADAD/config"), &pXMLNode);
+   hr = pXMLDoc->selectSingleNode((BSTR)TEXT("/config"), &pXMLNode);
    hr = pXMLNode->get_childNodes(&pXMLNodeList);
    hr = pXMLNodeList->get_length(&lLength);
 
@@ -161,7 +161,7 @@ XmlReadConfigFile (
 
       if ((wcscmp(strNodeName, L"server") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->szServer = strNodeText;
-      if ((wcscmp(strNodeName, L"port") == 0) && (wcslen(strNodeText) > 0))
+      else if ((wcscmp(strNodeName, L"port") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->ulLdapPort = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"username") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->szUsername = strNodeText;
@@ -187,6 +187,13 @@ XmlReadConfigFile (
          pGlobalConfig->bTarballEnabled = pReadBoolean(strNodeText);
       else if ((wcscmp(strNodeName, L"public_key") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->szPublicKey = strNodeText;
+      else if ((wcscmp(strNodeName, L"process_sysvol") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bProcessSysvol = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"sysvol_filter") == 0) && (wcslen(strNodeText) > 0))
+      {
+         pGlobalConfig->szSysvolFilter = strNodeText;
+         _wcslwr_s(pGlobalConfig->szSysvolFilter, wcslen(pGlobalConfig->szSysvolFilter) + 1);
+      }
 
       _SafeCOMRelease(pXmlNodeConfig);
    }
@@ -208,22 +215,22 @@ XmlReadConfigFile (
 
 PVOID
 XmlReadSchemaFile (
-   _In_z_ LPTSTR szConfigPath,
+   _In_opt_z_ LPTSTR szConfigPath,
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_ PVOID pXMLDocConfig
 )
 {
+   UNREFERENCED_PARAMETER(pXMLDocConfig);
+
    BOOL bResult;
    HRESULT hr;
    VARIANT_BOOL bSuccess = false;
 
    IXMLDOMDocument2 *pXMLDoc = NULL;
-   IXMLDOMDocument2 *pXMLDocConfig2 = (IXMLDOMDocument2 *)pXMLDocConfig;
-   IXMLDOMNode *pXMLNode = NULL;
    IXMLDOMNodeList *pXMLNodeList = NULL;
 
    HMODULE hCurrentProcess;
-   DWORD dwSchemaSize;
+   DWORD dwSchemaSize = 0;
    HRSRC hrSchema;
    HGLOBAL hResource;
    PBYTE pSchema = NULL;
@@ -257,7 +264,12 @@ XmlReadSchemaFile (
    }
    else
    {
+      SAFEARRAYBOUND rgsabound[1];
+      VARIANT v;
+
+      //
       // Load config from resource
+      //
       hCurrentProcess = GetModuleHandle(NULL);
       hrSchema = FindResource(hCurrentProcess, MAKEINTRESOURCE(IDR_SCHEMA), TEXT("SCHEMA"));
       if (hrSchema != NULL)
@@ -269,19 +281,18 @@ XmlReadSchemaFile (
             pSchema = (PBYTE)LockResource(hResource);
          }
       }
+
       if (pSchema == NULL)
       {
          _SafeCOMRelease(pXMLDoc);
          return NULL;
       }
 
-      SAFEARRAYBOUND rgsabound[1];
       rgsabound[0].lLbound = 0;
       rgsabound[0].cElements = dwSchemaSize;
       psaSchema = SafeArrayCreate(VT_UI1, 1, rgsabound);
       memcpy(psaSchema->pvData, pSchema, dwSchemaSize);
 
-      VARIANT v;
       VariantInit(&v);
       V_VT(&v) = VT_ARRAY | VT_UI1;
       V_ARRAY(&v) = psaSchema;
@@ -321,6 +332,7 @@ XmlReadSchemaFile (
    bResult = pReadAttributes(pXMLDoc, L"/schema/rootDSEAttributes/attribute", &pGlobalConfig->dwRootDSEAttributesCount, &pGlobalConfig->pRootDSEAttributes);
    if (bResult == FALSE)
       return NULL;
+
    bResult = pReadAttributes(pXMLDoc, L"/schema/attributes/attribute", &pGlobalConfig->dwAttributesCount, &pGlobalConfig->pAttributes);
    if (bResult == FALSE)
       return NULL;
@@ -328,7 +340,7 @@ XmlReadSchemaFile (
    //
    // Read Requests
    //
-   hr = pXMLDocConfig2->selectNodes((BSTR)TEXT("/configORADAD/requests/request"), &pXMLNodeList);
+   hr = pXMLDoc->selectNodes((BSTR)TEXT("/schema/requests/request"), &pXMLNodeList);
    hr = pXMLNodeList->get_length(&lLength);
 
    pGlobalConfig->dwRequestCount = lLength;
@@ -336,14 +348,12 @@ XmlReadSchemaFile (
 
    for (long i = 0; i < lLength; i++)
    {
-      BOOL bResult;
+      IXMLDOMNode *pXmlNodeRequest = NULL;
+      IXMLDOMNodeList *pXmlNodeListRequest = NULL;
 
-      IXMLDOMNode *pXmlNodeRequet = NULL;
-      IXMLDOMNodeList *pXmlNodeListRequet = NULL;
+      hr = pXMLNodeList->get_item(i, &pXmlNodeRequest);
 
-      hr = pXMLNodeList->get_item(i, &pXmlNodeRequet);
-
-      bResult = pXmlParseRequest(pXMLDoc, pXmlNodeRequet, &pGlobalConfig->pRequests[i], pGlobalConfig);
+      bResult = pXmlParseRequest(pXMLDoc, pXmlNodeRequest, &pGlobalConfig->pRequests[i], pGlobalConfig);
       if (bResult == FALSE)
          return NULL;
 
@@ -353,23 +363,23 @@ XmlReadSchemaFile (
          pGlobalConfig->pRequests[i].dwBase = BASE_ROOTDSE;
 
          // Allocate per request max attribute text size
-         pGlobalConfig->pRequests[i].pdwStrintMaxLength = (PDWORD)_HeapAlloc(sizeof(DWORD) * pGlobalConfig->dwRootDSEAttributesCount);
+         pGlobalConfig->pRequests[i].pdwStringMaxLength = (PDWORD)_HeapAlloc(sizeof(DWORD) * pGlobalConfig->dwRootDSEAttributesCount);
       }
       else
       {
          // Allocate per request max attribute text size
-         pGlobalConfig->pRequests[i].pdwStrintMaxLength = (PDWORD)_HeapAlloc(sizeof(DWORD) * pGlobalConfig->pRequests[i].dwAttributesCount);
+         pGlobalConfig->pRequests[i].pdwStringMaxLength = (PDWORD)_HeapAlloc(sizeof(DWORD) * pGlobalConfig->pRequests[i].dwAttributesCount);
       }
 
       // Free COM
-      _SafeCOMRelease(pXmlNodeListRequet);
-      _SafeCOMRelease(pXmlNodeRequet);
+      _SafeCOMRelease(pXmlNodeListRequest);
+      _SafeCOMRelease(pXmlNodeRequest);
    }
 
    _SafeCOMRelease(pXMLNodeList);
 
    //
-   // Display requests and attributes for debug
+   // DEBUG CODE: display requests and attributes
    //
    /*
    for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
@@ -393,8 +403,8 @@ BOOL
 pReadAttributes (
    _In_ IXMLDOMDocument2 *pXMLDoc,
    _In_z_ LPCWSTR szXPath,
-   _Outptr_ PDWORD dwAttributesCount,
-   _Outptr_ PATTRIBUTE_CONFIG *pAttributes
+   _Out_ PDWORD dwAttributesCount,
+   _Out_ PATTRIBUTE_CONFIG *pAttributes
 )
 {
    HRESULT hr;
@@ -409,6 +419,11 @@ pReadAttributes (
 
    *dwAttributesCount = lLength;
    *pAttributes = (PATTRIBUTE_CONFIG)_HeapAlloc(lLength * sizeof(ATTRIBUTE_CONFIG));
+   if (*pAttributes == NULL)
+   {
+      *dwAttributesCount = 0;
+      return FALSE;
+   }
 
    for (long i = 0; i < lLength; i++)
    {
@@ -530,7 +545,7 @@ BOOL
 pAddClassAttributes (
    _In_ IXMLDOMDocument2 *pXMLDoc,
    _In_z_ LPWSTR szClassName,
-   _In_z_ PCLASS_CONFIG pClass,
+   _In_ PCLASS_CONFIG pClass,
    _In_ DWORD dwAttributesCount,
    _In_ PATTRIBUTE_CONFIG pAttributes
 )
@@ -602,7 +617,6 @@ pAddClassAttributes (
       return TRUE;
 }
 
-_Outptr_result_maybenull_
 PATTRIBUTE_CONFIG
 pFindAttribute (
    _In_ DWORD dwAttributesCount,
@@ -619,10 +633,11 @@ pFindAttribute (
    return NULL;
 }
 
+_Success_(return)
 BOOL
 pGetAttributeByNameForRequest (
    _In_z_ LPWSTR szAttributeName,
-   _Outptr_ PATTRIBUTE_CONFIG *pAttributes,
+   _Out_ PATTRIBUTE_CONFIG *pAttributes,
    _In_ PGLOBAL_CONFIG pGlobalConfig
 )
 {
@@ -690,6 +705,7 @@ pAddClassToRequest (
    pReadAttributeString(pXmlClassMap, (LPWSTR)L"auxiliaryClass", &szSubClasses);
    if (szSubClasses != NULL)
       pAddClassesToRequest(pXMLDoc, szSubClasses, pRequest, pGlobalConfig);
+
    pReadAttributeString(pXmlClassMap, (LPWSTR)L"systemAuxiliaryClass", &szSubClasses);
    if (szSubClasses != NULL)
       pAddClassesToRequest(pXMLDoc, szSubClasses, pRequest, pGlobalConfig);
@@ -698,6 +714,10 @@ pAddClassToRequest (
    pXMLNodeListAttributes->get_length(&lLength);
 
    szAttributes = (LPWSTR*)_HeapAlloc(lLength * sizeof(LPWSTR));
+   if (szAttributes == NULL)
+   {
+      return FALSE;
+   }
 
    for (long i = 0; i < lLength; i++)
    {
@@ -771,6 +791,11 @@ pAddClassToRequest (
             (pRequest->dwAttributesCount + dwNewAttributes) * sizeof(PATTRIBUTE_CONFIG)
          );
       }
+      if (pNewAttributes == NULL)
+      {
+         return FALSE;
+      }
+
       pRequest->pAttributes = pNewAttributes;
 
       for (DWORD j = 0; j < dwAttributesCount; j++)
@@ -833,19 +858,19 @@ pAddClassesToRequest (
 BOOL
 pXmlParseRequest (
    _In_ IXMLDOMDocument2 *pXMLDoc,
-   IXMLDOMNode *pXmlNodeRequet,
+   IXMLDOMNode *pXmlNodeRequest,
    PREQUEST_CONFIG pRequest,
    _In_ PGLOBAL_CONFIG pGlobalConfig
 )
 {
    HRESULT hr;
-   IXMLDOMNodeList *pXmlNodeListRequet = NULL;
+   IXMLDOMNodeList *pXmlNodeListRequest = NULL;
 
    long lLength;
 
-   hr = pXmlNodeRequet->get_childNodes(&pXmlNodeListRequet);
+   hr = pXmlNodeRequest->get_childNodes(&pXmlNodeListRequest);
 
-   hr = pXmlNodeListRequet->get_length(&lLength);
+   hr = pXmlNodeListRequest->get_length(&lLength);
 
    for (long i = 0; i < lLength; i++)
    {
@@ -854,7 +879,7 @@ pXmlParseRequest (
       BSTR strNodeName;
       BSTR strNodeText;
 
-      hr = pXmlNodeListRequet->get_item(i, &pXmlNode);
+      hr = pXmlNodeListRequest->get_item(i, &pXmlNode);
       hr = pXmlNode->get_nodeName(&strNodeName);
       hr = pXmlNode->get_text(&strNodeText);
 
@@ -904,11 +929,78 @@ pXmlParseRequest (
          if (bResult == FALSE)
             return FALSE;
       }
+      else if (_wcsicmp(strNodeName, L"controls") == 0)
+      {
+         IXMLDOMNodeList* pXmlNodeListControls = NULL;
+         long lControlLength;
+
+         hr = pXmlNode->get_childNodes(&pXmlNodeListControls);
+         hr = pXmlNodeListControls->get_length(&lControlLength);
+         pRequest->pControls = (PCONTROL_LDAP)_HeapAlloc(lControlLength * sizeof(CONTROL_LDAP));
+         if (pRequest->pControls == NULL)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            );
+            break;
+         }
+         pRequest->dwControlsCount = lControlLength;
+
+         for (long lControlIt = 0; lControlIt < lControlLength; ++lControlIt)
+         {
+            IXMLDOMNode* pXmlControlNode = NULL;
+            IXMLDOMNamedNodeMap* pXmlAttributes = NULL;
+            long lAttrLength;
+
+            hr = pXmlNodeListControls->get_item(lControlIt, &pXmlControlNode);
+            hr = pXmlControlNode->get_attributes(&pXmlAttributes);
+            if (hr != S_OK)
+               continue;
+
+            hr = pXmlAttributes->get_length(&lAttrLength);
+
+            for (long lAttrIt = 0; lAttrIt < lAttrLength; ++lAttrIt)
+            {
+               IXMLDOMNode* pXmlAttribute = NULL;
+               BSTR strAttrName;
+               BSTR strAttrText;
+
+               hr = pXmlAttributes->get_item(lAttrIt, &pXmlAttribute);
+               hr = pXmlAttribute->get_nodeName(&strAttrName);
+               hr = pXmlAttribute->get_text(&strAttrText);
+
+               if (_wcsicmp(strAttrName, L"oid") == 0)
+               {
+                  pRequest->pControls[lControlIt].szOid = strAttrText;
+               }
+               else if (_wcsicmp(strAttrName, L"valueType") == 0)
+               {
+                  pRequest->pControls[lControlIt].szValueType = strAttrText;
+               }
+               else if (_wcsicmp(strAttrName, L"value") == 0)
+               {
+                  pRequest->pControls[lControlIt].szValue = strAttrText;
+               }
+               else if (_wcsicmp(strAttrName, L"critical") == 0)
+               {
+                  pRequest->pControls[lControlIt].isCritical = (_wcsicmp(strAttrText, L"true") == 0);
+               }
+
+               _SafeCOMRelease(pXmlAttribute);
+            }
+
+            _SafeCOMRelease(pXmlAttributes);
+            _SafeCOMRelease(pXmlControlNode);
+         }
+
+         _SafeCOMRelease(pXmlNodeListControls);
+      }
 
       _SafeCOMRelease(pXmlNode);
    }
 
-   _SafeCOMRelease(pXmlNodeListRequet);
+   _SafeCOMRelease(pXmlNodeListRequest);
 
    return TRUE;
 }
@@ -923,7 +1015,7 @@ pReadUInteger (
    if (szValue == NULL)
       return 0;
 
-   if (wcslen(szValue)==0)
+   if (wcslen(szValue) == 0)
       return 0;
 
    if (swscanf_s(szValue, L"%u", &dwResult) == 1)

@@ -9,12 +9,15 @@ extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 extern GLOBAL_CONFIG g_GlobalConfig;
 
-static const LZ4F_preferences_t lz4Prefs = {
+#define READ_BUFFER_SIZE 1024 * 1024
+
+static const LZ4F_preferences_t lz4Prefs =
+{
    { LZ4F_max1MB, LZ4F_blockLinked, LZ4F_contentChecksumEnabled, LZ4F_frame, 0, 0, LZ4F_noBlockChecksum },
-   0,       // compressionLevel
-   1,       // autoFlush
-   0,       //favorDecSpeed
-{ 0, 0, 0}  //Reserved
+   0,                   // compressionLevel
+   1,                   // autoFlush
+   0,                   //favorDecSpeed
+   { 0, 0, 0}           //Reserved
 };
 
 //
@@ -23,11 +26,12 @@ static const LZ4F_preferences_t lz4Prefs = {
 BOOL
 BufferInitialize (
    _Out_ PBUFFER_DATA pBuffer,
-   _In_z_ LPWSTR szFilename
+   _In_z_ LPWSTR szFilename,
+   _In_ BOOL bRawBuffer
 )
 {
    BOOL bResult;
-   PBUFFER_HEADER pBufferHeader;
+   PBUFFER_HEADER pBufferHeader, pBufferHeaderNew;
 
    pBufferHeader = (PBUFFER_HEADER)_HeapAlloc(sizeof(BUFFER_HEADER));
    if (pBufferHeader == NULL)
@@ -41,7 +45,7 @@ BufferInitialize (
 
    ZeroMemory(pBuffer, sizeof(BUFFER_DATA));
 
-   if (g_GlobalConfig.bCompressionEnabled || g_GlobalConfig.bEncryptionEnabled)
+   if ((g_GlobalConfig.bCompressionEnabled == TRUE) || (g_GlobalConfig.bEncryptionEnabled == TRUE))
    {
       // Add suffix for compressed / encrypted files
       swprintf_s(pBuffer->szFileName, MAX_PATH, L"%s.oradad", szFilename);
@@ -71,16 +75,19 @@ BufferInitialize (
    pBufferHeader->Magic[5] = 'D';
    pBufferHeader->BufferVersion = BUFFER_VERSION;
 
+   //
    // Compression
+   //
    if (g_GlobalConfig.bCompressionEnabled)
    {
       LZ4F_errorCode_t lz4err;
+
       lz4err = LZ4F_createCompressionContext(&(pBuffer->lz4Ctx), LZ4F_VERSION);
       if (lz4err != 0)
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to create compression context %s (error %u - %s).", COLOR_RED, COLOR_RESET, lz4err, LZ4F_getErrorName(lz4err)
+            "[!] %sUnable to create compression context %s (error %llu - %s).", COLOR_RED, COLOR_RESET, lz4err, LZ4F_getErrorName(lz4err)
          );
          return FALSE;
       }
@@ -92,7 +99,9 @@ BufferInitialize (
       pBufferHeader->Flags |= BUFFER_COMPRESSED;
    }
 
+   //
    // Encryption
+   //
    if (g_GlobalConfig.bEncryptionEnabled)
    {
       DWORD dwRsaBufferLen = 0;
@@ -246,8 +255,8 @@ BufferInitialize (
 
       pBufferHeader->Flags |= BUFFER_ENCRYPTED;
       pBufferHeader->dwExtraDataLen = dwKeyExportLen;
-      pBufferHeader = (PBUFFER_HEADER)HeapReAlloc(g_hHeap, HEAP_ZERO_MEMORY, pBufferHeader, sizeof(BUFFER_HEADER) + pBufferHeader->dwExtraDataLen);
-      if (pBufferHeader == NULL)
+      pBufferHeaderNew = (PBUFFER_HEADER)HeapReAlloc(g_hHeap, HEAP_ZERO_MEMORY, pBufferHeader, sizeof(BUFFER_HEADER) + pBufferHeader->dwExtraDataLen);
+      if (pBufferHeaderNew == NULL)
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
@@ -255,6 +264,8 @@ BufferInitialize (
          );
          return FALSE;
       }
+
+      pBufferHeader = pBufferHeaderNew;
       memcpy_s(pBufferHeader->bExtraData, pBufferHeader->dwExtraDataLen, pbKeyExport, dwKeyExportLen);
 
       CryptDestroyKey(hRsaKey);
@@ -290,7 +301,7 @@ BufferInitialize (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to begin compression %s (error %u).", COLOR_RED, COLOR_RESET, compressSize
+            "[!] %sUnable to begin compression %s (error %llu).", COLOR_RED, COLOR_RESET, compressSize
          );
          return FALSE;
       }
@@ -304,9 +315,13 @@ BufferInitialize (
    }
    else
    {
-      // Write UTF-16 BOM
-      BYTE pbBomUTF16LE[2] = { 0xFF, 0xFE };
-      BufferWrite(pBuffer, pbBomUTF16LE, 2);
+      // Write UTF-16 BOM if buffer is not raw
+      if (bRawBuffer == FALSE)
+      {
+         BYTE pbBomUTF16LE[2] = { 0xFF, 0xFE };
+
+         BufferWrite(pBuffer, pbBomUTF16LE, 2);
+      }
    }
 
    return TRUE;
@@ -314,7 +329,7 @@ BufferInitialize (
 
 BOOL
 BufferClose (
-   _Out_ PBUFFER_DATA pBuffer
+   _Inout_ PBUFFER_DATA pBuffer
 )
 {
    BOOL bResult;
@@ -349,8 +364,8 @@ BufferClose (
 
 DWORD
 BufferWrite (
-   _Out_ PBUFFER_DATA pBuffer,
-   _In_reads_bytes_(dwNumberOfBytesToWrite) LPVOID pvData,
+   _In_ PBUFFER_DATA pBuffer,
+   _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
    _In_ DWORD dwNumberOfBytesToWrite
 )
 {
@@ -358,6 +373,12 @@ BufferWrite (
       return 0;
 
    if (pBuffer->pbData == NULL)
+      return 0;
+
+   if (pvData == NULL)
+      return 0;
+
+   if (dwNumberOfBytesToWrite == 0)
       return 0;
 
    if (dwNumberOfBytesToWrite >= pBuffer->BufferSize)
@@ -396,8 +417,8 @@ BufferWrite (
 
 DWORD
 BufferWrite (
-   _Out_ PBUFFER_DATA pBuffer,
-   _Inout_opt_ LPWSTR szString
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString
 )
 {
    size_t StringSize;
@@ -423,8 +444,109 @@ BufferWrite (
 }
 
 DWORD
+BufferWrite (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ const FILETIME* fileTime
+)
+{
+   SYSTEMTIME st;
+   WCHAR szDate[20];
+
+   FileTimeToSystemTime(fileTime, &st);
+   swprintf_s(
+      szDate, 20,
+      L"%04u-%02u-%02u %02u:%02u:%02u",
+      st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond
+   );
+
+   return BufferWrite(pBuffer, szDate);
+}
+
+DWORD
+BufferWrite (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ DWORD dwValue
+)
+{
+   wchar_t intTmp[_MAX_ULTOSTR_BASE10_COUNT];
+   _ultow_s(dwValue, intTmp, _MAX_ULTOSTR_BASE10_COUNT, 10);
+   return BufferWrite(pBuffer, intTmp);
+}
+
+DWORD
+BufferWrite (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ LONGLONG dwValue
+)
+{
+   wchar_t intTmp[_MAX_I64TOSTR_BASE10_COUNT];
+   _i64tow_s(dwValue, intTmp, _MAX_I64TOSTR_BASE10_COUNT, 10);
+   return BufferWrite(pBuffer, intTmp);
+}
+
+DWORD
+BufferWrite (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ unsigned long long dwValue
+)
+{
+   wchar_t intTmp[_MAX_U64TOSTR_BASE10_COUNT];
+   _ui64tow_s(dwValue, intTmp, _MAX_U64TOSTR_BASE10_COUNT, 10);
+   return BufferWrite(pBuffer, intTmp);
+}
+
+DWORD
+BufferWriteFromFile (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ HANDLE hFile
+)
+{
+   BOOL bResult;
+   DWORD dwBytesWritten = 0;
+   LARGE_INTEGER liFileSize;
+   LARGE_INTEGER liFilePos;
+   PBYTE pReadBuffer = NULL;
+
+   bResult = GetFileSizeEx(hFile, &liFileSize);
+   if (bResult == FALSE)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sCannot get file size%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+      );
+      return 0;
+   }
+
+   pReadBuffer = (PBYTE)_HeapAlloc(READ_BUFFER_SIZE);
+   if (pReadBuffer == NULL)
+      return 0;
+
+   liFilePos.QuadPart = 0;
+   while (liFilePos.QuadPart < liFileSize.QuadPart)
+   {
+      DWORD dwReadLength = READ_BUFFER_SIZE;
+
+      bResult = ReadFile(hFile, pReadBuffer, READ_BUFFER_SIZE, &dwReadLength, NULL);
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot read file %s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         break;
+      }
+
+      liFilePos.QuadPart += dwReadLength;
+      dwBytesWritten = BufferWrite(pBuffer, pReadBuffer, dwReadLength);
+   }
+
+   _SafeHeapRelease(pReadBuffer);
+   return dwBytesWritten;
+}
+
+DWORD
 BufferWriteHex (
-   _Out_ PBUFFER_DATA pBuffer,
+   _Inout_ PBUFFER_DATA pBuffer,
    _In_reads_(dwDataSize) PBYTE pbData,
    _In_ DWORD dwDataSize
 )
@@ -444,7 +566,7 @@ BufferWriteHex (
 
 DWORD
 BufferWriteLine (
-   _Out_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer
 )
 {
    return BufferWrite(pBuffer, (LPVOID)L"\r\n", 2 * sizeof(WCHAR));
@@ -452,7 +574,7 @@ BufferWriteLine (
 
 DWORD
 BufferWriteTab (
-   _Out_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer
 )
 {
    return BufferWrite(pBuffer, (LPVOID)L"\t", 2);
@@ -460,7 +582,7 @@ BufferWriteTab (
 
 DWORD
 BufferWriteSemicolon (
-   _Out_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer
 )
 {
    return BufferWrite(pBuffer, (LPVOID)L";", 2);
@@ -484,6 +606,7 @@ BufferSave (
 
    if (SIZETToDWord(pBuffer->Position, &dwOutBufferLength) != S_OK)
       return FALSE;
+
    pbOutBuffer = pBuffer->pbData;
    pdwOutBufferPosition = &(pBuffer->Position);
 
@@ -507,7 +630,7 @@ BufferSave (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot compress data%s (error %d - %s).", COLOR_RED, COLOR_RESET, bytesOut, LZ4F_getErrorName(bytesOut)
+            "[!] %sCannot compress data%s (error %llu - %s).", COLOR_RED, COLOR_RESET, bytesOut, LZ4F_getErrorName(bytesOut)
          );
          return FALSE;
       }
@@ -527,7 +650,7 @@ BufferSave (
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sCannot finalize compression %s (error %d - %s).", COLOR_RED, COLOR_RESET, bytesOut, LZ4F_getErrorName(bytesOut)
+               "[!] %sCannot finalize compression %s (error %llu - %s).", COLOR_RED, COLOR_RESET, bytesOut, LZ4F_getErrorName(bytesOut)
             );
             return FALSE;
          }
@@ -558,7 +681,7 @@ BufferSave (
       dwRoundedOutBufferLength = (dwOutBufferLength / pBuffer->dwEncryptBlockLen) * pBuffer->dwEncryptBlockLen;
 
       // If this is the last block, don't round
-      if (bFinal)
+      if (bFinal == TRUE)
          dwRoundedOutBufferLength = dwOutBufferLength;
 
       // Copy required data to encryption buffer
