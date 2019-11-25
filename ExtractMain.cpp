@@ -430,7 +430,8 @@ ProcessFile (
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
                "[!] %sCannot decrypt data%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
             );
-            return FALSE;
+            // Remove the return FALSE here, sometimes, the bad data can be salvaged
+            // return FALSE;
          }
       }
 

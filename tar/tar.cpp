@@ -10,12 +10,14 @@ extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 
 #define TAR_END_BLOCK_SIZE       1024
+#define TAR_EXTENDED_DATA_SIZE   1024
 
 BOOL
 pTarWriteFile(
    _In_ HANDLE hTarFile,
    _In_z_ LPWSTR szFilename,
-   _In_z_ LPWSTR szArchiveName
+   _In_z_ LPWSTR szArchiveName,
+   _In_ BOOL bExtendedTar
 );
 
 //
@@ -24,7 +26,8 @@ pTarWriteFile(
 BOOL
 TarInitialize (
    _Out_ PHANDLE phTarFile,
-   _In_z_ LPWSTR szFilename
+   _In_z_ LPWSTR szFilename,
+   _In_ BOOL bExtendedTar
 )
 {
    HANDLE hFile;
@@ -41,6 +44,34 @@ TarInitialize (
    }
    else
    {
+      if (bExtendedTar == TRUE)        // If requested, write extended POSIX.1-2001 Header to support file whose size is > MAX_OCTAL_SIZE
+      {
+         BOOL bResult;
+         DWORD dwWritten;
+         xstar_header TarExtHeader;
+
+         //
+         // Create POSIX.1-2001 Global Extended Header
+         //
+         TarPrepareHeader(&TarExtHeader);
+         sprintf_s(TarExtHeader.t_name, NAMSIZ, "././@PaxHeader");
+         sprintf_s(TarExtHeader.t_size, 12, "%011o", 0);
+         TarExtHeader.t_typeflag = LF_GHDR;
+         TarComputeChecksum(&TarExtHeader);
+
+         bResult = WriteFile(hFile, &TarExtHeader, sizeof(TarExtHeader), &dwWritten, NULL);
+         if (bResult == FALSE)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sCannot write extended header to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            );
+            *phTarFile = NULL;
+            CloseHandle(hFile);
+            return FALSE;
+         }
+      }
+
       *phTarFile = hFile;
       return TRUE;
    }
@@ -50,7 +81,8 @@ VOID
 TarFilesRecursively (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szFolder,
-   _In_ HANDLE hTarFile
+   _In_ HANDLE hTarFile,
+   _In_ BOOL bExtendedTar
 )
 {
    BOOL bResult;
@@ -72,7 +104,7 @@ TarFilesRecursively (
             if (FindFileData.cFileName[0] == '.')
                continue;
             PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
-            TarFilesRecursively(pGlobalConfig, szFullPattern, hTarFile);
+            TarFilesRecursively(pGlobalConfig, szFullPattern, hTarFile, bExtendedTar);
          }
       } while (FindNextFile(hFindFile, &FindFileData));
       FindClose(hFindFile);
@@ -89,7 +121,7 @@ TarFilesRecursively (
          {
             // found a file; do something with it
             PathCombine(szFullPattern, szFolder, FindFileData.cFileName);
-            bResult = TarFile(pGlobalConfig, szFullPattern, NULL, hTarFile);
+            bResult = TarFile(pGlobalConfig, szFullPattern, NULL, hTarFile, bExtendedTar);
             if (bResult == FALSE)
                return;
          }
@@ -103,7 +135,8 @@ TarFile (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szFileName,
    _In_opt_z_ LPWSTR szPrefix,
-   _In_ HANDLE hTarFile
+   _In_ HANDLE hTarFile,
+   _In_ BOOL bExtendedTar
 )
 {
    BOOL bResult;
@@ -131,7 +164,7 @@ TarFile (
          szRelativePath[i] = L'/';
    }
 
-   bResult = pTarWriteFile(hTarFile, szFileName, szRelativePath);
+   bResult = pTarWriteFile(hTarFile, szFileName, szRelativePath, bExtendedTar);
    if (bResult == FALSE)
    {
       Log(
@@ -161,14 +194,13 @@ TarClose (
    return FALSE;
 }
 
-//
-// Private functions
-//
 BOOL
-pTarPrepareHeader (
-   _Out_ xstar_header* pTarHeader
+TarPrepareHeader (
+   _Out_ PVOID pVoidTarHeader
 )
 {
+   xstar_header* pTarHeader = (xstar_header*)pVoidTarHeader;
+
    if (pTarHeader != NULL)
    {
       ZeroMemory(pTarHeader, sizeof(xstar_header));
@@ -183,10 +215,12 @@ pTarPrepareHeader (
 }
 
 BOOL
-pTarComputeChecksum (
-   _In_ xstar_header* pTarHeader
+TarComputeChecksum (
+   _Out_ PVOID pVoidTarHeader
 )
 {
+   xstar_header* pTarHeader = (xstar_header*)pVoidTarHeader;
+
    if (pTarHeader != NULL)
    {
       unsigned i = 0;
@@ -207,11 +241,16 @@ pTarComputeChecksum (
    return FALSE;
 }
 
+//
+// Private functions
+//
+
 BOOL
 pTarWriteFile (
    _In_ HANDLE hTarFile,
    _In_z_ LPWSTR szFilename,
-   _In_z_ LPWSTR szArchiveName
+   _In_z_ LPWSTR szArchiveName,
+   _In_ BOOL bExtendedTar
 )
 {
    BOOL bResult;
@@ -248,22 +287,51 @@ pTarWriteFile (
       return FALSE;
    }
 
-   if (liFileSize.QuadPart > MAX_OCTAL_SIZE)
+   if ((liFileSize.QuadPart > MAX_OCTAL_SIZE) && (bExtendedTar==TRUE))
    {
-      // TODO: Implement POSIX.1-2001 extended header
-      Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sFile size is too large to fit in standard tar header%s.", COLOR_RED, COLOR_RESET
-      );
-      return FALSE;
+      int sTmp;
+      char szExtendedData[TAR_EXTENDED_DATA_SIZE] = { 0 };
+      xstar_header TarExtHeader;
+
+      //
+      // Put size in a POSIX.1-2001 Extended Header
+      //
+      sTmp = sprintf_s(szExtendedData, TAR_EXTENDED_DATA_SIZE, " size=%llu\n", liFileSize.QuadPart);
+      sTmp += sprintf_s(szExtendedData, TAR_EXTENDED_DATA_SIZE, "%d", sTmp);
+      sTmp = sprintf_s(szExtendedData, TAR_EXTENDED_DATA_SIZE, "%d size=%llu\n", sTmp, liFileSize.QuadPart);
+
+      TarPrepareHeader(&TarExtHeader);
+      sprintf_s(TarExtHeader.t_name, NAMSIZ, "././@PaxHeader");
+      sprintf_s(TarExtHeader.t_size, 12, "%011o", sTmp);
+      TarExtHeader.t_typeflag = LF_XHDR;
+      TarComputeChecksum(&TarExtHeader);
+
+      bResult = WriteFile(hTarFile, &TarExtHeader, sizeof(TarExtHeader), &dwWritten, NULL);
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot write extended header to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
+      bResult = WriteFile(hTarFile, szExtendedData, ((sTmp / TBLOCK) + 1) * TBLOCK, &dwWritten, NULL);
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot write extended header to tar%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
    }
 
    //
-   // Create TAR
+   // Add file to TAR (header + data)
    //
    xstar_header TarHeader;
 
-   pTarPrepareHeader(&TarHeader);
+   TarPrepareHeader(&TarHeader);
 
    // Convert filename to ASCII and get size
    szArchiveNameA = LPWSTRtoLPSTR(szArchiveName);
@@ -345,13 +413,13 @@ pTarWriteFile (
    sprintf_s(TarHeader.t_mode, 8, "%07o", 00777);
    sprintf_s(TarHeader.t_uid, 8, "%o", 0);
    sprintf_s(TarHeader.t_gid, 8, "%o", 0);
-   sprintf_s(TarHeader.t_size, 12, "%011llo", liFileSize.QuadPart);
+   sprintf_s(TarHeader.t_size, 12, "%011llo", liFileSize.QuadPart <= MAX_OCTAL_SIZE ? liFileSize.QuadPart : 0);
    TarHeader.t_typeflag = REGTYPE;
 
-   pTarComputeChecksum(&TarHeader);
+   TarComputeChecksum(&TarHeader);
 
    //
-   // Write to tar
+   // Write header to tar
    //
    bResult = WriteFile(hTarFile, &TarHeader, sizeof(TarHeader), &dwWritten, NULL);
    if (bResult == FALSE)
@@ -363,6 +431,9 @@ pTarWriteFile (
       return FALSE;
    }
 
+   //
+   // Write data to tar
+   //
    liPosition.QuadPart = 0;
 
    while (liPosition.QuadPart < liFileSize.QuadPart)

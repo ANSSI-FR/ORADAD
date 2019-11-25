@@ -8,6 +8,7 @@
 extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 extern GLOBAL_CONFIG g_GlobalConfig;
+extern BOOL g_bExtendedTarForAd;
 
 #define READ_BUFFER_SIZE 1024 * 1024
 
@@ -342,6 +343,11 @@ BufferClose (
          "[!] %sUnable to save buffer%s.", COLOR_RED, COLOR_RESET
       );
       return FALSE;
+   }
+
+   if (pBuffer->ulFileSize > (MAX_OCTAL_SIZE - (1024 * 1024)))
+   {
+      g_bExtendedTarForAd = TRUE;
    }
 
    _SafeHeapRelease(pBuffer->pbData);
@@ -723,6 +729,10 @@ BufferSave (
    // Write buffer to file
    //
    bResult = WriteFile(pBuffer->hOutputFile, pbOutBuffer, dwOutBufferLength, &dwBytesWritten, NULL);
+   if (bResult == TRUE)
+   {
+      pBuffer->ulFileSize += dwBytesWritten;
+   }
    bReturn = bResult;
 
    //

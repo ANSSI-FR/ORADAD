@@ -3,8 +3,6 @@
 
 #include <Windows.h>
 
-#define MAX_OCTAL_SIZE 077777777777
-
 /*
  * POSIX.1 - 1988 field size valuesand magic.
  */

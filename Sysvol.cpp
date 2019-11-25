@@ -158,7 +158,11 @@ SysvolWriteTableInfo (
    WriteTextFile(hTableFile, "path\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
    WriteTextFile(hTableFile, "filename\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
    WriteTextFile(hTableFile, "archivename\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "securitydescriptor\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   // nvarchar(n) n must be from 1 through 4000
+   if (((g_dwSysvolMaxLength[dwIdx] / 2) + 1) < 4000)
+      WriteTextFile(hTableFile, "securitydescriptor\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   else
+      WriteTextFile(hTableFile, "securitydescriptor\tnvarchar(max)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
    WriteTextFile(hTableFile, "fileattributes\tint\t");
    dwIdx++;
    WriteTextFile(hTableFile, "ftCreationTime\tdatetime2\t");

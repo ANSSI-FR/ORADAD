@@ -20,6 +20,7 @@ HANDLE g_hLogFile = NULL;
 
 GLOBAL_CONFIG g_GlobalConfig = { 0 };
 BOOL g_bSupportsAnsi;
+BOOL g_bExtendedTarForAd = FALSE;
 
 //__declspec(dllexport)
 int

@@ -7,6 +7,7 @@
 
 extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
+extern BOOL g_bExtendedTarForAd;
 
 static LPWSTR g_ProcessedDomains[1200] = { 0 };  //1200 = max recommended domains per forest.
 static DWORD g_dwProcessedDomainsIdx = 0;
@@ -447,7 +448,7 @@ Process (
          pGlobalConfig->szSystemTime
       );
 
-      bResult = TarInitialize(&hTarFile, szTarFile);
+      bResult = TarInitialize(&hTarFile, szTarFile, g_bExtendedTarForAd);
       if (bResult == FALSE)
       {
          Log(
@@ -467,8 +468,8 @@ Process (
 
          swprintf_s(szPrefix, MAX_PATH, L"%s/%s", szRootDns, pGlobalConfig->szSystemTime);
 
-         TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullOutDirectory, hTarFile);
-         TarFile(pGlobalConfig, pGlobalConfig->szLogfilePath, szPrefix, hTarFile);
+         TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullOutDirectory, hTarFile, g_bExtendedTarForAd);
+         TarFile(pGlobalConfig, pGlobalConfig->szLogfilePath, szPrefix, hTarFile, g_bExtendedTarForAd);
          TarClose(hTarFile);
       }
 
@@ -482,7 +483,7 @@ Process (
             pGlobalConfig->szSystemTime
          );
 
-         bResult = TarInitialize(&hTarFile, szTarFile);
+         bResult = TarInitialize(&hTarFile, szTarFile, FALSE);
          if (bResult == FALSE)
          {
             Log(
@@ -502,7 +503,7 @@ Process (
 
             swprintf_s(szPrefix, MAX_PATH, L"%s/%s", szRootDns, pGlobalConfig->szSystemTime);
 
-            TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullSysvolOutDirectory, hTarFile);
+            TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullSysvolOutDirectory, hTarFile, FALSE);
             TarClose(hTarFile);
          }
       }

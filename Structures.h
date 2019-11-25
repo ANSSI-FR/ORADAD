@@ -183,6 +183,7 @@ typedef struct _BUFFER_DATA
    HCRYPTPROV hProv;
    HCRYPTHASH hHash;
    HCRYPTKEY hCryptKey;
+   ULONG64 ulFileSize;
 } BUFFER_DATA, *PBUFFER_DATA;
 
 #define BUFFER_VERSION        1

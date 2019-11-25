@@ -251,14 +251,16 @@ ApplyFilter(
 BOOL
 TarInitialize(
    _Out_ PHANDLE phTarFile,
-   _In_z_ LPWSTR szFilename
+   _In_z_ LPWSTR szFilename,
+   _In_ BOOL bExtendedTar
 );
 
 VOID
 TarFilesRecursively(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szFolder,
-   _In_ HANDLE hTarFile
+   _In_ HANDLE hTarFile,
+   _In_ BOOL bExtendedTar
 );
 
 BOOL
@@ -266,10 +268,21 @@ TarFile(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPWSTR szFileName,
    _In_opt_z_ LPWSTR szPrefix,
-   _In_ HANDLE hTarFile
+   _In_ HANDLE hTarFile,
+   _In_ BOOL bExtendedTar
 );
 
 BOOL
 TarClose(
    _In_ HANDLE hTarFile
+);
+
+BOOL
+TarPrepareHeader(
+   _Out_ PVOID pVoidTarHeader
+);
+
+BOOL
+TarComputeChecksum(
+   _Out_ PVOID pVoidTarHeader
 );

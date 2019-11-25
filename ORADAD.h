@@ -2,6 +2,11 @@
 #include "Functions.h"
 
 //
+// Constants
+//
+#define MAX_OCTAL_SIZE        077777777777
+
+//
 // Macros
 //
 #define _HeapAlloc(x) HeapAlloc(g_hHeap, HEAP_ZERO_MEMORY, (x))
