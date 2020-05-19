@@ -107,6 +107,7 @@ LdapGetRootDse (
    pAttribute = ldap_first_attribute(pLdapHandle, pEntry, &pBer);
 
    pRootDse->bIsLocalAdmin = FALSE;
+   pRootDse->dwOtherNamingContextsCount = 0;
 
    while (pAttribute != NULL)
    {
@@ -144,8 +145,16 @@ LdapGetRootDse (
             {
                if (wcsstr(ppValue[i], L"DC=ForestDnsZones,") == ppValue[i])
                   DuplicateString(ppValue[i], &pRootDse->forestDnsNamingContext);
-               else if(wcsstr(ppValue[i], L"DC=DomainDnsZones,") == ppValue[i])
+               else if (wcsstr(ppValue[i], L"DC=DomainDnsZones,") == ppValue[i])
                   DuplicateString(ppValue[i], &pRootDse->domainDnsNamingContext);
+               else if (wcsstr(ppValue[i], L"CN=Configuration,") == ppValue[i] || wcsstr(ppValue[i], L"CN=Schema,CN=Configuration,") == ppValue[i])
+                  continue;
+               else
+               {
+                  // Non domain Naming Context (ie AD-LDS)
+                  DuplicateString(ppValue[i], &pRootDse->otherNamingContexts[pRootDse->dwOtherNamingContextsCount]);
+                  pRootDse->dwOtherNamingContextsCount += 1;
+               }
             }
          }
          else if ((wcscmp(pAttribute, L"tokenGroups") == 0) && (wcslen(pAttribute) > 0))
@@ -608,8 +617,8 @@ LdapProcessRequest (
 
             if (bIsRootDSE == TRUE)
             {
-               // For RootDSE, dwStrintMaxLengthShortName is used for 'server' max size
-               _CallWriteAndGetMax(BufferWrite(pBuffer, szServer), pRequest->dwStrintMaxLengthShortName);
+               // For RootDSE, dwStringMaxLengthShortName is used for 'server' max size
+               _CallWriteAndGetMax(BufferWrite(pBuffer, szServer), pRequest->dwStringMaxLengthShortName);
                BufferWriteTab(pBuffer);
             }
             else
@@ -619,7 +628,7 @@ LdapProcessRequest (
                //
                if (szDn != NULL)
                {
-                  _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStrintMaxLengthDn);
+                  _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStringMaxLengthDn);
                }
                BufferWriteTab(pBuffer);
             }
@@ -638,7 +647,7 @@ LdapProcessRequest (
                   swprintf_s(szShortName, MAX_PATH, L"%s/%s", szPath1, szPath2);
                else
                   swprintf_s(szShortName, MAX_PATH, L"%s/%s", szPath1, szRootDns);
-               _CallWriteAndGetMax(BufferWrite(pBuffer, szShortName), pRequest->dwStrintMaxLengthShortName);
+               _CallWriteAndGetMax(BufferWrite(pBuffer, szShortName), pRequest->dwStringMaxLengthShortName);
                BufferWriteTab(pBuffer);
 
                //
@@ -653,7 +662,7 @@ LdapProcessRequest (
                   if ((szBasePosition != NULL) && (szBasePosition != szDn))
                   {
                      *(szBasePosition - 1) = 0;       // -1 to remove ','
-                     _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStrintMaxLengthShortDn);
+                     _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStringMaxLengthShortDn);
                   }
                   BufferWriteTab(pBuffer);
                }
@@ -1281,7 +1290,7 @@ pLdapOpenConnection (
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
-      "[+] %sSuccessfully bind to %S.%s", COLOR_GREEN, szServerName, COLOR_RESET
+      "[+] %sSuccessfully bind to %S%s.", COLOR_GREEN, szServerName, COLOR_RESET
    );
 
    return pLdapHandle;
@@ -1333,19 +1342,19 @@ pWriteTableInfo (
    // Columns
    if (bIsRootDSE == TRUE)
    {
-      // For RootDSE, dwStrintMaxLengthShortName is used for 'server' max size
-      WriteTextFile(pGlobalConfig->hTableFile, "server\tnvarchar(%u)", (pRequest->dwStrintMaxLengthShortName / 2) + 1);
+      // For RootDSE, dwStringMaxLengthShortName is used for 'server' max size
+      WriteTextFile(pGlobalConfig->hTableFile, "server\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortName / 2) + 1);
    }
    else
    {
-      WriteTextFile(pGlobalConfig->hTableFile, "dn\tnvarchar(%u)", (pRequest->dwStrintMaxLengthDn / 2) + 1);
+      WriteTextFile(pGlobalConfig->hTableFile, "dn\tnvarchar(%u)", (pRequest->dwStringMaxLengthDn / 2) + 1);
    }
 
    if (bIsTop == TRUE)
    {
       // +1 to be sure to round to upper value (even) and avoid nvarchar(0)
-      WriteTextFile(pGlobalConfig->hTableFile, "\tshortname\tnvarchar(%u)", (pRequest->dwStrintMaxLengthShortName / 2) + 1);
-      WriteTextFile(pGlobalConfig->hTableFile, "\tshortdn\tnvarchar(%u)", (pRequest->dwStrintMaxLengthShortDn / 2) + 1);
+      WriteTextFile(pGlobalConfig->hTableFile, "\tshortname\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortName / 2) + 1);
+      WriteTextFile(pGlobalConfig->hTableFile, "\tshortdn\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortDn / 2) + 1);
    }
 
    //
@@ -1353,10 +1362,10 @@ pWriteTableInfo (
    //
    for (DWORD i = 0; i < dwAttributesCount; i++)
    {
-      DWORD dwStrintMaxLength;
+      DWORD dwStringMaxLength;
 
       // +1 to be sure to round to upper value (even) and avoid nvarchar(0)
-      dwStrintMaxLength = (pRequest->pdwStringMaxLength[i] / 2) + 1;
+      dwStringMaxLength = (pRequest->pdwStringMaxLength[i] / 2) + 1;
 
       if ((*pAttributes[i]).Type == TYPE_INT)
       {
@@ -1366,7 +1375,7 @@ pWriteTableInfo (
          }
          else
          {
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
+            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             WriteTextFile(pGlobalConfig->hTableFile, "\t%S_int\tint", (*pAttributes[i]).szName);
          }
       }
@@ -1378,7 +1387,7 @@ pWriteTableInfo (
          }
          else
          {
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
+            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             WriteTextFile(pGlobalConfig->hTableFile, "\t%S_int\tbigint", (*pAttributes[i]).szName);
          }
       }
@@ -1390,8 +1399,8 @@ pWriteTableInfo (
          case TYPE_STRS:
          {
             // nvarchar(n) n must be from 1 through 4000
-            if (dwStrintMaxLength < 4000)
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
+            if (dwStringMaxLength < 4000)
+               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             else
             {
                WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
@@ -1402,7 +1411,7 @@ pWriteTableInfo (
                   WCHAR szMetadataValue[MAX_METADATA_VALUE];
 
                   swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStringMaxLength);
                   MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
                }
             }
@@ -1415,8 +1424,8 @@ pWriteTableInfo (
          case TYPE_BIN:
          {
             // varchar(n) n must be from 1 through 8000
-            if (dwStrintMaxLength < 8000)
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStrintMaxLength);
+            if (dwStringMaxLength < 8000)
+               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             else
             {
                WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
@@ -1427,7 +1436,7 @@ pWriteTableInfo (
                   WCHAR szMetadataValue[MAX_METADATA_VALUE];
 
                   swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStrintMaxLength);
+                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStringMaxLength);
                   MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
                }
             }

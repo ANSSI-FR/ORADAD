@@ -29,5 +29,5 @@ McKq/wdFBJluQrF/2wmvBX8A4xJkEGFu1cyHLue1vbCG3ATpP3kAMtECAwEAAQ==
 -----END RSA PUBLIC KEY-----
 ]]></public_key>                                        <!-- RSAPublicKey format: use -RSAPublicKey_out with openssl, -pubout won't work -->
     <process_sysvol>1</process_sysvol>                  <!-- Process domains sysvol -->
-    <sysvol_filter>*\GPT.INI;*\GPE.INI;*\comment.cmtx;*\Registry.pol;*\GptTmpl.inf;*\audit.csv;*\scripts.ini;*\psscripts.ini;*\*.aas;*\ScheduledTasks.xml;*\Groups.xml;*\Registry.xml;*\InternetSettings.xml;*\Shortcuts.xml;*\Devices.xml;*\EnvironmentVariables.xml;*\FolderOptions.xml;*\Services.xml</sysvol_filter>  <!-- Files to collect from sysvol -->
+    <sysvol_filter>*\GPT.INI;*\GPE.INI;*\comment.cmtx;*\Registry.pol;*\GptTmpl.inf;*\audit.csv;*\scripts.ini;*\psscripts.ini;*\*.aas;*\ScheduledTasks.xml;*\Groups.xml;*\Registry.xml;*\InternetSettings.xml;*\Shortcuts.xml;*\Devices.xml;*\EnvironmentVariables.xml;*\FolderOptions.xml;*\Services.xml;*\*.cmd;*\*.bat;*\*.vbs;*\*.vbe;*\*.ps1;*\*.reg</sysvol_filter>  <!-- Files to collect from sysvol -->
 </config>

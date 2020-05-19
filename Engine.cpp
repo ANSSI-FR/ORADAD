@@ -71,7 +71,16 @@ Process (
    if (bResult == FALSE)
       return FALSE;
 
-   szRootDns = ConvertDnToDns(RootDse.rootDomainNamingContext);
+   if (RootDse.rootDomainNamingContext != NULL)
+   {
+      szRootDns = ConvertDnToDns(RootDse.rootDomainNamingContext);
+   }
+   else
+   {
+      // Where there is no rootDomainNamingContext we are on AD-LDS.
+      // Use the server provided in config as szRootDns
+      DuplicateString(pGlobalConfig->szServer, &szRootDns);
+   }
    if (szRootDns == NULL)
       return FALSE;
 
@@ -151,6 +160,16 @@ Process (
       szRootDns,
       pGlobalConfig->szSystemTime,
       STR_FOREST_DNS
+   );
+   CreateDirectory(szDirectory, NULL);
+
+   swprintf(
+      szDirectory, MAX_PATH,
+      L"%s\\%s\\%s\\%s",
+      pGlobalConfig->szOutDirectory,
+      szRootDns,
+      pGlobalConfig->szSystemTime,
+      STR_APPLICATION
    );
    CreateDirectory(szDirectory, NULL);
 
@@ -564,6 +583,50 @@ pLocateDc (
 }
 
 BOOL
+pProcessOtherNamingContexts (
+   _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ PROOTDSE_CONFIG pRootDse,
+   _In_opt_z_ LPWSTR szServer,
+   _In_z_ LPWSTR szRootDns,
+   _In_ BOOL bRequestLdap,
+   _In_ BOOL bWriteTableInfo
+)
+{
+   // Find the first partition when there is no defaultNamingContext (AD-LDS)
+   for (DWORD dwIdx = 0; dwIdx < pRootDse->dwOtherNamingContextsCount; ++dwIdx)
+   {
+      WCHAR szDirectory[MAX_PATH];
+      LPWSTR szPartition;
+
+      szPartition = ConvertDnToDns(pRootDse->otherNamingContexts[dwIdx]);
+
+      //
+      // Create subdirectories (domain)
+      //
+      swprintf(
+         szDirectory, MAX_PATH,
+         L"%s\\%s\\%s\\%s\\%s",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime,
+         STR_APPLICATION,
+         szPartition
+      );
+      CreateDirectory(szDirectory, NULL);
+
+      for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
+      {
+         if (pGlobalConfig->pRequests[i].dwBase & BASE_APPLICATION)
+         {
+            LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_APPLICATION, szPartition, pRootDse->otherNamingContexts[dwIdx], &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+         }
+      }
+   }
+
+   return TRUE;
+}
+
+BOOL
 pProcessDomain (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _Inout_ PROOTDSE_CONFIG pRootDse,
@@ -575,7 +638,7 @@ pProcessDomain (
 {
    BOOL bResult;
 
-   LPTSTR szDomainDns;
+   LPTSTR szDomainDns = NULL;
 
    if ((bRequestLdap == TRUE) && (szServer != NULL))
    {
@@ -588,34 +651,39 @@ pProcessDomain (
       if (bResult == FALSE)
          return FALSE;
 
-      szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
-      if (szDomainDns == NULL)
-         return FALSE;
+      if (pRootDse->defaultNamingContext != NULL)
+      {
+         szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
+         if (szDomainDns == NULL)
+            return FALSE;
 
-      //
-      // Create subdirectories (domain)
-      //
-      swprintf(
-         szDirectory, MAX_PATH,
-         L"%s\\%s\\%s\\%s\\%s",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime,
-         STR_DOMAIN,
-         szDomainDns
-      );
-      CreateDirectory(szDirectory, NULL);
+         //
+         // Create subdirectories (domain)
+         //
+         swprintf(
+            szDirectory, MAX_PATH,
+            L"%s\\%s\\%s\\%s\\%s",
+            pGlobalConfig->szOutDirectory,
+            szRootDns,
+            pGlobalConfig->szSystemTime,
+            STR_DOMAIN,
+            szDomainDns
+         );
+         CreateDirectory(szDirectory, NULL);
 
-      swprintf(
-         szDirectory, MAX_PATH,
-         L"%s\\%s\\%s\\%s\\%s",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime,
-         STR_DOMAIN_DNS,
-         szDomainDns
-      );
-      CreateDirectory(szDirectory, NULL);
+         swprintf(
+            szDirectory, MAX_PATH,
+            L"%s\\%s\\%s\\%s\\%s",
+            pGlobalConfig->szOutDirectory,
+            szRootDns,
+            pGlobalConfig->szSystemTime,
+            STR_DOMAIN_DNS,
+            szDomainDns
+         );
+         CreateDirectory(szDirectory, NULL);
+      }
+
+      bResult = pProcessOtherNamingContexts(pGlobalConfig, pRootDse, szServer, szRootDns, bRequestLdap, bWriteTableInfo);
    }
    else if (pRootDse->defaultNamingContext != NULL)
    {
@@ -625,7 +693,8 @@ pProcessDomain (
    }
    else
    {
-      return FALSE;
+      bResult = pProcessOtherNamingContexts(pGlobalConfig, pRootDse, szServer, szRootDns, bRequestLdap, bWriteTableInfo);
+      return bResult;
    }
 
    //

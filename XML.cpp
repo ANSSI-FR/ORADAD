@@ -916,6 +916,8 @@ pXmlParseRequest (
                pRequest->dwBase |= BASE_DOMAIN_DNS;
             else if (_wcsicmp(szToken, STR_FOREST_DNS) == 0)
                pRequest->dwBase |= BASE_FOREST_DNS;
+            else if (_wcsicmp(szToken, STR_APPLICATION) == 0)
+               pRequest->dwBase |= BASE_APPLICATION;
 
             szToken = wcstok_s(NULL, L",", &szTokenContext);
          }

@@ -1,6 +1,3 @@
-#include "Structures.h"
-#include "Functions.h"
-
 //
 // Constants
 //
@@ -20,3 +17,20 @@
 //
 #define MAX_METADATA_KEY               255
 #define MAX_METADATA_VALUE             1024
+
+//
+// Enum
+//
+enum class StartStatus
+{
+   Unkwnon = 0,
+   Good = 1,
+   Warning = 2,
+   Expired = 3
+};
+
+//
+// Include
+//
+#include "Structures.h"
+#include "Functions.h"

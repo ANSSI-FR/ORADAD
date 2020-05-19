@@ -461,3 +461,77 @@ GetCmdOption (
    // No error (but argument may be not present)
    return TRUE;
 }
+
+StartStatus
+GetBuildDateStatus (
+)
+{
+   int r;
+   CHAR szMonth[5] = { 0 };
+
+   SYSTEMTIME BuildSystemTime = { 0 };
+
+   r = sscanf_s(__DATE__, "%s %hu %hu", szMonth, 5, &BuildSystemTime.wDay, &BuildSystemTime.wYear);
+   if (r == 3)
+   {
+      SYSTEMTIME StartSystemTime;
+      FILETIME BuildFileTime, StartFileTime;
+
+      ULARGE_INTEGER uliStart, uliBuild;
+
+      if (!strcmp(szMonth, "Jan"))
+         BuildSystemTime.wMonth = 1;
+      else if (!strcmp(szMonth, "Feb"))
+         BuildSystemTime.wMonth = 2;
+      else if (!strcmp(szMonth, "Mar"))
+         BuildSystemTime.wMonth = 3;
+      else if (!strcmp(szMonth, "Apr"))
+         BuildSystemTime.wMonth = 4;
+      else if (!strcmp(szMonth, "May"))
+         BuildSystemTime.wMonth = 5;
+      else if (!strcmp(szMonth, "Jun"))
+         BuildSystemTime.wMonth = 6;
+      else if (!strcmp(szMonth, "Jul"))
+         BuildSystemTime.wMonth = 7;
+      else if (!strcmp(szMonth, "Aug"))
+         BuildSystemTime.wMonth = 8;
+      else if (!strcmp(szMonth, "Sep"))
+         BuildSystemTime.wMonth = 9;
+      else if (!strcmp(szMonth, "Oct"))
+         BuildSystemTime.wMonth = 10;
+      else if (!strcmp(szMonth, "Nov"))
+         BuildSystemTime.wMonth = 11;
+      else if (!strcmp(szMonth, "Dec"))
+         BuildSystemTime.wMonth = 12;
+      else
+         return StartStatus::Unkwnon;
+
+      GetSystemTime(&StartSystemTime);
+      SystemTimeToFileTime(&StartSystemTime, &StartFileTime);
+      SystemTimeToFileTime(&BuildSystemTime, &BuildFileTime);
+      uliStart.HighPart = StartFileTime.dwHighDateTime;
+      uliStart.LowPart = StartFileTime.dwLowDateTime;
+      uliBuild.HighPart = BuildFileTime.dwHighDateTime;
+      uliBuild.LowPart = BuildFileTime.dwLowDateTime;
+
+      if (uliBuild.QuadPart >= uliStart.QuadPart)
+      {
+         return StartStatus::Good;
+      }
+      else
+      {
+         ULONGLONG ullDiff;
+
+         ullDiff = uliStart.QuadPart - uliBuild.QuadPart;
+
+         if (ullDiff < (ULONGLONG)10 * 1000 * 1000 * 3600 * 24 * 100)
+            return StartStatus::Good;
+         else if (ullDiff < (ULONGLONG)10 * 1000 * 1000 * 3600 * 24 * 200)
+            return StartStatus::Warning;
+         else
+            return StartStatus::Expired;
+      }
+   }
+
+   return StartStatus::Unkwnon;
+}

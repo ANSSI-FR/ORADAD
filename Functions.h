@@ -144,6 +144,10 @@ GetCmdOption(
    _Out_ PVOID pvElementValue
 );
 
+StartStatus
+GetBuildDateStatus(
+);
+
 //
 // Buffer.cpp
 //

@@ -38,6 +38,30 @@ wmain (
    WCHAR szVersion[MAX_PATH];
    LPWSTR szConfigPath = NULL;
    LPWSTR szSchemaPath = NULL;
+   StartStatus DateStatus;
+
+   DateStatus = GetBuildDateStatus();
+   if (DateStatus == StartStatus::Unkwnon)
+      return EXIT_FAILURE;
+
+   if (DateStatus == StartStatus::Warning)
+   {
+      fwprintf_s(stderr, L"\r\n* Warning *\r\n");
+      fwprintf_s(stderr, L"Your ORADAD version seems old.\r\n");
+      fwprintf_s(stderr, L"Check on https://github.com/ANSSI-FR/ORADAD/releases that you have the latest version.\r\n\r\n");
+   }
+   else if (DateStatus == StartStatus::Expired)
+   {
+      if (cmdOptionExists(argv, argc, L"--force") == FALSE)
+      {
+         fwprintf_s(stderr, L"\r\n* Error *\r\n");
+         fwprintf_s(stderr, L"Your ORADAD version seems very old.\r\n");
+         fwprintf_s(stderr, L"Check on https://github.com/ANSSI-FR/ORADAD/releases that you have the latest version.\r\n");
+         fwprintf_s(stderr, L"Specify option '--force' on the commande line to avoid this message.\r\n\r\n");
+
+         return EXIT_FAILURE;
+      }
+   }
 
    //
    // Initialization

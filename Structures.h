@@ -32,6 +32,12 @@
 #define STR_SCHEMA            L"schema"
 #define STR_DOMAIN_DNS        L"domaindns"
 #define STR_FOREST_DNS        L"forestdns"
+#define STR_APPLICATION       L"application"
+
+//
+// Misc
+//
+#define MAX_OTHER_NAMING_CONTEXTS         16
 
 //
 // Filters
@@ -70,7 +76,8 @@ typedef enum _BASE_TYPE
    BASE_CONFIGURATION = 4,
    BASE_SCHEMA = 8,
    BASE_DOMAIN_DNS = 16,
-   BASE_FOREST_DNS = 32
+   BASE_FOREST_DNS = 32,
+   BASE_APPLICATION = 64
 } BASE_TYPE;
 
 typedef enum _ATTRIBUTE_TYPE
@@ -125,6 +132,8 @@ typedef struct _ROOTDSE_CONFIG
    LPWSTR schemaNamingContext;
    LPWSTR domainDnsNamingContext;
    LPWSTR forestDnsNamingContext;
+   DWORD dwOtherNamingContextsCount;
+   LPWSTR otherNamingContexts[MAX_OTHER_NAMING_CONTEXTS];
 
    LPWSTR domainControllerFunctionality;
    LPWSTR domainFunctionality;
@@ -154,9 +163,9 @@ typedef struct _REQUEST_CONFIG
    DWORD dwControlsCount;
    PCONTROL_LDAP pControls;
 
-   DWORD dwStrintMaxLengthShortName;
-   DWORD dwStrintMaxLengthDn;
-   DWORD dwStrintMaxLengthShortDn;
+   DWORD dwStringMaxLengthShortName;
+   DWORD dwStringMaxLengthDn;
+   DWORD dwStringMaxLengthShortDn;
 
    // Per request atttribute text max size
    PDWORD pdwStringMaxLength;

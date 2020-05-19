@@ -171,7 +171,7 @@ SysvolWriteTableInfo (
    dwIdx++;
    WriteTextFile(hTableFile, "ftCreaftLastWriteTimetionTime\tdatetime2\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "filesize\tint\t");
+   WriteTextFile(hTableFile, "filesize\tbigint\t");
    dwIdx++;
    WriteTextFile(hTableFile, "take\ttinyint\t");
    dwIdx++;
@@ -343,9 +343,11 @@ pProcessSysvolFile (
       NULL);
    if (hFile == INVALID_HANDLE_VALUE)
    {
+      // Note: if error is ERROR_ACCESS_DENIED, error message is not displayed on screen (LOG_LEVEL_VERBOSE)
       dwInitialError = GetLastError();
       Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         __FILE__, __FUNCTION__, __LINE__,
+         (dwInitialError == ERROR_ACCESS_DENIED) ? LOG_LEVEL_VERBOSE : LOG_LEVEL_ERROR,
          "[!] %sCannot open sysvol file '%S'%s (error %u).",
          COLOR_RED, szFileName, COLOR_RESET, dwInitialError
       );

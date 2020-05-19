@@ -2,8 +2,6 @@
 #include <Shlwapi.h>
 #include <intsafe.h>
 #include "tar.h"
-#include "../Structures.h"
-#include "../Functions.h"
 #include "../ORADAD.h"
 
 extern HANDLE g_hHeap;
