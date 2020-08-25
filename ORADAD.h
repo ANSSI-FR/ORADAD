@@ -1,8 +1,9 @@
 //
 // Constants
 //
-#define MAX_OCTAL_SIZE        077777777777
-
+#define MAX_OCTAL_SIZE           077777777777
+#define DWORD_MAX                0xffffffffUL         // See ntintsafe.h
+#define USE_GLOBAL_CREDENTIALS   DWORD_MAX
 //
 // Macros
 //
@@ -27,6 +28,12 @@ enum class StartStatus
    Good = 1,
    Warning = 2,
    Expired = 3
+};
+
+enum class DbCompareMode
+{
+   Max,
+   Last
 };
 
 //

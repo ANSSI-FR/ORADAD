@@ -330,11 +330,11 @@ MetadataCreateFile (
       swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
       MetadataWriteFile(pGlobalConfig, L"oradad|config|level", szMetadata);
 
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAllDomainsInForest);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|allDomainsInForest", szMetadata);
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAutoGetDomain);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|autoGetDomain", szMetadata);
 
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s", pGlobalConfig->szForestDomains);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|forestDomains", szMetadata);
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAutoGetTrusts);
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|autoGetTrusts", szMetadata);
 
       swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bCompressionEnabled);
       MetadataWriteFile(pGlobalConfig, L"oradad|config|compression", szMetadata);
@@ -342,8 +342,15 @@ MetadataCreateFile (
       swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bEncryptionEnabled);
       MetadataWriteFile(pGlobalConfig, L"oradad|config|encryption", szMetadata);
 
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s", pGlobalConfig->szServer);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|server", szMetadata);
+      for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
+      {
+         WCHAR szMetadataKey[MAX_METADATA_VALUE];
+
+         swprintf_s(szMetadataKey, MAX_METADATA_VALUE, L"oradad|config|server|%u", i);
+         swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s|%s", pGlobalConfig->DomainConfig[i].szServer,pGlobalConfig->DomainConfig[i].szDomainName);
+
+         MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadata);
+      }
    }
 
    return TRUE;

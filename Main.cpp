@@ -208,7 +208,7 @@ wmain (
 End:
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-      "[.] %sEnd.%s", COLOR_GREEN, COLOR_RESET
+      "[.] %sEnd.%s", COLOR_CYAN, COLOR_RESET
    );
    CloseHandle(g_hLogFile);
 

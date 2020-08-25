@@ -9,8 +9,7 @@ extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 extern BOOL g_bExtendedTarForAd;
 
-static LPWSTR g_ProcessedDomains[1200] = { 0 };  //1200 = max recommended domains per forest.
-static DWORD g_dwProcessedDomainsIdx = 0;
+PDB_ENTRY g_pBaseNc;
 
 _Success_(return)
 BOOL
@@ -22,8 +21,10 @@ pLocateDc(
 BOOL
 pProcessDomain(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _Inout_ PROOTDSE_CONFIG pRootDse,
    _In_opt_z_ LPWSTR szServer,
+   _In_ ULONG ulLdapPort,
    _In_z_ LPWSTR szRootDns,
    _In_ BOOL bRequestLdap,
    _In_ BOOL bWriteTableInfo
@@ -41,33 +42,60 @@ Process (
    WCHAR szDirectory[MAX_PATH];
    LPWSTR szRootDns = NULL;
    LPWSTR szServer = NULL;
+   ULONG ulLdapPort = 0;
 
    ROOTDSE_CONFIG RootDse = { 0 };
 
    WCHAR szMetadata[MAX_METADATA_VALUE];
    ULONGLONG ullStartTime, ullEndTime;
-   DWORD dwForestDomainsCount = 1;
 
    ullStartTime = GetTickCount64();
 
    //
-   // Get server by DC Locator, if needed
+   // Get server by DC Locator, if requested
    //
-   if (pGlobalConfig->szServer == NULL)
+   if (pGlobalConfig->bAutoGetDomain == TRUE)
    {
       bResult = pLocateDc(NULL, &szServer);
       if (bResult == FALSE)
          return FALSE;
+
+      // Add server to <domains> list (first entry)
+      DuplicateString(szServer, &pGlobalConfig->DomainConfig[0].szServer);
    }
    else
    {
-      DuplicateString(pGlobalConfig->szServer, &szServer);
+      // Check <domains> contains at least one entry
+      if (pGlobalConfig->dwDomainCount == 0)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sDC Locator is disabled, but no domain specified%s.", COLOR_RED, COLOR_RESET
+         );
+         return FALSE;
+      }
+
+      if (pGlobalConfig->DomainConfig[0].szServer != NULL)
+      {
+         // Explicit server
+         DuplicateString(pGlobalConfig->DomainConfig[0].szServer, &szServer);
+         ulLdapPort = pGlobalConfig->DomainConfig[0].ulLdapPort;
+      }
+      else
+      {
+         // Get server by DC Locator
+         bResult = pLocateDc(pGlobalConfig->DomainConfig[0].szDomainName, &szServer);
+         if (bResult == FALSE)
+         {
+            return FALSE;
+         }
+      }
    }
 
    //
-   // Get rootDSE
+   // Get rootDSE from first server
    //
-   bResult = LdapGetRootDse(pGlobalConfig, szServer, &RootDse);
+   bResult = LdapGetRootDse(pGlobalConfig, 0, szServer, ulLdapPort, &RootDse);
    if (bResult == FALSE)
       return FALSE;
 
@@ -78,15 +106,24 @@ Process (
    else
    {
       // Where there is no rootDomainNamingContext we are on AD-LDS.
-      // Use the server provided in config as szRootDns
-      DuplicateString(pGlobalConfig->szServer, &szRootDns);
+      pGlobalConfig->bIsAdLds = TRUE;
+      MetadataWriteFile(pGlobalConfig, L"ADLDS", (LPWSTR)L"1");
+
+      // Use the server as szRootDns, disable GPO dump and process only first entry in <domains>
+      DuplicateString(szServer, &szRootDns);
+      pGlobalConfig->bProcessSysvol = FALSE;          // No sysvol with AD-LDS
+      pGlobalConfig->dwDomainCount = min(pGlobalConfig->dwDomainCount, 1);
    }
+
+   // Check szRootDns exists
    if (szRootDns == NULL)
       return FALSE;
 
    //
-   // Create subdirectories (root and forest)
+   // Create subdirectories (root, forest, domain, application)
    //
+
+   // Root folder
    swprintf(
       szDirectory, MAX_PATH,
       L"%s\\%s",
@@ -104,6 +141,7 @@ Process (
       return FALSE;
    }
 
+   // Root folder + time
    swprintf(
       pGlobalConfig->szFullOutDirectory, MAX_PATH,
       L"%s\\%s\\%s",
@@ -113,16 +151,21 @@ Process (
    );
    CreateDirectory(pGlobalConfig->szFullOutDirectory, NULL);
 
-   swprintf(
-      szDirectory, MAX_PATH,
-      L"%s\\%s\\%s\\%s",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime,
-      STR_DOMAIN
-   );
-   CreateDirectory(szDirectory, NULL);
+   // Domain folder (only on AD-DS)
+   if (pGlobalConfig->bIsAdLds == FALSE)
+   {
+      swprintf(
+         szDirectory, MAX_PATH,
+         L"%s\\%s\\%s\\%s",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime,
+         STR_DOMAIN
+      );
+      CreateDirectory(szDirectory, NULL);
+   }
 
+   // Configuration folder
    swprintf(
       szDirectory, MAX_PATH,
       L"%s\\%s\\%s\\%s",
@@ -133,6 +176,7 @@ Process (
    );
    CreateDirectory(szDirectory, NULL);
 
+   // Schema folder
    swprintf(
       szDirectory, MAX_PATH,
       L"%s\\%s\\%s\\%s",
@@ -143,25 +187,29 @@ Process (
    );
    CreateDirectory(szDirectory, NULL);
 
-   swprintf(
-      szDirectory, MAX_PATH,
-      L"%s\\%s\\%s\\%s",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime,
-      STR_DOMAIN_DNS
-   );
-   CreateDirectory(szDirectory, NULL);
+   // DNS folder (only on AD-DS)
+   if (pGlobalConfig->bIsAdLds == FALSE)
+   {
+      swprintf(
+         szDirectory, MAX_PATH,
+         L"%s\\%s\\%s\\%s",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime,
+         STR_DOMAIN_DNS
+      );
+      CreateDirectory(szDirectory, NULL);
 
-   swprintf(
-      szDirectory, MAX_PATH,
-      L"%s\\%s\\%s\\%s",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime,
-      STR_FOREST_DNS
-   );
-   CreateDirectory(szDirectory, NULL);
+      swprintf(
+         szDirectory, MAX_PATH,
+         L"%s\\%s\\%s\\%s",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime,
+         STR_FOREST_DNS
+      );
+      CreateDirectory(szDirectory, NULL);
+   }
 
    swprintf(
       szDirectory, MAX_PATH,
@@ -214,7 +262,6 @@ Process (
    // Open metadata.tsv file
    //
    MetadataCreateFile(pGlobalConfig, szRootDns);
-   pGlobalConfig->bWriteMetadataSize = TRUE;
 
    //
    // Process all forest global partition
@@ -223,144 +270,74 @@ Process (
    {
       if (pGlobalConfig->pRequests[i].dwBase & BASE_CONFIGURATION)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_CONFIGURATION, NULL, RootDse.configurationNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_CONFIGURATION, NULL, RootDse.configurationNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
       }
 
       if (pGlobalConfig->pRequests[i].dwBase & BASE_SCHEMA)
       {
-         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_SCHEMA, NULL, RootDse.schemaNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_SCHEMA, NULL, RootDse.schemaNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
       }
 
-      if (pGlobalConfig->pRequests[i].dwBase & BASE_FOREST_DNS)
+      // Forest DNS, but only with AD-DS
+      if ((pGlobalConfig->pRequests[i].dwBase & BASE_FOREST_DNS) && (pGlobalConfig->bIsAdLds == FALSE))
       {
-         LdapProcessRequest(pGlobalConfig, szServer, RootDse.bIsLocalAdmin, szRootDns, STR_FOREST_DNS, NULL, RootDse.forestDnsNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_FOREST_DNS, NULL, RootDse.forestDnsNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
       }
    }
 
    //
-   // Domains (only our domain and <forestDomains> list or all domains in forest)
+   // Process domains (manual or automatic selection)
    //
-   if (pGlobalConfig->bAllDomainsInForest == FALSE)
+   if (pGlobalConfig->bAutoGetTrusts == FALSE)
    {
-      PROOTDSE_CONFIG pRootDseForestDomains = NULL;
-
       //
-      // Process our domain
+      // Process <domains> list
       //
-      pProcessDomain(pGlobalConfig, &RootDse, szServer, szRootDns, TRUE, FALSE);
-      g_ProcessedDomains[g_dwProcessedDomainsIdx++] = szServer;
-
-      //
-      // Process <forestDomains> list
-      //
-      if (pGlobalConfig->szForestDomains != NULL)
+      for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
       {
-         DWORD dwDomainIndex = 0;
-         LPWSTR szContext = NULL;
-         LPWSTR szForestDomainsCopy;
-         LPWSTR szOtherDomain;
+         LPWSTR szDomainServer;
 
-         //
-         // Count how many domains in list
-         //
-         for (size_t i = 0; i < wcslen(pGlobalConfig->szForestDomains); i++)
+         if (pGlobalConfig->DomainConfig[i].szServer != NULL)
          {
-            if (pGlobalConfig->szForestDomains[i] == ',')
-               dwForestDomainsCount++;
+            // Explicit server
+            DuplicateString(pGlobalConfig->DomainConfig[i].szServer, &szDomainServer);
+
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+               "[.] Processing extra domain in forest: server=%S",
+               szDomainServer
+            );
          }
-
-         //
-         // Allocate rootDse entries
-         //
-         pRootDseForestDomains = (PROOTDSE_CONFIG)_HeapAlloc(sizeof(ROOTDSE_CONFIG) * dwForestDomainsCount);
-         if (pRootDseForestDomains == NULL)
-            return FALSE;
-
-         //
-         // Process domains list
-         //
-         DuplicateString(pGlobalConfig->szForestDomains, &szForestDomainsCopy);
-         szOtherDomain = wcstok_s(szForestDomainsCopy, L",", &szContext);
-
-         while (szOtherDomain != NULL)
+         else
          {
-            LPWSTR szDomainServer;
-
-            // Skip domain of we have already processed it
-            for (DWORD dwIdx = 0; dwIdx < g_dwProcessedDomainsIdx; ++dwIdx)
-            {
-               if (_wcsicmp(szOtherDomain, g_ProcessedDomains[dwIdx]) == 0)
-               {
-                  goto NextOtherDomain;
-               }
-            }
-
-            bResult = pLocateDc(szOtherDomain, &szDomainServer);
+            // Get server by DC Locator
+            bResult = pLocateDc(pGlobalConfig->DomainConfig[i].szDomainName, &szDomainServer);
             if (bResult == FALSE)
             {
-               goto NextOtherDomain;
+               continue;
             }
 
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-               "[.] Processing extra domain in forest: %S",
-               szOtherDomain
+               "[.] Processing extra domain in forest: domain=%S -> server=%S",
+               pGlobalConfig->DomainConfig[i].szDomainName, szDomainServer
             );
-            pProcessDomain(pGlobalConfig, &pRootDseForestDomains[dwDomainIndex], szDomainServer, szRootDns, TRUE, FALSE);
-
-            g_ProcessedDomains[g_dwProcessedDomainsIdx++] = szOtherDomain;
-
-            _SafeHeapRelease(szDomainServer);
-
-         NextOtherDomain:
-            // Move to next token
-            szOtherDomain = wcstok_s(NULL, L",", &szContext);
-            dwDomainIndex++;
          }
 
-         _SafeHeapRelease(szForestDomainsCopy);
+         pProcessDomain(pGlobalConfig, i, &pGlobalConfig->DomainConfig[i].RootDseConfig, szDomainServer, ulLdapPort, szRootDns, TRUE, FALSE);
+
+         _SafeHeapRelease(szDomainServer);
       }
-
-      //
-      // Write table infos into tables.tsv (FALSE, TRUE)
-      // Done after all requests (TRUE, FALSE) to be sure to have max text size for all domains
-      //
-      pProcessDomain(pGlobalConfig, &RootDse, NULL, szRootDns, FALSE, TRUE);
-
-      // Be sure to write only once data size in metadata.tsv
-      pGlobalConfig->bWriteMetadataSize = FALSE;
-
-      if (pGlobalConfig->szForestDomains != NULL)
-      {
-         DWORD dwDomainIndex = 0;
-         LPWSTR szContext = NULL;
-         LPWSTR szForestDomainsCopy;
-         LPWSTR szOtherDomain;
-
-         DuplicateString(pGlobalConfig->szForestDomains, &szForestDomainsCopy);
-         szOtherDomain = wcstok_s(szForestDomainsCopy, L",", &szContext);
-
-         while (szOtherDomain != NULL)
-         {
-            pProcessDomain(pGlobalConfig, &pRootDseForestDomains[dwDomainIndex], NULL, szRootDns, FALSE, TRUE);
-
-            // Move to next token
-            szOtherDomain = wcstok_s(NULL, L",", &szContext);
-            dwDomainIndex++;
-         }
-
-         _SafeHeapRelease(szForestDomainsCopy);
-      }
-
-      _SafeHeapRelease(pRootDseForestDomains);
    }
    else
    {
+      //
+      // Automatic selection: all domains in forest get by DcLocator functions
+      //
       DWORD dwResult;
       PDS_DOMAIN_TRUSTS pTrust;
-      ULONG ulDomainCount;
 
-      dwResult = DsEnumerateDomainTrusts(szServer, DS_DOMAIN_IN_FOREST, &pTrust, &ulDomainCount);
+      dwResult = DsEnumerateDomainTrusts(szServer, DS_DOMAIN_IN_FOREST, &pTrust, &pGlobalConfig->dwDomainCount);
       if (dwResult != ERROR_SUCCESS)
       {
          Log(
@@ -370,28 +347,17 @@ Process (
       }
       else
       {
-         PROOTDSE_CONFIG pRootDse;
-
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "[.] Find %u domains in forest.", ulDomainCount
+            "[.] Find %u domains in forest.", pGlobalConfig->dwDomainCount
          );
 
-         pRootDse = (PROOTDSE_CONFIG)_HeapAlloc(sizeof(ROOTDSE_CONFIG) * ulDomainCount);
-         if (pRootDse == NULL)
+         pGlobalConfig->DomainConfig = (PDOMAIN_CONFIG)_HeapAlloc(sizeof(DOMAIN_CONFIG) * pGlobalConfig->dwDomainCount);
+         if (pGlobalConfig->DomainConfig == NULL)
             return FALSE;
 
-         for (ULONG i = 0; i < ulDomainCount; i++)
+         for (ULONG i = 0; i < pGlobalConfig->dwDomainCount; i++)
          {
-            // Skip domain of we have already processed it
-            for (DWORD dwIdx = 0; dwIdx < g_dwProcessedDomainsIdx; ++dwIdx)
-            {
-               if (_wcsicmp(pTrust[i].DnsDomainName, g_ProcessedDomains[dwIdx]) == 0)
-               {
-                  continue;
-               }
-            }
-
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
                "[.] Domain in forest: %S (Attribute: %u / Type: %u)",
@@ -411,33 +377,52 @@ Process (
                   "[.] Processing domain in forest: %S",
                   pTrust[i].DnsDomainName
                );
-               pProcessDomain(pGlobalConfig, &pRootDse[i], szDomainServer, szRootDns, TRUE, FALSE);
-
-               g_ProcessedDomains[g_dwProcessedDomainsIdx++] = pTrust[i].DnsDomainName;
+               pProcessDomain(pGlobalConfig, USE_GLOBAL_CREDENTIALS, &pGlobalConfig->DomainConfig[i].RootDseConfig, szDomainServer, ulLdapPort, szRootDns, TRUE, FALSE);
 
                _SafeHeapRelease(szDomainServer);
             }
          }
-
-         //
-         // Write table infos into tables.tsv (FALSE, TRUE)
-         // Done after all requests (TRUE, FALSE) to be sure to have max text size for all domains
-         //
-         for (ULONG i = 0; i < ulDomainCount; i++)
-         {
-            if (pTrust[i].DnsDomainName != NULL)
-               pProcessDomain(pGlobalConfig, &pRootDse[i], NULL, szRootDns, FALSE, TRUE);
-
-            // Be sure to write only once data size in metadata.tsv
-            if (pGlobalConfig->bWriteMetadataSize == TRUE)
-               pGlobalConfig->bWriteMetadataSize = FALSE;
-         }
-
-         _SafeHeapRelease(pRootDse);
       }
       NetApiBufferFree(pTrust);
    }
 
+   //
+   // Write table info into tables.tsv (FALSE, TRUE)
+   // Done after all requests (TRUE, FALSE) to be sure to have max text size for all domains
+   //
+   Log(
+      __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+      "[.] %sWrite table info.%s", COLOR_CYAN, COLOR_RESET
+   );
+
+   // Reset database
+   DbFree(&g_pBaseNc);
+
+   for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
+   {
+      pProcessDomain(pGlobalConfig, 0, &pGlobalConfig->DomainConfig[i].RootDseConfig, NULL, 0, szRootDns, FALSE, TRUE);
+   }
+
+   //
+   // Write column sizes in Metadata
+   //
+   {
+      PDB_ENTRY pEntry;
+
+      pEntry = pGlobalConfig->pBaseSize;
+      while (pEntry != NULL)
+      {
+         WCHAR szMetadataValue[MAX_METADATA_VALUE];
+
+         swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", pEntry->dwKeyValue);
+         MetadataWriteFile(pGlobalConfig, pEntry->szKeyName, szMetadataValue);
+         pEntry = (PDB_ENTRY)pEntry->pNext;
+      }
+   }
+
+   //
+   // Finished
+   //
    ullEndTime = GetTickCount64() - ullStartTime;
 
    // Metadata: Process Time and close
@@ -531,6 +516,9 @@ Process (
    //
    // Release
    //
+   DbFree(&g_pBaseNc);
+   DbFree(&pGlobalConfig->pBaseSize);
+   _SafeHeapRelease(RootDse.pszNamingContexts);
    _SafeHeapRelease(szRootDns);
    _SafeHeapRelease(szServer);
 
@@ -585,23 +573,55 @@ pLocateDc (
 BOOL
 pProcessOtherNamingContexts (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_ PROOTDSE_CONFIG pRootDse,
    _In_opt_z_ LPWSTR szServer,
+   _In_ ULONG ulLdapPort,
    _In_z_ LPWSTR szRootDns,
    _In_ BOOL bRequestLdap,
    _In_ BOOL bWriteTableInfo
 )
 {
-   // Find the first partition when there is no defaultNamingContext (AD-LDS)
-   for (DWORD dwIdx = 0; dwIdx < pRootDse->dwOtherNamingContextsCount; ++dwIdx)
+   for (DWORD dwIdx = 0; dwIdx < pRootDse->dwNamingContextsCount; ++dwIdx)
    {
       WCHAR szDirectory[MAX_PATH];
       LPWSTR szPartition;
-
-      szPartition = ConvertDnToDns(pRootDse->otherNamingContexts[dwIdx]);
+      PDB_ENTRY pDbEntry;
 
       //
-      // Create subdirectories (domain)
+      // Bypass AD NC
+      // If rootDomainNamingContext is present, this is a AD-DS. In this case,
+      // defaultNamingContext indicates the domain DC.
+      //
+      if ((pRootDse->rootDomainNamingContext != NULL) &&
+         (pRootDse->defaultNamingContext != NULL) &&
+         (_wcsicmp(pRootDse->defaultNamingContext, pRootDse->pszNamingContexts[dwIdx]) == 0))
+         continue;
+
+      //
+      // Be sure NC was not previously proceeded
+      //
+      pDbEntry = DbLookupKey(g_pBaseNc, pRootDse->pszNamingContexts[dwIdx]);
+      if (pDbEntry != NULL)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+            "[.] %sND NC '%S' already proceeded%s. Bypass.",
+            COLOR_YELLOW,
+            pRootDse->pszNamingContexts[dwIdx],
+            COLOR_RESET
+         );
+         continue;
+      }
+      else
+      {
+         DbAddKey(&g_pBaseNc, pRootDse->pszNamingContexts[dwIdx], 0, DbCompareMode::Last);
+      }
+
+      szPartition = ConvertDnToDns(pRootDse->pszNamingContexts[dwIdx]);
+
+      //
+      // Create subdirectories (STR_APPLICATION)
       //
       swprintf(
          szDirectory, MAX_PATH,
@@ -616,9 +636,10 @@ pProcessOtherNamingContexts (
 
       for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
       {
-         if (pGlobalConfig->pRequests[i].dwBase & BASE_APPLICATION)
+         // Special case for NDNC or ADLS: get BASE_DOMAIN objects but prefix tables with STR_APPLICATION
+         if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN)
          {
-            LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_APPLICATION, szPartition, pRootDse->otherNamingContexts[dwIdx], &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_APPLICATION, szPartition, pRootDse->pszNamingContexts[dwIdx], &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
          }
       }
    }
@@ -629,16 +650,22 @@ pProcessOtherNamingContexts (
 BOOL
 pProcessDomain (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _Inout_ PROOTDSE_CONFIG pRootDse,
    _In_opt_z_ LPWSTR szServer,
+   _In_ ULONG ulLdapPort,
    _In_z_ LPWSTR szRootDns,
    _In_ BOOL bRequestLdap,
    _In_ BOOL bWriteTableInfo
 )
 {
    BOOL bResult;
+   BOOL bProcessDomain = FALSE;
+   BOOL bProcessDomainDns = FALSE;
 
    LPTSTR szDomainDns = NULL;
+
+   PDB_ENTRY pDbEntry;
 
    if ((bRequestLdap == TRUE) && (szServer != NULL))
    {
@@ -647,11 +674,16 @@ pProcessDomain (
       //
       // Get rootDSE
       //
-      bResult = LdapGetRootDse(pGlobalConfig, szServer, pRootDse);
+      bResult = LdapGetRootDse(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse);
       if (bResult == FALSE)
          return FALSE;
 
-      if (pRootDse->defaultNamingContext != NULL)
+      //
+      // Is AD-DS or AD-LDS?
+      // If AD-DS, create directories for AD NC
+      //
+      if ((pRootDse->rootDomainNamingContext != NULL) &&
+         (pRootDse->defaultNamingContext != NULL))
       {
          szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
          if (szDomainDns == NULL)
@@ -682,8 +714,6 @@ pProcessDomain (
          );
          CreateDirectory(szDirectory, NULL);
       }
-
-      bResult = pProcessOtherNamingContexts(pGlobalConfig, pRootDse, szServer, szRootDns, bRequestLdap, bWriteTableInfo);
    }
    else if (pRootDse->defaultNamingContext != NULL)
    {
@@ -691,31 +721,92 @@ pProcessDomain (
       if (szDomainDns == FALSE)
          return FALSE;
    }
+
+   //
+   // Process other NC (NDNC, AD-LDS)
+   //
+   bResult = pProcessOtherNamingContexts(pGlobalConfig, dwServerEntry, pRootDse, szServer, ulLdapPort, szRootDns, bRequestLdap, bWriteTableInfo);
+
+   //
+   // Be sure NC were not previously proceeded
+   //
+   pDbEntry = DbLookupKey(g_pBaseNc, pRootDse->defaultNamingContext);
+   if (pDbEntry == NULL)
+   {
+      bProcessDomain = TRUE;
+      DbAddKey(&g_pBaseNc, pRootDse->defaultNamingContext, 0, DbCompareMode::Last);
+   }
    else
    {
-      bResult = pProcessOtherNamingContexts(pGlobalConfig, pRootDse, szServer, szRootDns, bRequestLdap, bWriteTableInfo);
-      return bResult;
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+         "[.] %sNC '%S' already proceeded%s. Bypass.",
+         COLOR_YELLOW,
+         pRootDse->defaultNamingContext,
+         COLOR_RESET
+      );
+   }
+
+   pDbEntry = DbLookupKey(g_pBaseNc, pRootDse->domainDnsNamingContext);
+   if (pDbEntry == NULL)
+   {
+      bProcessDomainDns = TRUE;
+      DbAddKey(&g_pBaseNc, pRootDse->domainDnsNamingContext, 0, DbCompareMode::Last);
+   }
+   else
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+         "[.] %sDNS NC '%S' already proceeded%s. Bypass.",
+         COLOR_YELLOW,
+         pRootDse->domainDnsNamingContext,
+         COLOR_RESET
+      );
    }
 
    //
-   // PROCRESS LDAP
+   // Process domain NC
    //
    for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
    {
-      if (pGlobalConfig->pRequests[i].dwBase & BASE_ROOTDSE)
+      //
+      // RootDSE
+      //
+      if ((pGlobalConfig->pRequests[i].dwBase & BASE_ROOTDSE) && (bProcessDomain == TRUE))
       {
-         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, NULL, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, TRUE);
+         LdapProcessRequest(
+            pGlobalConfig,
+            dwServerEntry,
+            szServer, ulLdapPort,
+            pRootDse->bIsLocalAdmin,
+            szRootDns,
+            (pRootDse->rootDomainNamingContext != NULL) ? STR_DOMAIN : STR_APPLICATION,
+            (pRootDse->rootDomainNamingContext != NULL) ? szDomainDns : NULL,
+            NULL,
+            &pGlobalConfig->pRequests[i],
+            bRequestLdap,
+            bWriteTableInfo,
+            TRUE
+         );
       }
 
-      if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN)
+      //
+      // Domain (defaultNamingContext) & DomainDNS (domainDnsNamingContext)
+      // Only process on AD-DS (pRootDse->rootDomainNamingContext != NULL)
+      //
+      if ((pRootDse->rootDomainNamingContext != NULL) && (pRootDse->defaultNamingContext) && (bProcessDomain == TRUE))
       {
-         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, pRootDse->defaultNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+         if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN)
+         {
+            LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, pRootDse->defaultNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+         }
+
+         if ((pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN_DNS) && (bProcessDomainDns == TRUE))
+         {
+            LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN_DNS, szDomainDns, pRootDse->domainDnsNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+         }
       }
 
-      if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN_DNS)
-      {
-         LdapProcessRequest(pGlobalConfig, szServer, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN_DNS, szDomainDns, pRootDse->domainDnsNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
-      }
       /*
       // DEBUG CODE
       for (DWORD j = 0; j < pGlobalConfig->dwRequestCount; j++)
@@ -735,13 +826,14 @@ pProcessDomain (
    }
 
    //
-   // PROCESS SYSVOL
+   // Process SYSVOL
+   // Process if requested (bProcessSysvol) and only on AD-DS (pRootDse->rootDomainNamingContext != NULL)
    //
-   if (pGlobalConfig->bProcessSysvol)
+   if ((pGlobalConfig->bProcessSysvol) && (pRootDse->rootDomainNamingContext != NULL) && (bProcessDomain==TRUE))
    {
       if (bWriteTableInfo == FALSE)
       {
-         ProcessSysvol(pGlobalConfig, szRootDns, STR_DOMAIN, szDomainDns, szServer);
+         ProcessSysvol(pGlobalConfig, dwServerEntry, szRootDns, STR_DOMAIN, szDomainDns, szServer);
       }
       else
       {

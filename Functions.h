@@ -29,14 +29,18 @@ Process(
 BOOL
 LdapGetRootDse(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_z_ LPWSTR szServerName,
+   _In_ ULONG ulLdapPort,
    _Out_ PROOTDSE_CONFIG pRootDse
 );
 
 BOOL
 LdapProcessRequest(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_opt_z_ LPWSTR szServer,
+   _In_ ULONG ulLdapPort,
    _In_ BOOL bIsLocalAdmin,
    _In_z_ LPWSTR szRootDns,
    _In_z_ LPCWSTR szPath1,
@@ -54,6 +58,7 @@ LdapProcessRequest(
 VOID
 ProcessSysvol(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_z_ LPWSTR szRootDns,
    _In_z_ LPCWSTR szPath1,
    _In_z_ LPCWSTR szPath2,
@@ -146,6 +151,28 @@ GetCmdOption(
 
 StartStatus
 GetBuildDateStatus(
+);
+
+//
+// Util_Db.cpp
+//
+BOOL
+DbAddKey(
+   _Inout_ PDB_ENTRY *pBase,
+   _In_opt_z_ LPWSTR szKeyName,
+   _In_ DWORD dwKeyValue,
+   _In_ DbCompareMode CompareMode
+);
+
+PDB_ENTRY
+DbLookupKey(
+   _Inout_ PDB_ENTRY pBase,
+   _In_opt_z_ LPWSTR szKeyName
+);
+
+BOOL
+DbFree(
+   _Inout_ PDB_ENTRY *pBase
 );
 
 //

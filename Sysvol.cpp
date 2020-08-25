@@ -13,7 +13,7 @@ extern BOOL g_bSupportsAnsi;
 
 DWORD g_dwSysvolMaxLength[SYSVOL_ROW_COUNT];
 
-VOID
+BOOL
 pProcessSysvolFolder(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPCWSTR szForestName,
@@ -39,6 +39,7 @@ pProcessSysvolFile(
 VOID
 ProcessSysvol (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_z_ LPWSTR szRootDns,                     // Forest DNS name
    _In_z_ LPCWSTR szPath1,                      // Alwas 'domain'
    _In_z_ LPCWSTR szPath2,                      // Domain DNS name
@@ -113,23 +114,76 @@ ProcessSysvol (
       szRemoteName
    );
 
-   if (pGlobalConfig->szUsername != NULL)
+   if ((dwServerEntry == USE_GLOBAL_CREDENTIALS) || (pGlobalConfig->DomainConfig[dwServerEntry].szUsername == NULL))
    {
-      bResult = LogonUser(
-         pGlobalConfig->szUsername,
-         pGlobalConfig->szUserDomain,
-         pGlobalConfig->szUserPassword,
-         LOGON32_LOGON_NEW_CREDENTIALS,
-         LOGON32_PROVIDER_DEFAULT,
-         &hToken);
+      if (pGlobalConfig->szUsername != NULL)
+      {
+         bResult = LogonUser(
+            pGlobalConfig->szUsername,
+            pGlobalConfig->szUserDomain,
+            pGlobalConfig->szUserPassword,
+            LOGON32_LOGON_NEW_CREDENTIALS,
+            LOGON32_PROVIDER_DEFAULT,
+            &hToken);
 
-      if (bResult == FALSE)
+         if (bResult == FALSE)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sUnable to logon with explicit credentials (error %u).%s",
+               COLOR_RED, GetLastError(), COLOR_RESET
+            );
+            return;
+         }
+
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] SYSVOL bind with explicit credentials (global credentials, username='%S').",
+            pGlobalConfig->szUsername
+         );
+      }
+      else
       {
          Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to logon with explicit credentials (error %u).%s", COLOR_RED, GetLastError(), COLOR_RESET
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] SYSVOL bind with implicit credentials (global credentials)."
          );
-         return;
+      }
+   }
+   else
+   {
+      if (wcslen(pGlobalConfig->DomainConfig[dwServerEntry].szUsername) == 0)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] SYSVOL bind with implicit credentials (domain %u).", dwServerEntry
+         );
+      }
+      else
+      {
+         bResult = LogonUser(
+            pGlobalConfig->DomainConfig[dwServerEntry].szUsername,
+            pGlobalConfig->DomainConfig[dwServerEntry].szUserDomain,
+            pGlobalConfig->DomainConfig[dwServerEntry].szUserPassword,
+            LOGON32_LOGON_NEW_CREDENTIALS,
+            LOGON32_PROVIDER_DEFAULT,
+            &hToken);
+
+         if (bResult == FALSE)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sUnable to logon with explicit credentials (error %u).%s",
+               COLOR_RED, GetLastError(), COLOR_RESET
+            );
+            return;
+         }
+
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] SYSVOL bind with explicit credentials (domain %u, username='%S').",
+            dwServerEntry, pGlobalConfig->DomainConfig[dwServerEntry].szUsername
+         );
       }
    }
 
@@ -250,7 +304,7 @@ pSysvolCrackName (
    return TRUE;
 }
 
-VOID
+BOOL
 pProcessSysvolFolder (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPCWSTR szForestName,
@@ -261,6 +315,8 @@ pProcessSysvolFolder (
 )
 {
    BOOL bResult;
+   DWORD dwError = ERROR_SUCCESS;
+
    WCHAR szOutPath[MAX_PATH];
 
    TCHAR szFindPattern[MAX_PATH];
@@ -271,7 +327,11 @@ pProcessSysvolFolder (
 
    if (hToken != NULL)
       (VOID)ImpersonateLoggedOnUser(hToken);
+
    hFindFile = FindFirstFile(szFindPattern, &FindFileData);
+   if (hFindFile != INVALID_HANDLE_VALUE)
+      dwError = GetLastError();
+
    if (hToken != NULL)
       RevertToSelf();
 
@@ -306,6 +366,17 @@ pProcessSysvolFolder (
       } while (FindNextFile(hFindFile, &FindFileData));
       FindClose(hFindFile);
    }
+   else
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sUnable to find files%s (path '%S', error %u).",
+         COLOR_RED, COLOR_RESET, szFindPattern, dwError
+      );
+      return FALSE;
+   }
+
+   return TRUE;
 }
 
 VOID

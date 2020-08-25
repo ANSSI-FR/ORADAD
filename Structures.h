@@ -19,8 +19,10 @@
 #define COLOR_RED          (g_bSupportsAnsi) ? "\x1b[1;31m" : ""
 #define COLOR_GREEN        (g_bSupportsAnsi) ? "\x1b[1;32m" : ""
 #define COLOR_YELLOW       (g_bSupportsAnsi) ? "\x1b[1;33m" : ""
+#define COLOR_BLUE         (g_bSupportsAnsi) ? "\x1b[1;34m" : ""
 #define COLOR_MAGENTA      (g_bSupportsAnsi) ? "\x1b[1;35m" : ""
 #define COLOR_CYAN         (g_bSupportsAnsi) ? "\x1b[1;36m" : ""
+#define COLOR_WHITE        (g_bSupportsAnsi) ? "\x1b[1;37m" : ""
 #define COLOR_RESET        (g_bSupportsAnsi) ? "\x1b[0m" : ""
 
 //
@@ -33,11 +35,6 @@
 #define STR_DOMAIN_DNS        L"domaindns"
 #define STR_FOREST_DNS        L"forestdns"
 #define STR_APPLICATION       L"application"
-
-//
-// Misc
-//
-#define MAX_OTHER_NAMING_CONTEXTS         16
 
 //
 // Filters
@@ -76,8 +73,8 @@ typedef enum _BASE_TYPE
    BASE_CONFIGURATION = 4,
    BASE_SCHEMA = 8,
    BASE_DOMAIN_DNS = 16,
-   BASE_FOREST_DNS = 32,
-   BASE_APPLICATION = 64
+   BASE_FOREST_DNS = 32
+   //BASE_APPLICATION = 64
 } BASE_TYPE;
 
 typedef enum _ATTRIBUTE_TYPE
@@ -132,8 +129,8 @@ typedef struct _ROOTDSE_CONFIG
    LPWSTR schemaNamingContext;
    LPWSTR domainDnsNamingContext;
    LPWSTR forestDnsNamingContext;
-   DWORD dwOtherNamingContextsCount;
-   LPWSTR otherNamingContexts[MAX_OTHER_NAMING_CONTEXTS];
+   DWORD dwNamingContextsCount;
+   LPWSTR *pszNamingContexts;
 
    LPWSTR domainControllerFunctionality;
    LPWSTR domainFunctionality;
@@ -201,6 +198,18 @@ typedef struct _BUFFER_DATA
 
 #pragma pack(push,1)
 #pragma warning(disable : 4200)
+
+//
+// Util_Db.cpp
+//
+typedef struct _DB_ENTRY
+{
+   LPWSTR szKeyName;
+   //LPWSTR szKeyValue;
+   DWORD dwKeyValue;
+   PVOID pNext;
+} DB_ENTRY, * PDB_ENTRY;
+
 typedef struct _BUFFER_HEADER
 {
    CHAR Magic[6];
@@ -210,6 +219,19 @@ typedef struct _BUFFER_HEADER
    BYTE bExtraData[0];
 } BUFFER_HEADER, *PBUFFER_HEADER;
 #pragma pack(pop)
+
+typedef struct _DOMAIN_CONFIG
+{
+   LPWSTR szServer;
+   ULONG ulLdapPort;
+   LPWSTR szDomainName;
+
+   LPWSTR szUsername;
+   LPWSTR szUserDomain;
+   LPWSTR szUserPassword;
+
+   ROOTDSE_CONFIG RootDseConfig;
+} DOMAIN_CONFIG, *PDOMAIN_CONFIG;
 
 typedef struct _GLOBAL_CONFIG
 {
@@ -221,22 +243,25 @@ typedef struct _GLOBAL_CONFIG
    HANDLE hTableFile;
    BOOL bWriteHeader;
 
-   LPWSTR szServer;
-   ULONG ulLdapPort;
+   BOOL bBypassLdapProcess;
+   BOOL bAutoGetDomain;
+   BOOL bAutoGetTrusts;
+
    LPWSTR szUsername;
    LPWSTR szUserDomain;
    LPWSTR szUserPassword;
 
+   DWORD dwDomainCount;
+   PDOMAIN_CONFIG DomainConfig;
+
    DWORD dwLevel;
-   BOOL bAllDomainsInForest;
    BOOL dwSleepTime;
+   BOOL bIsAdLds;
 
    BOOL bCompressionEnabled;
    BOOL bEncryptionEnabled;
    BOOL bTarballEnabled;
    LPWSTR szPublicKey;
-
-   LPWSTR szForestDomains;
 
    DWORD dwRequestCount;
    PREQUEST_CONFIG pRequests;
@@ -247,7 +272,7 @@ typedef struct _GLOBAL_CONFIG
    PATTRIBUTE_CONFIG pAttributes;
 
    BUFFER_DATA BufferMetadata;
-   BOOL bWriteMetadataSize;
+   PDB_ENTRY pBaseSize;
 
    BOOL bProcessSysvol;
    LPWSTR szSysvolFilter;

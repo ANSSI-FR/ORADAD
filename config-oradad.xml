@@ -1,19 +1,46 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <config>
-    <server></server>                                   <!-- Empty for automatic server location -->
-    <port></port>                                       <!-- Empty for default port -->
-    <username></username>                               <!-- Empty for implicit authentication -->
-    <userdomain></userdomain>
-    <userpassword></userpassword>
-    <allDomainsInForest>1</allDomainsInForest>
-    <forestDomains></forestDomains>                     <!-- When automatic server location is not used and allDomainsInForest=0, add the domain list here, comma separated -->
-    <level>4</level>
-    <writeHeader>0</writeHeader>
-    <sleepTime>0</sleepTime>
-    <compression>1</compression>                        <!-- Enable output compression -->
-    <encryption>1</encryption>                          <!-- Enable output encryption -->
-    <tar_output>1</tar_output>                          <!-- Create output tarball -->
-    <public_key><![CDATA[
+   <!-- If enabled, get current domain controller by DC Locator (DsGetDcName). -->
+   <autoGetDomain>1</autoGetDomain>
+
+   <!-- If enabled, get all whitin forest trusts by DC Locator (DsEnumerateDomainTrusts).
+   If autoGetDomain is disabled, this option is ignored and disabled. -->
+   <autoGetTrusts>1</autoGetTrusts>
+
+   <!-- Global credentials for all requests. Can be overwritted below. -->
+   <username></username>                  <!-- Empty for implicit authentication -->
+   <userdomain></userdomain>
+   <userpassword></userpassword>
+
+   <!-- Set explicit domain list, one by domain in forest.
+   For each domain, set server (preferred option) OR domainName.
+   If autoGetTrusts are enabled, this list is ignored.
+   If no credentials are specifed, global credentials are used. -->
+   <domains>
+      <!--
+      port: empty for default LDAP port
+      username: empty for implicit authentication, not present for global credentials
+      <domain>
+         <server></server>
+         <port></port>
+         <domainName></domainName>
+         <username></username>
+         <userdomain></userdomain>
+         <userpassword></userpassword>
+      </domain>
+      -->
+   </domains>
+
+   <level>4</level>
+   <process_sysvol>1</process_sysvol>                  <!-- Process domains sysvol -->
+   <sysvol_filter>*\GPT.INI;*\GPE.INI;*\comment.cmtx;*\Registry.pol;*\GptTmpl.inf;*\audit.csv;*\scripts.ini;*\psscripts.ini;*\*.aas;*\ScheduledTasks.xml;*\Groups.xml;*\Registry.xml;*\InternetSettings.xml;*\Shortcuts.xml;*\Devices.xml;*\EnvironmentVariables.xml;*\FolderOptions.xml;*\Services.xml;*\*.cmd;*\*.bat;*\*.vbs;*\*.vbe;*\*.ps1;*\*.reg</sysvol_filter>  <!-- Files to collect from sysvol -->
+   <writeHeader>0</writeHeader>
+   <sleepTime>0</sleepTime>
+
+   <compression>1</compression>                        <!-- Enable output compression -->
+   <encryption>1</encryption>                          <!-- Enable output encryption -->
+   <tar_output>1</tar_output>                          <!-- Create output tarball -->
+   <public_key><![CDATA[
 -----BEGIN RSA PUBLIC KEY-----
 MIICCgKCAgEAxn4jtdImtMmJt3EvyhpqFJogYTXpYI2Iu/WXcWmP8dVx7UNza9H3
 MUMdMRGTeaWVcOI1kwGCXp4z0zNZORTCeQT6uiqgEJY3YV7JGD5e7jjKrH3C1cjX
@@ -27,7 +54,5 @@ TQzRFMuvEUcb5l6nmin0OHvsNWrWJPo6B5Dx9AWbobo+pY3xiyRY8yH6X0jn/FVn
 OjnVBWX4PBU0lkya52E/YCRki8+wLsZiVHNFlHTdBDXmsuDGVt6FC94WBl3eLc8m
 McKq/wdFBJluQrF/2wmvBX8A4xJkEGFu1cyHLue1vbCG3ATpP3kAMtECAwEAAQ==
 -----END RSA PUBLIC KEY-----
-]]></public_key>                                        <!-- RSAPublicKey format: use -RSAPublicKey_out with openssl, -pubout won't work -->
-    <process_sysvol>1</process_sysvol>                  <!-- Process domains sysvol -->
-    <sysvol_filter>*\GPT.INI;*\GPE.INI;*\comment.cmtx;*\Registry.pol;*\GptTmpl.inf;*\audit.csv;*\scripts.ini;*\psscripts.ini;*\*.aas;*\ScheduledTasks.xml;*\Groups.xml;*\Registry.xml;*\InternetSettings.xml;*\Shortcuts.xml;*\Devices.xml;*\EnvironmentVariables.xml;*\FolderOptions.xml;*\Services.xml;*\*.cmd;*\*.bat;*\*.vbs;*\*.vbe;*\*.ps1;*\*.reg</sysvol_filter>  <!-- Files to collect from sysvol -->
+]]></public_key>                                       <!-- RSAPublicKey format: use -RSAPublicKey_out with openssl, -pubout won't work -->
 </config>

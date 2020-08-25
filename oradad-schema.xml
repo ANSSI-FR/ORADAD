@@ -10,7 +10,7 @@
         <request>
             <name>top</name>
             <description>All objects general information</description>
-            <base>domain,configuration,schema,domainDNS,forestDNS,application</base>
+            <base>domain,configuration,schema,domainDNS,forestDNS</base>
             <scope>subtree</scope>
             <filter>(objectClass=*)</filter>
             <classes>top</classes>
@@ -41,7 +41,7 @@
         <request>
             <name>root</name>
             <description>Root from domain</description>
-            <base>domain,application</base>
+            <base>domain</base>
             <scope>base</scope>
             <filter>(|(objectClass=domain)(objectClass=domainDNS))</filter>
             <classes>domain,domainDNS</classes>
@@ -57,7 +57,7 @@
         <request>
             <name>user</name>
             <description>All users from domain</description>
-            <base>domain,application</base>
+            <base>domain</base>
             <scope>subtree</scope>
             <filter>(&amp;(objectClass=user)(!(|(objectClass=computer)(objectClass=msDS-ManagedServiceAccount)(objectClass=msDS-GroupManagedServiceAccount))))</filter>
             <classes>person,organizationalPerson,user</classes>
@@ -97,7 +97,7 @@
         <request>
             <name>group</name>
             <description>All groups from domain and configuration</description>
-            <base>domain,configuration,application</base>
+            <base>domain,configuration</base>
             <scope>subtree</scope>
             <filter>(objectClass=group)</filter>
             <classes>group</classes>
@@ -105,7 +105,7 @@
         <request>
             <name>ou</name>
             <description>All OU from domain</description>
-            <base>domain,application</base>
+            <base>domain</base>
             <scope>subtree</scope>
             <filter>(objectClass=organizationalUnit)</filter>
             <classes>organizationalUnit</classes>
@@ -485,6 +485,15 @@
             <scope>subtree</scope>
             <filter>(objectClass=pKIEnrollmentService)</filter>
             <classes>pKIEnrollmentService</classes>
+        </request>
+        <!-- AD LDS -->
+        <request>
+            <name>userProxy</name>
+            <description>userProxy</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(|(objectClass=userProxy)(objectClass=userProxyFull))</filter>
+            <classes>userProxy,userProxyFull</classes>
         </request>
         <!-- Exchange -->
         <request>
@@ -1074,7 +1083,7 @@
         <attribute name="lDAPAdminLimits" level="9" type="STRS" />
         <attribute name="lDAPDisplayName" level="2" type="STR" />
         <attribute name="lDAPIPDenyList" level="9" type="BIN" />
-        <attribute name="legacyExchangeDN" level="9" type="STR" />
+        <attribute name="legacyExchangeDN" level="4" type="STR" />
         <attribute name="linkID" level="1" type="INT" />
         <attribute name="linkTrackSecret" level="9" type="BIN" />
         <attribute name="lmPwdHistory" level="9" type="BIN" />
@@ -2135,7 +2144,7 @@
         <attribute name="msExchEncryptedPassword2" level="9" type="BIN" />
         <attribute name="msExchEncryptedTLSP12" level="9" type="BIN" />
         <attribute name="msExchEncryptedTransportServiceKPK" level="9" type="BIN" />
-        <attribute name="msExchEncryptionRequired" level="9" type="BOOL" />
+        <attribute name="msExchEncryptionRequired" level="3" type="BOOL" />
         <attribute name="msExchEncryptionThrottlingPolicyStateEx" level="9" type="STR" />
         <attribute name="msExchESEParamAssertAction" level="9" type="INT" />
         <attribute name="msExchESEParamBackgroundDatabaseMaintenance" level="9" type="BOOL" />
@@ -11696,6 +11705,49 @@
             <attribute name="uNCName" />
             <attribute name="lastContentIndexed" />
             <attribute name="contentIndexingAllowed" />
+        </class>
+        <!-- AD LDS -->
+        <class name="msDS-BindProxy">
+           <attribute name="msDS-PrincipalName" />
+           <attribute name="objectSid" />
+        </class>
+        <class name="userProxy" systemAuxiliaryClass="msDS-BindProxy">
+           <attribute name="userPrincipalName" />
+        </class>
+        <class name="userProxyFull" systemAuxiliaryClass="msDS-BindProxy">
+           <attribute name="audio" />
+           <attribute name="carLicense" />
+           <attribute name="departmentNumber" />
+           <attribute name="displayName" />
+           <attribute name="employeeNumber" />
+           <attribute name="employeeType" />
+           <attribute name="givenName" />
+           <attribute name="homePostalAddress" />
+           <attribute name="jpegPhoto" />
+           <attribute name="labeledURI" />
+           <attribute name="photo" />
+           <attribute name="preferredLanguage" />
+           <attribute name="roomNumber" />
+           <attribute name="secretary" />
+           <attribute name="uid" />
+           <attribute name="userPKCS12" />
+           <attribute name="userSMIMECertificate" />
+           <attribute name="x500uniqueIdentifier" />
+           <attribute name="defaultClassStore" />
+           <attribute name="dynamicLDAPServer" />
+           <attribute name="lastLogonTimestamp" />
+           <attribute name="preferredOU" />
+           <attribute name="userParameters" />
+           <attribute name="userPrincipalName" />
+           <attribute name="userCertificate" />
+           <attribute name="businessCategory" />
+           <attribute name="homePhone" />
+           <attribute name="initials" />
+           <attribute name="mail" />
+           <attribute name="manager" />
+           <attribute name="mobile" />
+           <attribute name="o" />
+           <attribute name="pager" />
         </class>
     </classes>
 </schema>

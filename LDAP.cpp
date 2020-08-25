@@ -20,7 +20,9 @@ extern BOOL g_bSupportsAnsi;
 LDAP*
 pLdapOpenConnection(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szServerName
+   _In_ DWORD dwServerEntry,
+   _In_z_ LPWSTR szServerName,
+   _In_ ULONG ulLdapPort
 );
 
 BOOL
@@ -67,7 +69,9 @@ pGetRangedAttribute(
 BOOL
 LdapGetRootDse (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_z_ LPWSTR szServerName,
+   _In_ ULONG ulLdapPort,
    _Out_ PROOTDSE_CONFIG pRootDse
 )
 {
@@ -87,7 +91,7 @@ LdapGetRootDse (
       NULL
    };
 
-   pLdapHandle = pLdapOpenConnection(pGlobalConfig, szServerName);
+   pLdapHandle = pLdapOpenConnection(pGlobalConfig, dwServerEntry, szServerName, ulLdapPort);
    if (pLdapHandle == NULL)
       return FALSE;
 
@@ -107,7 +111,10 @@ LdapGetRootDse (
    pAttribute = ldap_first_attribute(pLdapHandle, pEntry, &pBer);
 
    pRootDse->bIsLocalAdmin = FALSE;
-   pRootDse->dwOtherNamingContextsCount = 0;
+   pRootDse->dwNamingContextsCount = 0;
+
+   if (pGlobalConfig->bBypassLdapProcess == TRUE)
+      goto End;
 
    while (pAttribute != NULL)
    {
@@ -141,6 +148,8 @@ LdapGetRootDse (
          {
             ulValues = ldap_count_values(ppValue);
 
+            pRootDse->pszNamingContexts = (LPWSTR*)_HeapAlloc(ulValues * sizeof(LPWSTR));
+
             for (ULONG i = 0; i < ulValues; i++)
             {
                if (wcsstr(ppValue[i], L"DC=ForestDnsZones,") == ppValue[i])
@@ -151,9 +160,9 @@ LdapGetRootDse (
                   continue;
                else
                {
-                  // Non domain Naming Context (ie AD-LDS)
-                  DuplicateString(ppValue[i], &pRootDse->otherNamingContexts[pRootDse->dwOtherNamingContextsCount]);
-                  pRootDse->dwOtherNamingContextsCount += 1;
+                  // Get all Naming Context, except DNS, Configuration and Schema
+                  DuplicateString(ppValue[i], &pRootDse->pszNamingContexts[pRootDse->dwNamingContextsCount]);
+                  pRootDse->dwNamingContextsCount += 1;
                }
             }
          }
@@ -193,6 +202,7 @@ LdapGetRootDse (
       pAttribute = ldap_next_attribute(pLdapHandle, pEntry, pBer);
    }
 
+End:
    if (pBer != NULL)
    {
       ber_free(pBer, 0);
@@ -208,7 +218,9 @@ LdapGetRootDse (
 BOOL
 LdapProcessRequest (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
+   _In_ DWORD dwServerEntry,
    _In_opt_z_ LPWSTR szServer,
+   _In_ ULONG ulLdapPort,
    _In_ BOOL bIsLocalAdmin,
    _In_z_ LPWSTR szRootDns,
    _In_z_ LPCWSTR szPath1,
@@ -321,38 +333,20 @@ LdapProcessRequest (
          pRequest->szName
       );
 
-      if (bIsRootDSE == TRUE)
-      {
-         // Special case for rootDSE
-         swprintf_s(
-            szTableName, MAX_PATH,
-            L"%s",
-            pRequest->szName
-         );
+      swprintf_s(
+         szTableName, MAX_PATH,
+         L"%s_%s_%s",
+         szPath1,
+         szPath2,
+         pRequest->szName
+      );
 
-         swprintf_s(
-            szTableNameNoDomain, MAX_PATH,
-            L"%s",
-            pRequest->szName
-         );
-      }
-      else
-      {
-         swprintf_s(
-            szTableName, MAX_PATH,
-            L"%s_%s_%s",
-            szPath1,
-            szPath2,
-            pRequest->szName
-         );
-
-         swprintf_s(
-            szTableNameNoDomain, MAX_PATH,
-            L"%s_%s",
-            szPath1,
-            pRequest->szName
-         );
-      }
+      swprintf_s(
+         szTableNameNoDomain, MAX_PATH,
+         L"%s_%s",
+         szPath1,
+         pRequest->szName
+      );
    }
    else if ((szPath1 != NULL) && (szPath2 == NULL))
    {
@@ -390,6 +384,24 @@ LdapProcessRequest (
    else
    {
       return FALSE;
+   }
+
+   //
+   // Special case for rootDSE
+   //
+   if (bIsRootDSE == TRUE)
+   {
+      swprintf_s(
+         szTableName, MAX_PATH,
+         L"%s",
+         pRequest->szName
+      );
+
+      swprintf_s(
+         szTableNameNoDomain, MAX_PATH,
+         L"%s",
+         pRequest->szName
+      );
    }
 
    if ((bRequestLdap == TRUE) && (szServer != NULL))
@@ -500,7 +512,7 @@ LdapProcessRequest (
          //
          // Process
          //
-         pLdapHandle = pLdapOpenConnection(pGlobalConfig, szServer);
+         pLdapHandle = pLdapOpenConnection(pGlobalConfig, dwServerEntry, szServer, ulLdapPort);
          if (pLdapHandle == NULL)
             return FALSE;
 
@@ -1220,7 +1232,9 @@ LdapProcessRequest (
 LDAP*
 pLdapOpenConnection (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szServerName
+   _In_ DWORD dwServerEntry,
+   _In_z_ LPWSTR szServerName,
+   _In_ ULONG ulLdapPort
 )
 {
    ULONG ulResult;
@@ -1229,10 +1243,7 @@ pLdapOpenConnection (
 
    LDAP* pLdapHandle = NULL;
 
-   if (pGlobalConfig->ulLdapPort == 0)
-      pGlobalConfig->ulLdapPort = LDAP_PORT;
-
-   pLdapHandle = ldap_open(szServerName, (pGlobalConfig->ulLdapPort == 0) ? LDAP_PORT : pGlobalConfig->ulLdapPort);
+   pLdapHandle = ldap_open(szServerName, (ulLdapPort == 0) ? LDAP_PORT : ulLdapPort);
    if (pLdapHandle == NULL)
    {
       ulResult = LdapGetLastError();
@@ -1259,23 +1270,69 @@ pLdapOpenConnection (
    pvValue = LDAP_OPT_OFF;
    ulResult = ldap_set_option(pLdapHandle, LDAP_OPT_REFERRALS, &pvValue);
 
-   if (pGlobalConfig->szUsername == NULL)
+   if ((dwServerEntry == USE_GLOBAL_CREDENTIALS) || (pGlobalConfig->DomainConfig[dwServerEntry].szUsername == NULL))
    {
-      ulResult = ldap_bind_s(pLdapHandle, NULL, NULL, LDAP_AUTH_NEGOTIATE);
+      if (pGlobalConfig->szUsername == NULL)
+      {
+         ulResult = ldap_bind_s(pLdapHandle, NULL, NULL, LDAP_AUTH_NEGOTIATE);
+
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] LDAP bind with implicit credentials (global credentials)."
+         );
+      }
+      else
+      {
+         SEC_WINNT_AUTH_IDENTITY Auth = { 0 };
+
+         Auth.Flags = SEC_WINNT_AUTH_IDENTITY_UNICODE;
+         Auth.User = (USHORT*)pGlobalConfig->szUsername;
+         Auth.Domain = (USHORT*)pGlobalConfig->szUserDomain;
+         Auth.Password = (USHORT*)pGlobalConfig->szUserPassword;
+         (void)SIZETToULong(wcslen(pGlobalConfig->szUsername), &(Auth.UserLength));
+         (void)SIZETToULong(wcslen(pGlobalConfig->szUserDomain), &(Auth.DomainLength));
+         (void)SIZETToULong(wcslen(pGlobalConfig->szUserPassword), &(Auth.PasswordLength));
+
+         ulResult = ldap_bind_s(pLdapHandle, NULL, (PWCHAR)&Auth, LDAP_AUTH_NEGOTIATE);
+
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] LDAP bind with explicit credentials (global credentials, username='%S').",
+            pGlobalConfig->szUsername
+         );
+      }
    }
    else
    {
-      SEC_WINNT_AUTH_IDENTITY Auth = { 0 };
+      if (wcslen(pGlobalConfig->DomainConfig[dwServerEntry].szUsername) == 0)
+      {
+         ulResult = ldap_bind_s(pLdapHandle, NULL, NULL, LDAP_AUTH_NEGOTIATE);
 
-      Auth.Flags = SEC_WINNT_AUTH_IDENTITY_UNICODE;
-      Auth.User = (USHORT*)pGlobalConfig->szUsername;
-      Auth.Domain = (USHORT*)pGlobalConfig->szUserDomain;
-      Auth.Password = (USHORT*)pGlobalConfig->szUserPassword;
-      (void)SIZETToULong(wcslen(pGlobalConfig->szUsername), &(Auth.UserLength));
-      (void)SIZETToULong(wcslen(pGlobalConfig->szUserDomain), &(Auth.DomainLength));
-      (void)SIZETToULong(wcslen(pGlobalConfig->szUserPassword), &(Auth.PasswordLength));
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] LDAP bind with implicit credentials (domain %u).", dwServerEntry
+         );
+      }
+      else
+      {
+         SEC_WINNT_AUTH_IDENTITY Auth = { 0 };
 
-      ulResult = ldap_bind_s(pLdapHandle, NULL, (PWCHAR)&Auth, LDAP_AUTH_NEGOTIATE);
+         Auth.Flags = SEC_WINNT_AUTH_IDENTITY_UNICODE;
+         Auth.User = (USHORT*)pGlobalConfig->DomainConfig[dwServerEntry].szUsername;
+         Auth.Domain = (USHORT*)pGlobalConfig->DomainConfig[dwServerEntry].szUserDomain;
+         Auth.Password = (USHORT*)pGlobalConfig->DomainConfig[dwServerEntry].szUserPassword;
+         (void)SIZETToULong(wcslen(pGlobalConfig->DomainConfig[dwServerEntry].szUsername), &(Auth.UserLength));
+         (void)SIZETToULong(wcslen(pGlobalConfig->DomainConfig[dwServerEntry].szUserDomain), &(Auth.DomainLength));
+         (void)SIZETToULong(wcslen(pGlobalConfig->DomainConfig[dwServerEntry].szUserPassword), &(Auth.PasswordLength));
+
+         ulResult = ldap_bind_s(pLdapHandle, NULL, (PWCHAR)&Auth, LDAP_AUTH_NEGOTIATE);
+
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERYVERBOSE,
+            "[.] LDAP bind with explicit credentials (domain %u, username='%S').",
+            dwServerEntry, pGlobalConfig->DomainConfig[dwServerEntry].szUsername
+         );
+      }
    }
 
    if (ulResult != LDAP_SUCCESS)
@@ -1403,17 +1460,12 @@ pWriteTableInfo (
                WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             else
             {
+               WCHAR szMetadataKey[MAX_METADATA_KEY];
+
                WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
 
-               if (pGlobalConfig->bWriteMetadataSize == TRUE)
-               {
-                  WCHAR szMetadataKey[MAX_METADATA_KEY];
-                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
-
-                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStringMaxLength);
-                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
-               }
+               swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+               DbAddKey(&pGlobalConfig->pBaseSize, szMetadataKey, dwStringMaxLength, DbCompareMode::Max);
             }
             break;
          }
@@ -1428,17 +1480,12 @@ pWriteTableInfo (
                WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             else
             {
+               WCHAR szMetadataKey[MAX_METADATA_KEY];
+
                WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
 
-               if (pGlobalConfig->bWriteMetadataSize == TRUE)
-               {
-                  WCHAR szMetadataKey[MAX_METADATA_KEY];
-                  WCHAR szMetadataValue[MAX_METADATA_VALUE];
-
-                  swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
-                  swprintf_s(szMetadataValue, MAX_METADATA_VALUE, L"%u", dwStringMaxLength);
-                  MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadataValue);
-               }
+               swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
+               DbAddKey(&pGlobalConfig->pBaseSize, szMetadataKey, dwStringMaxLength, DbCompareMode::Max);
             }
             break;
          }

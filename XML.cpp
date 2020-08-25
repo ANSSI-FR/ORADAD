@@ -89,9 +89,12 @@ XmlReadConfigFile (
 
    IXMLDOMDocument2 *pXMLDoc = NULL;
    IXMLDOMNode *pXMLNode = NULL;
+   IXMLDOMNode *pXMLNodeDomains = NULL;
    IXMLDOMNodeList *pXMLNodeList = NULL;
+   IXMLDOMNodeList *pXMLNodeDomainsList = NULL;
 
-   long lLength;
+   long lLength, lDomainLength;
+   ULONG ulCurrentDomain = 0;
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_VERBOSE,
@@ -159,20 +162,16 @@ XmlReadConfigFile (
       hr = pXmlNodeConfig->get_nodeName(&strNodeName);
       hr = pXmlNodeConfig->get_text(&strNodeText);
 
-      if ((wcscmp(strNodeName, L"server") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->szServer = strNodeText;
-      else if ((wcscmp(strNodeName, L"port") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->ulLdapPort = pReadUInteger(strNodeText);
+      if ((wcscmp(strNodeName, L"autoGetDomain") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bAutoGetDomain = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"autoGetTrusts") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bAutoGetTrusts = pReadBoolean(strNodeText);
       else if ((wcscmp(strNodeName, L"username") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->szUsername = strNodeText;
       else if ((wcscmp(strNodeName, L"userdomain") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->szUserDomain = strNodeText;
       else if ((wcscmp(strNodeName, L"userpassword") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->szUserPassword = strNodeText;
-      else if ((wcscmp(strNodeName, L"allDomainsInForest") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->bAllDomainsInForest = pReadBoolean(strNodeText);
-      else if ((wcscmp(strNodeName, L"forestDomains") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->szForestDomains = strNodeText;
       else if ((wcscmp(strNodeName, L"level") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->dwLevel = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"sleepTime") == 0) && (wcslen(strNodeText) > 0))
@@ -202,12 +201,90 @@ XmlReadConfigFile (
    _SafeCOMRelease(pXMLNode);
 
    //
-   // Check attributes
+   // Check values
    //
-   // Find all domains in forest option can only be done with DC locator option enabled (pGlobalConfig->szServer == NULL)
-   if ((pGlobalConfig->szServer != NULL) && (pGlobalConfig->bAllDomainsInForest == TRUE))
+   if (pGlobalConfig->bAutoGetDomain == FALSE)
+      (pGlobalConfig->bAutoGetTrusts = FALSE);
+
+   // Reserve space in <domains> for current domain if bAutoGetDomain is enabled
+   if (pGlobalConfig->bAutoGetDomain == TRUE)
    {
-      pGlobalConfig->bAllDomainsInForest = FALSE;
+      pGlobalConfig->dwDomainCount = 1;
+      ulCurrentDomain++;
+   }
+
+   if (pGlobalConfig->bAutoGetTrusts == TRUE)
+   {
+      pGlobalConfig->DomainConfig = (PDOMAIN_CONFIG)_HeapAlloc(sizeof(DOMAIN_CONFIG) * pGlobalConfig->dwDomainCount);
+   }
+   else
+   {
+      //
+      // Read Domains Config
+      //
+      hr = pXMLDoc->selectSingleNode((BSTR)TEXT("/config/domains"), &pXMLNodeDomains);
+      hr = pXMLNodeDomains->get_childNodes(&pXMLNodeDomainsList);
+      hr = pXMLNodeDomainsList->get_length(&lDomainLength);
+
+      pGlobalConfig->DomainConfig = (PDOMAIN_CONFIG)_HeapAlloc(sizeof(DOMAIN_CONFIG) * (pGlobalConfig->dwDomainCount + lDomainLength));
+
+      for (long i = 0; i < lDomainLength; i++)
+      {
+         IXMLDOMNode* pXmlNodeDomain = NULL;
+
+         hr = pXMLNodeDomainsList->get_item(i, &pXmlNodeDomain);
+         hr = pXmlNodeDomain->get_childNodes(&pXMLNodeList);
+         hr = pXMLNodeList->get_length(&lLength);
+
+         for (long j = 0; j < lLength; j++)
+         {
+            IXMLDOMNode* pXmlNodeConfig = NULL;
+            BSTR strNodeName;
+            BSTR strNodeText;
+
+            hr = pXMLNodeList->get_item(j, &pXmlNodeConfig);
+            hr = pXmlNodeConfig->get_nodeName(&strNodeName);
+            hr = pXmlNodeConfig->get_text(&strNodeText);
+
+            if ((wcscmp(strNodeName, L"server") == 0) && (wcslen(strNodeText) > 0))
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szServer = strNodeText;
+            if ((wcscmp(strNodeName, L"port") == 0) && (wcslen(strNodeText) > 0))
+               pGlobalConfig->DomainConfig[ulCurrentDomain].ulLdapPort = pReadUInteger(strNodeText);
+            else if ((wcscmp(strNodeName, L"domainName") == 0) && (wcslen(strNodeText) > 0))
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szDomainName = strNodeText;
+            else if ((wcscmp(strNodeName, L"username") == 0))     // Special case here, username can be '' (use implicit). If NULL, use global credentials
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername = strNodeText;
+            else if ((wcscmp(strNodeName, L"userdomain") == 0) && (wcslen(strNodeText) > 0))
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szUserDomain = strNodeText;
+            else if ((wcscmp(strNodeName, L"userpassword") == 0) && (wcslen(strNodeText) > 0))
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szUserPassword = strNodeText;
+
+            _SafeCOMRelease(pXmlNodeConfig);
+         }
+
+         _SafeCOMRelease(pXMLNodeList);
+         _SafeCOMRelease(pXmlNodeDomain);
+
+         if (lLength > 0)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+               "[i] %sConfig%s Add domain %u (server='%S', domainName='%S', username='%S')",
+               COLOR_BLUE, COLOR_RESET,
+               ulCurrentDomain,
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szServer,
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szDomainName,
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername
+            );
+
+            // Be sure <domain> is valid (avoid #comment)
+            pGlobalConfig->dwDomainCount++;
+            ulCurrentDomain++;
+         }
+      }
+
+      _SafeCOMRelease(pXMLNodeDomainsList);
+      _SafeCOMRelease(pXMLNodeDomains);
    }
 
    return pXMLDoc;
@@ -916,8 +993,8 @@ pXmlParseRequest (
                pRequest->dwBase |= BASE_DOMAIN_DNS;
             else if (_wcsicmp(szToken, STR_FOREST_DNS) == 0)
                pRequest->dwBase |= BASE_FOREST_DNS;
-            else if (_wcsicmp(szToken, STR_APPLICATION) == 0)
-               pRequest->dwBase |= BASE_APPLICATION;
+            //else if (_wcsicmp(szToken, STR_APPLICATION) == 0)
+            //   pRequest->dwBase |= BASE_APPLICATION;
 
             szToken = wcstok_s(NULL, L",", &szTokenContext);
          }

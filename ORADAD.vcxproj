@@ -163,6 +163,7 @@
     <ClCompile Include="Sysvol.cpp" />
     <ClCompile Include="tar\tar.cpp" />
     <ClCompile Include="Util.cpp" />
+    <ClCompile Include="Util_Db.cpp" />
     <ClCompile Include="XML.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="LDAP.cpp" />
