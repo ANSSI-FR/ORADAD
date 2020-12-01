@@ -887,24 +887,36 @@ LdapProcessRequest (
                {
                   ppval = ldap_get_values_len(pLdapHandle, pEntry, pAttribute);
 
-                  if (ppval)
+                  if (ppval != NULL)
                   {
-                     LPWSTR szSid;
+                     DWORD dwTotalSize = 0;
+                     ULONG ulValues;
 
-                     bResult = ConvertSidToStringSid(ppval[0]->bv_val, &szSid);
-                     if (bResult == TRUE)
+                     ulValues = ldap_count_values_len(ppval);
+
+                     for (ULONG k = 0; k < ulValues; k++)
                      {
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, szSid), pRequest->pdwStringMaxLength[j]);
-                        LocalFree(szSid);
+                        LPWSTR szSid;
+
+                        if (k != 0)
+                           dwTotalSize += BufferWriteSemicolon(pBuffer);
+
+                        bResult = ConvertSidToStringSid(ppval[k]->bv_val, &szSid);
+                        if (bResult == TRUE)
+                        {
+                           dwTotalSize += BufferWrite(pBuffer, szSid);
+                           LocalFree(szSid);
+                        }
+                        else
+                        {
+                           Log(
+                              __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+                              "[!] %sUnable to convert SID.%s",
+                              COLOR_RED, COLOR_RESET
+                           );
+                        }
                      }
-                     else
-                     {
-                        Log(
-                           __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "[!] %sUnable to convert SID.%s",
-                           COLOR_RED, COLOR_RESET
-                        );
-                     }
+                     pRequest->pdwStringMaxLength[j] = __max(pRequest->pdwStringMaxLength[j], dwTotalSize);
                   }
                }
                break;

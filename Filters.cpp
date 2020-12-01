@@ -7,7 +7,8 @@
 extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 
-#define NEVER_VALUE                 9223372036854775808
+#define NEVER_VALUE_1               9223372036854775807        // cf. https://docs.microsoft.com/en-us/windows/win32/adschema/a-accountexpires
+#define NEVER_VALUE_2               9223372036854775808
 #define STR_UNABLE_CONVERT_SID      L"Unable to convert SID"
 #define STR_NEVER                   L"Never"
 
@@ -289,57 +290,9 @@ pFilterFiletime (
 
    llValue = *(PLONGLONG)pvData;
 
-   if (llValue == 0)
+   if (llValue <= 0)
       *szResult = NULL;
-   else
-   {
-      LONGLONG llDay;
-      LONG lHour;
-      LONG lMinute;
-      LONG lSecond;
-
-      llValue = llValue / 10000000;
-
-      llDay = llValue / 86400;
-      llValue = llValue - (llDay * 86400);
-
-      lHour = (LONG)(llValue / 3600);
-      llValue = llValue - ((LONGLONG)lHour * 3600);
-
-      lMinute = (LONG)(llValue / 60);
-      llValue = llValue - ((LONGLONG)lMinute * 60);
-
-      lSecond = (LONG)(llValue / 60);
-      llValue = llValue - ((LONGLONG)lSecond * 60);
-
-      *szResult = (LPWSTR)_HeapAlloc(15 * sizeof(WCHAR));
-      if (*szResult != NULL)
-      {
-         swprintf_s(*szResult, 15, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSecond);
-      }
-   }
-
-   return TRUE;
-}
-
-BOOL
-pFilterNegFiletime (
-   _In_ PVOID pvData,
-   _In_ PVOID pvParam,
-   _Out_ LPWSTR *szResult
-)
-{
-   UNREFERENCED_PARAMETER(pvParam);
-
-   LONGLONG llValue;
-
-   *szResult = NULL;
-
-   llValue = -(*(PLONGLONG)pvData);
-
-   if (llValue == 0)
-      *szResult = NULL;
-   else if (llValue == NEVER_VALUE)
+   else if ((llValue == NEVER_VALUE_1) || (llValue == NEVER_VALUE_2))
       *szResult = pHeapAllocAndCopyString(STR_NEVER);
    else
    {
@@ -362,12 +315,29 @@ pFilterNegFiletime (
       lSecond = (LONG)(llValue / 60);
       llValue = llValue - ((LONGLONG)lSecond * 60);
 
-      *szResult = (LPWSTR)_HeapAlloc(15 * sizeof(WCHAR));
+      *szResult = (LPWSTR)_HeapAlloc((25 + 1) * sizeof(WCHAR));
       if (*szResult != NULL)
       {
-         swprintf_s(*szResult, 15, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSecond);
+         swprintf_s(*szResult, 25, L"%llu:%02u:%02u:%02u", llDay, lHour, lMinute, lSecond);
       }
    }
+
+   return TRUE;
+}
+
+BOOL
+pFilterNegFiletime (
+   _In_ PVOID pvData,
+   _In_ PVOID pvParam,
+   _Out_ LPWSTR *szResult
+)
+{
+   UNREFERENCED_PARAMETER(pvParam);
+
+   LONGLONG llValue;
+
+   llValue = -(*(PLONGLONG)pvData);
+   pFilterFiletime(&llValue, pvParam, szResult);
 
    return TRUE;
 }

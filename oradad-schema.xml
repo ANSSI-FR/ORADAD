@@ -1371,7 +1371,7 @@
         <attribute name="msDS-HABSeniorityIndex" level="9" type="INT" />
         <attribute name="msDS-HasDomainNCs" level="2" type="STRS" />
         <attribute name="msDS-hasFullReplicaNCs" level="1" type="STRS" />
-        <attribute name="msDS-HasInstantiatedNCs" level="2" type="STR" />
+        <attribute name="msDS-HasInstantiatedNCs" level="2" type="STRS" />
         <attribute name="msDS-hasMasterNCs" level="2" type="STRS" />
         <attribute name="msDS-HostServiceAccount" level="2" type="STRS" />
         <attribute name="msDS-HostServiceAccountBL" level="1" type="STRS" />
@@ -2200,12 +2200,12 @@
         <attribute name="msExchEventHistoryRetentionPeriod" level="9" type="INT" />
         <attribute name="msExchEvictedMembersLink" level="9" type="STRS" />
         <attribute name="msExchEvictedMemebersBL" level="9" type="STRS" />
-        <attribute name="msExchEwsApplicationAccessPolicy" level="9" type="INT" />
-        <attribute name="msExchEwsEnabled" level="9" type="INT" />
-        <attribute name="msExchEwsExceptions" level="9" type="STRS" />
+        <attribute name="msExchEwsApplicationAccessPolicy" level="3" type="INT" />
+        <attribute name="msExchEwsEnabled" level="3" type="INT" />
+        <attribute name="msExchEwsExceptions" level="3" type="STRS" />
         <attribute name="msExchEWSThrottlingPolicyState" level="9" type="STR" />
         <attribute name="msExchEWSThrottlingPolicyStateEx" level="9" type="STR" />
-        <attribute name="msExchEwsWellKnownApplicationPolicies" level="9" type="STRS" />
+        <attribute name="msExchEwsWellKnownApplicationPolicies" level="3" type="STRS" />
         <attribute name="msExchExchangeHelpAppOnline" level="9" type="BOOL" />
         <attribute name="msExchExchangeRPCServiceArrayBL" level="9" type="STRS" />
         <attribute name="msExchExchangeRPCServiceArrayLink" level="9" type="STR" />
@@ -3066,7 +3066,7 @@
         <attribute name="msExchPrivacyStatementURLEnabled" level="9" type="BOOL" />
         <attribute name="pRMD" level="9" type="STR" />
         <attribute name="msExchProcessedSids" level="9" type="SID" />
-        <attribute name="msExchProductID" level="9" type="STR" />
+        <attribute name="msExchProductID" level="3" type="STR" />
         <attribute name="promoExpiration" level="9" type="DATE" />
         <attribute name="msExchPromptPublishingPoint" level="9" type="STR" />
         <attribute name="protocolSettings" level="3" type="STRS" />
