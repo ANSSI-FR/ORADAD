@@ -37,22 +37,11 @@
    <writeHeader>0</writeHeader>
    <sleepTime>0</sleepTime>
 
-   <compression>1</compression>                        <!-- Enable output compression -->
-   <encryption>1</encryption>                          <!-- Enable output encryption -->
-   <tar_output>1</tar_output>                          <!-- Create output tarball -->
-   <public_key><![CDATA[
------BEGIN RSA PUBLIC KEY-----
-MIICCgKCAgEAxn4jtdImtMmJt3EvyhpqFJogYTXpYI2Iu/WXcWmP8dVx7UNza9H3
-MUMdMRGTeaWVcOI1kwGCXp4z0zNZORTCeQT6uiqgEJY3YV7JGD5e7jjKrH3C1cjX
-YYCx7AFNUCXmpQCswVwHmrJo7mEmkrfhS4IsZI5S1tyjJ8ed66TnkVWE10350hG6
-78+7lbaisWo5Pikv0lrFUXXT/1x3Hpk+05sUqPQWTFWrpqvBeE2CkgKgXUqPDw5o
-2TgsBIVmHwypyNUnZpg77qFwbC8+4ceDTqRoRfKyTxuT1JAQncMriCBObn1/9lTh
-Y5MhErKInYtKRjIratfYFf2tV7GOdOgFmJWCwOFhOGet0pQIAct76S6kMQB361wz
-1hTmdQlWYdelZyL5/FlJYRv0Trxa/7jgMsnzZN7BVaYufYrX2LKxakaUjQ8fzRJC
-i6XB0IZXwFJa2H3MIU0Bbrz5DMMLuMPIFxJlL8a9HUosk/Ep5WneEY+rd+Kx6YeZ
-TQzRFMuvEUcb5l6nmin0OHvsNWrWJPo6B5Dx9AWbobo+pY3xiyRY8yH6X0jn/FVn
-OjnVBWX4PBU0lkya52E/YCRki8+wLsZiVHNFlHTdBDXmsuDGVt6FC94WBl3eLc8m
-McKq/wdFBJluQrF/2wmvBX8A4xJkEGFu1cyHLue1vbCG3ATpP3kAMtECAwEAAQ==
------END RSA PUBLIC KEY-----
-]]></public_key>                                       <!-- RSAPublicKey format: use -RSAPublicKey_out with openssl, -pubout won't work -->
+   <outputFiles>0</outputFiles>                        <!-- Enable output cleartext files -->
+   <outputMLA>1</outputMLA>                            <!-- Enable output encrypted MLA archive -->
+   <!--
+   <additionalMLAKeys><![CDATA[...]]></additionalMLAKeys>
+   Use `mlar keygen key` to generate keys. In the example below, replace `_` by `-`.
+   <additionalMLAKeys><![CDATA[_____BEGIN PUBLIC KEY_____MCowBQYDK2VuAyEACRCMlZICgUa8+GNq3K8QoYV3dRpXHZDeK+e6Uu0TPVs=_____END PUBLIC KEY_____]]></additionalMLAKeys>
+   -->
 </config>

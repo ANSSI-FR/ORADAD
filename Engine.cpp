@@ -8,6 +8,7 @@
 extern HANDLE g_hHeap;
 extern BOOL g_bSupportsAnsi;
 extern BOOL g_bExtendedTarForAd;
+extern GLOBAL_CONFIG g_GlobalConfig;
 
 PDB_ENTRY g_pBaseNc;
 
@@ -120,41 +121,89 @@ Process (
       return FALSE;
 
    //
-   // Create subdirectories (root, forest, domain, application)
+   // Generate output folder names and create folders
    //
-
-   // Root folder
-   swprintf(
-      szDirectory, MAX_PATH,
-      L"%s\\%s",
-      pGlobalConfig->szOutDirectory,
-      szRootDns
-   );
-   bResult = CreateDirectory(szDirectory, NULL);
-   if ((bResult == FALSE) && (GetLastError() != ERROR_ALREADY_EXISTS))
+   if (pGlobalConfig->bOutputFiles == TRUE)
    {
-      Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-         "[!] %sUnable to create directory '%S'%s (error %u).",
-         COLOR_RED, szDirectory, COLOR_RESET, GetLastError()
+      // Root folder (just for create folder)
+      bResult = FormatNameAndCreateDirectory(
+         szDirectory, MAX_PATH,
+         L"%s\\%s",
+         pGlobalConfig->szOutDirectory,
+         szRootDns
       );
-      return FALSE;
+      if (bResult == FALSE)
+         return FALSE;
+
+      // <output>\<forest>\<date>
+      bResult = FormatNameAndCreateDirectory(
+         pGlobalConfig->szFileOutDirectory, MAX_PATH,
+         L"%s\\%s\\%s",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+      if (bResult == FALSE)
+         return FALSE;
+
+      if (pGlobalConfig->bProcessSysvol)
+      {
+         bResult = FormatNameAndCreateDirectory(
+            pGlobalConfig->szFileSysvolOutDirectory, MAX_PATH,
+            L"%s\\%s\\%s_SYSVOL",
+            pGlobalConfig->szOutDirectory,
+            szRootDns,
+            pGlobalConfig->szSystemTime
+         );
+         if (bResult == FALSE)
+            return FALSE;
+      }
    }
 
-   // Root folder + time
-   swprintf(
-      pGlobalConfig->szFullOutDirectory, MAX_PATH,
-      L"%s\\%s\\%s",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime
-   );
-   CreateDirectory(pGlobalConfig->szFullOutDirectory, NULL);
+   if (pGlobalConfig->bOutputMLA == TRUE)
+   {
+      WCHAR szMlaFilePath[MAX_PATH];
+
+      // <forest>\<date>
+      swprintf(
+         pGlobalConfig->szMlaOutDirectory, MAX_PATH,
+         L"%s\\%s",
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+
+      // <forest>\<date>_SYSVOL
+      swprintf(
+         pGlobalConfig->szMlaSysvolOutDirectory, MAX_PATH,
+         L"%s\\%s_SYSVOL",
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+
+      //
+      // Open MLA output file
+      //
+      swprintf(
+         szMlaFilePath, MAX_PATH,
+         L"%s\\%s_%s.mla",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+
+      bResult = MlaInit(szMlaFilePath);
+      if (bResult == FALSE)
+         return FALSE;
+   }
+
+   //
+   // Create subdirectories (root, forest, domain, application)
+   //
 
    // Domain folder (only on AD-DS)
    if (pGlobalConfig->bIsAdLds == FALSE)
    {
-      swprintf(
+      FormatNameAndCreateDirectory(
          szDirectory, MAX_PATH,
          L"%s\\%s\\%s\\%s",
          pGlobalConfig->szOutDirectory,
@@ -162,11 +211,10 @@ Process (
          pGlobalConfig->szSystemTime,
          STR_DOMAIN
       );
-      CreateDirectory(szDirectory, NULL);
    }
 
    // Configuration folder
-   swprintf(
+   FormatNameAndCreateDirectory(
       szDirectory, MAX_PATH,
       L"%s\\%s\\%s\\%s",
       pGlobalConfig->szOutDirectory,
@@ -174,10 +222,9 @@ Process (
       pGlobalConfig->szSystemTime,
       STR_CONFIGURATION
    );
-   CreateDirectory(szDirectory, NULL);
 
    // Schema folder
-   swprintf(
+   FormatNameAndCreateDirectory(
       szDirectory, MAX_PATH,
       L"%s\\%s\\%s\\%s",
       pGlobalConfig->szOutDirectory,
@@ -185,12 +232,11 @@ Process (
       pGlobalConfig->szSystemTime,
       STR_SCHEMA
    );
-   CreateDirectory(szDirectory, NULL);
 
    // DNS folder (only on AD-DS)
    if (pGlobalConfig->bIsAdLds == FALSE)
    {
-      swprintf(
+      FormatNameAndCreateDirectory(
          szDirectory, MAX_PATH,
          L"%s\\%s\\%s\\%s",
          pGlobalConfig->szOutDirectory,
@@ -198,9 +244,8 @@ Process (
          pGlobalConfig->szSystemTime,
          STR_DOMAIN_DNS
       );
-      CreateDirectory(szDirectory, NULL);
 
-      swprintf(
+      FormatNameAndCreateDirectory(
          szDirectory, MAX_PATH,
          L"%s\\%s\\%s\\%s",
          pGlobalConfig->szOutDirectory,
@@ -208,10 +253,9 @@ Process (
          pGlobalConfig->szSystemTime,
          STR_FOREST_DNS
       );
-      CreateDirectory(szDirectory, NULL);
    }
 
-   swprintf(
+   FormatNameAndCreateDirectory(
       szDirectory, MAX_PATH,
       L"%s\\%s\\%s\\%s",
       pGlobalConfig->szOutDirectory,
@@ -219,49 +263,61 @@ Process (
       pGlobalConfig->szSystemTime,
       STR_APPLICATION
    );
-   CreateDirectory(szDirectory, NULL);
-
-   if (pGlobalConfig->bProcessSysvol)
-   {
-      swprintf(
-         pGlobalConfig->szFullSysvolOutDirectory, MAX_PATH,
-         L"%s\\%s\\%s_SYSVOL",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime
-      );
-      CreateDirectory(pGlobalConfig->szFullSysvolOutDirectory, NULL);
-   }
 
    //
    // Open tables.tsv file
    //
-   swprintf(
-      szDirectory, MAX_PATH,
-      L"%s\\%s\\%s\\tables.tsv",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime
-      );
-   pGlobalConfig->hTableFile = CreateFile(szDirectory, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
-
-   if (pGlobalConfig->hTableFile == INVALID_HANDLE_VALUE)
+   if (pGlobalConfig->bOutputFiles == TRUE)
    {
-      Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-         "[!] %sUnable to open table file '%S'%s (error %u).",
-         COLOR_RED, szDirectory, COLOR_RESET, GetLastError()
+      swprintf(
+         szDirectory, MAX_PATH,
+         L"%s\\%s\\%s\\tables.tsv",
+         pGlobalConfig->szOutDirectory,
+         szRootDns,
+         pGlobalConfig->szSystemTime
       );
-      return FALSE;
+      pGlobalConfig->TableFile.hFile = CreateFile(szDirectory, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+
+      if (pGlobalConfig->TableFile.hFile == INVALID_HANDLE_VALUE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+            "[!] %sUnable to open table file '%S'%s (error %u).",
+            COLOR_RED, szDirectory, COLOR_RESET, GetLastError()
+         );
+         pGlobalConfig->TableFile.hFile = NULL;
+         return FALSE;
+      }
+   }
+
+   if (pGlobalConfig->bOutputMLA == TRUE)
+   {
+      swprintf(
+         szDirectory, MAX_PATH,
+         L"%s\\%s\\tables.tsv",
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+
+      MlaAddFile(szDirectory, &pGlobalConfig->TableFile.hMlaFile);
    }
 
    // Write base name (always first line)
-   WriteTextFile(pGlobalConfig->hTableFile, "%S_%S\n", szRootDns, pGlobalConfig->szSystemTime);
+   WriteTextFile(&pGlobalConfig->TableFile, "%S_%S\n", szRootDns, pGlobalConfig->szSystemTime);
 
    //
    // Open metadata.tsv file
    //
-   MetadataCreateFile(pGlobalConfig, szRootDns);
+   bResult = MetadataCreateFile(pGlobalConfig);
+   if (bResult == FALSE)
+      return FALSE;
+
+   //
+   // Write usefull info to metadata file
+   MetadataWriteFile(pGlobalConfig, L"forest|rootdns", szRootDns);
+   MetadataWriteFile(pGlobalConfig, L"forest|systemtime", pGlobalConfig->szSystemTime);
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s_%s", szRootDns, pGlobalConfig->szSystemTime);
+   MetadataWriteFile(pGlobalConfig, L"forest|instance", szMetadata);
 
    //
    // Process all forest global partition
@@ -324,7 +380,9 @@ Process (
             );
          }
 
-         pProcessDomain(pGlobalConfig, i, &pGlobalConfig->DomainConfig[i].RootDseConfig, szDomainServer, ulLdapPort, szRootDns, TRUE, FALSE);
+         bResult = pProcessDomain(pGlobalConfig, i, &pGlobalConfig->DomainConfig[i].RootDseConfig, szDomainServer, ulLdapPort, szRootDns, TRUE, FALSE);
+         if (bResult == FALSE)
+            return FALSE;
 
          _SafeHeapRelease(szDomainServer);
       }
@@ -430,88 +488,10 @@ Process (
    MetadataWriteFile(pGlobalConfig, L"oradad_processtime", szMetadata);
    BufferClose(&pGlobalConfig->BufferMetadata);
 
-   if (pGlobalConfig->hTableFile != NULL)
-      CloseHandle(pGlobalConfig->hTableFile);
-
-   //
-   // Tar output files
-   //
-   if (pGlobalConfig->bTarballEnabled)
-   {
-      //
-      // Create TAR
-      //
-      HANDLE hTarFile;
-      WCHAR szTarFile[MAX_PATH];
-
-      swprintf(
-         szTarFile, MAX_PATH,
-         L"%s\\%s_%s.tar",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime
-      );
-
-      bResult = TarInitialize(&hTarFile, szTarFile, g_bExtendedTarForAd);
-      if (bResult == FALSE)
-      {
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot create tar file '%S'%s (error %u).", COLOR_RED, szTarFile, COLOR_RESET, GetLastError()
-         );
-      }
-      else
-      {
-         WCHAR szPrefix[MAX_PATH];
-
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-            "[.] Create output file '%S'",
-            szTarFile
-         );
-
-         swprintf_s(szPrefix, MAX_PATH, L"%s/%s", szRootDns, pGlobalConfig->szSystemTime);
-
-         TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullOutDirectory, hTarFile, g_bExtendedTarForAd);
-         TarFile(pGlobalConfig, pGlobalConfig->szLogfilePath, szPrefix, hTarFile, g_bExtendedTarForAd);
-         TarClose(hTarFile);
-      }
-
-      if (pGlobalConfig->bProcessSysvol == TRUE)
-      {
-         swprintf(
-            szTarFile, MAX_PATH,
-            L"%s\\%s_%s_sysvol.tar",
-            pGlobalConfig->szOutDirectory,
-            szRootDns,
-            pGlobalConfig->szSystemTime
-         );
-
-         bResult = TarInitialize(&hTarFile, szTarFile, FALSE);
-         if (bResult == FALSE)
-         {
-            Log(
-               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sCannot create sysvol tar file '%S'%s (error %u).", COLOR_RED, szTarFile, COLOR_RESET, GetLastError()
-            );
-         }
-         else
-         {
-            WCHAR szPrefix[MAX_PATH];
-
-            Log(
-               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-               "[.] Create sysvol output file '%S'",
-               szTarFile
-            );
-
-            swprintf_s(szPrefix, MAX_PATH, L"%s/%s", szRootDns, pGlobalConfig->szSystemTime);
-
-            TarFilesRecursively(pGlobalConfig, pGlobalConfig->szFullSysvolOutDirectory, hTarFile, FALSE);
-            TarClose(hTarFile);
-         }
-      }
-   }
+   if (pGlobalConfig->TableFile.hFile != NULL)
+      CloseHandle(pGlobalConfig->TableFile.hFile);
+   if (pGlobalConfig->TableFile.hMlaFile != NULL)
+      MlaCloseFile(&pGlobalConfig->TableFile.hMlaFile);
 
    //
    // Release
@@ -582,6 +562,8 @@ pProcessOtherNamingContexts (
    _In_ BOOL bWriteTableInfo
 )
 {
+   BOOL bResult;
+
    for (DWORD dwIdx = 0; dwIdx < pRootDse->dwNamingContextsCount; ++dwIdx)
    {
       WCHAR szDirectory[MAX_PATH];
@@ -623,7 +605,7 @@ pProcessOtherNamingContexts (
       //
       // Create subdirectories (STR_APPLICATION)
       //
-      swprintf(
+      bResult = FormatNameAndCreateDirectory(
          szDirectory, MAX_PATH,
          L"%s\\%s\\%s\\%s\\%s",
          pGlobalConfig->szOutDirectory,
@@ -632,7 +614,8 @@ pProcessOtherNamingContexts (
          STR_APPLICATION,
          szPartition
       );
-      CreateDirectory(szDirectory, NULL);
+      if (bResult == FALSE)
+         return FALSE;
 
       for (DWORD i = 0; i < pGlobalConfig->dwRequestCount; i++)
       {
@@ -642,6 +625,8 @@ pProcessOtherNamingContexts (
             LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_APPLICATION, szPartition, pRootDse->pszNamingContexts[dwIdx], &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
          }
       }
+
+      _SafeHeapRelease(szPartition);
    }
 
    return TRUE;
@@ -692,7 +677,7 @@ pProcessDomain (
          //
          // Create subdirectories (domain)
          //
-         swprintf(
+         bResult = FormatNameAndCreateDirectory(
             szDirectory, MAX_PATH,
             L"%s\\%s\\%s\\%s\\%s",
             pGlobalConfig->szOutDirectory,
@@ -701,9 +686,10 @@ pProcessDomain (
             STR_DOMAIN,
             szDomainDns
          );
-         CreateDirectory(szDirectory, NULL);
+         if (bResult == FALSE)
+            return FALSE;
 
-         swprintf(
+         bResult = FormatNameAndCreateDirectory(
             szDirectory, MAX_PATH,
             L"%s\\%s\\%s\\%s\\%s",
             pGlobalConfig->szOutDirectory,
@@ -712,7 +698,8 @@ pProcessDomain (
             STR_DOMAIN_DNS,
             szDomainDns
          );
-         CreateDirectory(szDirectory, NULL);
+         if (bResult == FALSE)
+            return FALSE;
       }
    }
    else if (pRootDse->defaultNamingContext != NULL)
@@ -833,11 +820,13 @@ pProcessDomain (
    {
       if (bWriteTableInfo == FALSE)
       {
-         ProcessSysvol(pGlobalConfig, dwServerEntry, szRootDns, STR_DOMAIN, szDomainDns, szServer);
+         bResult = ProcessSysvol(pGlobalConfig, dwServerEntry, szRootDns, STR_DOMAIN, szDomainDns, szServer);
+         if (bResult == FALSE)
+            return FALSE;
       }
       else
       {
-         SysvolWriteTableInfo(pGlobalConfig->hTableFile, szDomainDns);
+         SysvolWriteTableInfo(&pGlobalConfig->TableFile, szDomainDns);
       }
    }
 

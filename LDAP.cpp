@@ -233,7 +233,6 @@ LdapProcessRequest (
 )
 {
    BOOL bResult;
-   WCHAR szFilename[MAX_PATH];
    WCHAR szRelativePath[MAX_PATH];
    WCHAR szTableName[MAX_PATH];
    WCHAR szTableNameNoDomain[MAX_PATH];
@@ -246,6 +245,7 @@ LdapProcessRequest (
    ULONG ulResult;
    ULONG ulReturnCode;
    ULONG ulEntriesCount;
+   ULONG ulTotalEntriesCount = 0;
 
    if (bIsRootDSE == TRUE)
    {
@@ -307,24 +307,12 @@ LdapProcessRequest (
    //
    // Initialize names
    //
-   // szFilename: filename where to write buffer data
-   // szRelativePath:      write in tables.tsv
+   // szRelativePath:      filename where to write buffer data and write in tables.tsv
    // szTableName:         write in tables.tsv (not used anymore) and metadata.tsv
    // szTableNameNoDomain: write in tables.tsv (not used anymore), metadata.tsv and metadata.tsv
    //
    if ((szPath1 != NULL) && (szPath2 != NULL))
    {
-      swprintf_s(
-         szFilename, MAX_PATH,
-         L"%s\\%s\\%s\\%s\\%s\\%s.tsv",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime,
-         szPath1,
-         szPath2,
-         pRequest->szName
-      );
-
       swprintf_s(
          szRelativePath, MAX_PATH,
          L"%s\\%s\\%s.tsv",
@@ -350,16 +338,6 @@ LdapProcessRequest (
    }
    else if ((szPath1 != NULL) && (szPath2 == NULL))
    {
-      swprintf_s(
-         szFilename, MAX_PATH,
-         L"%s\\%s\\%s\\%s\\%s.tsv",
-         pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime,
-         szPath1,
-         pRequest->szName
-      );
-
       swprintf_s(
          szRelativePath, MAX_PATH,
          L"%s\\%s.tsv",
@@ -448,7 +426,7 @@ LdapProcessRequest (
       //
       // Create output buffer
       //
-      bResult = BufferInitialize(&Buffer, szFilename);
+      bResult = BufferInitialize(&Buffer, szRelativePath, TRUE, FALSE);
       if (bResult == FALSE)
       {
          return FALSE;
@@ -615,10 +593,15 @@ LdapProcessRequest (
             pLdapMessage
          );
 
+         ulTotalEntriesCount += ulEntriesCount;
+         if (pGlobalConfig->bDisplayProgress == TRUE)
+            fwprintf(stdout, L"\r   Processed %lu entries", ulTotalEntriesCount);
+
          for (ULONG i = 0; i < ulEntriesCount; i++)
          {
             LPWSTR szDn;
             BOOL bHasRange;
+            BOOL bIsRoot = FALSE;
 
             if (i == 0)
                pEntry = ldap_first_entry(pLdapHandle, pLdapMessage);
@@ -640,7 +623,16 @@ LdapProcessRequest (
                //
                if (szDn != NULL)
                {
+                  LPWSTR szDnDns;
+
                   _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStringMaxLengthDn);
+
+                  szDnDns = ConvertDnToDns(szDn);
+
+                  if (_wcsicmp(szDnDns, szRootDns) == 0)
+                     bIsRoot = TRUE;
+
+                  _SafeHeapRelease(szDnDns);
                }
                BufferWriteTab(pBuffer);
             }
@@ -984,6 +976,15 @@ LdapProcessRequest (
                      if (szGuid != NULL)
                      {
                         BufferWrite(pBuffer, szGuid);;
+
+                        if ((bIsTop == TRUE) && (bIsRoot == TRUE))
+                        {
+                           if (_wcsicmp(pAttribute, L"objectGUID") == 0)
+                           {
+                              MetadataWriteFile(pGlobalConfig, L"forest|rootguid", szGuid);
+                           }
+                        }
+
                         RpcStringFree((RPC_WSTR*)&szGuid);
                      }
                   }
@@ -1208,6 +1209,9 @@ LdapProcessRequest (
          ulResult = ldap_control_free(pLdapControl);
          ulResult = ldap_msgfree(pLdapMessage);
          ulResult = ldap_unbind(pLdapHandle);
+
+         if (pGlobalConfig->bDisplayProgress == TRUE)
+            fwprintf(stdout, L".\n");
       }
 
       BufferClose(&Buffer);
@@ -1400,30 +1404,30 @@ pWriteTableInfo (
    // Write columns infos
    //
    // Relative path
-   WriteTextFile(pGlobalConfig->hTableFile, "%S\t", szRelativePath);
+   WriteTextFile(&pGlobalConfig->TableFile, "%S\t", szRelativePath);
 
    // Table names
-   WriteTextFile(pGlobalConfig->hTableFile, "%S\t", szTableName);
-   WriteTextFile(pGlobalConfig->hTableFile, "%S\t", szTableNameNoDomain);
+   WriteTextFile(&pGlobalConfig->TableFile, "%S\t", szTableName);
+   WriteTextFile(&pGlobalConfig->TableFile, "%S\t", szTableNameNoDomain);
 
-   WriteTextFile(pGlobalConfig->hTableFile, "%u\t", dwColumsCount);
+   WriteTextFile(&pGlobalConfig->TableFile, "%u\t", dwColumsCount);
 
    // Columns
    if (bIsRootDSE == TRUE)
    {
       // For RootDSE, dwStringMaxLengthShortName is used for 'server' max size
-      WriteTextFile(pGlobalConfig->hTableFile, "server\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortName / 2) + 1);
+      WriteTextFile(&pGlobalConfig->TableFile, "server\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortName / 2) + 1);
    }
    else
    {
-      WriteTextFile(pGlobalConfig->hTableFile, "dn\tnvarchar(%u)", (pRequest->dwStringMaxLengthDn / 2) + 1);
+      WriteTextFile(&pGlobalConfig->TableFile, "dn\tnvarchar(%u)", (pRequest->dwStringMaxLengthDn / 2) + 1);
    }
 
    if (bIsTop == TRUE)
    {
       // +1 to be sure to round to upper value (even) and avoid nvarchar(0)
-      WriteTextFile(pGlobalConfig->hTableFile, "\tshortname\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortName / 2) + 1);
-      WriteTextFile(pGlobalConfig->hTableFile, "\tshortdn\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortDn / 2) + 1);
+      WriteTextFile(&pGlobalConfig->TableFile, "\tshortname\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortName / 2) + 1);
+      WriteTextFile(&pGlobalConfig->TableFile, "\tshortdn\tnvarchar(%u)", (pRequest->dwStringMaxLengthShortDn / 2) + 1);
    }
 
    //
@@ -1440,24 +1444,24 @@ pWriteTableInfo (
       {
          if ((*pAttributes[i]).fFilter == NULL)
          {
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tint", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tint", (*pAttributes[i]).szName);
          }
          else
          {
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S_int\tint", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S_int\tint", (*pAttributes[i]).szName);
          }
       }
       else if ((*pAttributes[i]).Type == TYPE_INT64)
       {
          if ((*pAttributes[i]).fFilter == NULL)
          {
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tbigint", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tbigint", (*pAttributes[i]).szName);
          }
          else
          {
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S_int\tbigint", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S_int\tbigint", (*pAttributes[i]).szName);
          }
       }
       else
@@ -1469,12 +1473,12 @@ pWriteTableInfo (
          {
             // nvarchar(n) n must be from 1 through 4000
             if (dwStringMaxLength < 4000)
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
+               WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tnvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             else
             {
                WCHAR szMetadataKey[MAX_METADATA_KEY];
 
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
+               WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tnvarchar(max)", (*pAttributes[i]).szName);
 
                swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
                DbAddKey(&pGlobalConfig->pBaseSize, szMetadataKey, dwStringMaxLength, DbCompareMode::Max);
@@ -1489,12 +1493,12 @@ pWriteTableInfo (
          {
             // varchar(n) n must be from 1 through 8000
             if (dwStringMaxLength < 8000)
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
+               WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tvarchar(%u)", (*pAttributes[i]).szName, dwStringMaxLength);
             else
             {
                WCHAR szMetadataKey[MAX_METADATA_KEY];
 
-               WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
+               WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tvarchar(max)", (*pAttributes[i]).szName);
 
                swprintf_s(szMetadataKey, MAX_METADATA_KEY, L"size|%s|%s", szTableNameNoDomain, (*pAttributes[i]).szName);
                DbAddKey(&pGlobalConfig->pBaseSize, szMetadataKey, dwStringMaxLength, DbCompareMode::Max);
@@ -1503,16 +1507,16 @@ pWriteTableInfo (
          }
 
          case TYPE_GUID:
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tuniqueidentifier", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tuniqueidentifier", (*pAttributes[i]).szName);
             break;
 
          case TYPE_DATE:
          case TYPE_DATEINT64:
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\tdatetime2", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\tdatetime2", (*pAttributes[i]).szName);
             break;
 
          case TYPE_BOOL:
-            WriteTextFile(pGlobalConfig->hTableFile, "\t%S\ttinyint", (*pAttributes[i]).szName);
+            WriteTextFile(&pGlobalConfig->TableFile, "\t%S\ttinyint", (*pAttributes[i]).szName);
             break;
 
          default:
@@ -1526,7 +1530,7 @@ pWriteTableInfo (
          }
       }
    }
-   WriteTextFile(pGlobalConfig->hTableFile, "\n");
+   WriteTextFile(&pGlobalConfig->TableFile, "\n");
 
    return TRUE;
 }

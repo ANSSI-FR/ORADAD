@@ -23,7 +23,7 @@ pProcessSysvolFolder(
    _In_ PBUFFER_DATA pBuffer
 );
 
-VOID
+BOOL
 pProcessSysvolFile(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPCWSTR szForestName,
@@ -36,7 +36,7 @@ pProcessSysvolFile(
 //
 // Public functions
 //
-VOID
+BOOL
 ProcessSysvol (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_ DWORD dwServerEntry,
@@ -55,10 +55,7 @@ ProcessSysvol (
 
    swprintf_s(
       szOutput, MAX_PATH,
-      L"%s\\%s\\%s\\%s\\%s\\sysvol.tsv",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime,
+      L"%s\\%s\\sysvol.tsv",
       szPath1,
       szPath2
    );
@@ -66,11 +63,9 @@ ProcessSysvol (
    //
    // Create output buffer
    //
-   bResult = BufferInitialize(&Buffer, szOutput);
+   bResult = BufferInitialize(&Buffer, szOutput, TRUE, FALSE);
    if (bResult == FALSE)
-   {
-      return;
-   }
+      return FALSE;
 
    pBuffer = &Buffer;
    if (pGlobalConfig->bWriteHeader == TRUE)
@@ -133,7 +128,7 @@ ProcessSysvol (
                "[!] %sUnable to logon with explicit credentials (error %u).%s",
                COLOR_RED, GetLastError(), COLOR_RESET
             );
-            return;
+            return FALSE;
          }
 
          Log(
@@ -176,7 +171,7 @@ ProcessSysvol (
                "[!] %sUnable to logon with explicit credentials (error %u).%s",
                COLOR_RED, GetLastError(), COLOR_RESET
             );
-            return;
+            return FALSE;
          }
 
          Log(
@@ -192,44 +187,46 @@ ProcessSysvol (
    if (hToken != NULL)
       CloseHandle(hToken);
    BufferClose(&Buffer);
+
+   return TRUE;
 }
 
 VOID
 SysvolWriteTableInfo (
-   _In_ HANDLE hTableFile,
+   _In_ PBUFFER_OUTPUT pTableFile,
    _In_z_ LPWSTR szDomainDns
 )
 {
    DWORD dwIdx = 0;
 
-   WriteTextFile(hTableFile, "%S\\%S\\sysvol.tsv\t", STR_DOMAIN, szDomainDns);
-   WriteTextFile(hTableFile, "%S_%S_sysvol\t", STR_DOMAIN, szDomainDns);
-   WriteTextFile(hTableFile, "%S_sysvol\t", STR_DOMAIN);
-   WriteTextFile(hTableFile, "%u\t", SYSVOL_ROW_COUNT);                 // Columns count
-   WriteTextFile(hTableFile, "forest\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "domain\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "guid\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "path\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "filename\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "archivename\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "%S\\%S\\sysvol.tsv\t", STR_DOMAIN, szDomainDns);
+   WriteTextFile(pTableFile, "%S_%S_sysvol\t", STR_DOMAIN, szDomainDns);
+   WriteTextFile(pTableFile, "%S_sysvol\t", STR_DOMAIN);
+   WriteTextFile(pTableFile, "%u\t", SYSVOL_ROW_COUNT);                 // Columns count
+   WriteTextFile(pTableFile, "forest\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "domain\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "guid\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "path\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "filename\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "archivename\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
    // nvarchar(n) n must be from 1 through 4000
    if (((g_dwSysvolMaxLength[dwIdx] / 2) + 1) < 4000)
-      WriteTextFile(hTableFile, "securitydescriptor\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+      WriteTextFile(pTableFile, "securitydescriptor\tnvarchar(%u)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
    else
-      WriteTextFile(hTableFile, "securitydescriptor\tnvarchar(max)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
-   WriteTextFile(hTableFile, "fileattributes\tint\t");
+      WriteTextFile(pTableFile, "securitydescriptor\tnvarchar(max)\t", (g_dwSysvolMaxLength[dwIdx++] / 2) + 1);
+   WriteTextFile(pTableFile, "fileattributes\tint\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "ftCreationTime\tdatetime2\t");
+   WriteTextFile(pTableFile, "ftCreationTime\tdatetime2\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "ftLastAccessTime\tdatetime2\t");
+   WriteTextFile(pTableFile, "ftLastAccessTime\tdatetime2\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "ftCreaftLastWriteTimetionTime\tdatetime2\t");
+   WriteTextFile(pTableFile, "ftCreaftLastWriteTimetionTime\tdatetime2\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "filesize\tbigint\t");
+   WriteTextFile(pTableFile, "filesize\tbigint\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "take\ttinyint\t");
+   WriteTextFile(pTableFile, "take\ttinyint\t");
    dwIdx++;
-   WriteTextFile(hTableFile, "errorCode\tint\n");
+   WriteTextFile(pTableFile, "errorCode\tint\n");
    dwIdx++;
 }
 
@@ -329,16 +326,25 @@ pProcessSysvolFolder (
       (VOID)ImpersonateLoggedOnUser(hToken);
 
    hFindFile = FindFirstFile(szFindPattern, &FindFileData);
-   if (hFindFile != INVALID_HANDLE_VALUE)
+   if (hFindFile == INVALID_HANDLE_VALUE)
       dwError = GetLastError();
 
    if (hToken != NULL)
       RevertToSelf();
 
-   swprintf_s(szOutPath, MAX_PATH, L"%s\\%s", pGlobalConfig->szFullSysvolOutDirectory, szDomainName);
-   bResult = PathFileExists(szOutPath);
-   if (bResult == FALSE)
-      CreateDirectory(szOutPath, NULL);
+   if (pGlobalConfig->bOutputFiles == TRUE)
+   {
+      //
+      // Create folder for this domain
+      //
+      bResult = FormatNameAndCreateDirectory(
+         szOutPath, MAX_PATH,
+         L"%s\\%s",
+         pGlobalConfig->szFileSysvolOutDirectory, szDomainName
+      );
+      if (bResult == FALSE)
+         return FALSE;
+   }
 
    if (hFindFile != INVALID_HANDLE_VALUE)
    {
@@ -379,7 +385,7 @@ pProcessSysvolFolder (
    return TRUE;
 }
 
-VOID
+BOOL
 pProcessSysvolFile (
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_z_ LPCWSTR szForestName,
@@ -654,38 +660,49 @@ pProcessSysvolFile (
 
             if (szGuid != NULL)
             {
-               swprintf_s(szOutPath, MAX_PATH, L"%s\\%s\\%.*s", pGlobalConfig->szFullSysvolOutDirectory, szDomainName, GUID_STR_SIZE, szGuid);
-               bResult = PathFileExists(szOutPath);
-               if (bResult == FALSE)
-                  CreateDirectory(szOutPath, NULL);
+               if (pGlobalConfig->bOutputFiles == TRUE)
+               {
+                  //
+                  // Create output directory (<output>\<forest>\<date>_SYSVOL\<domain>\<GUID>)
+                  //
+                  bResult = FormatNameAndCreateDirectory(
+                     szOutPath, MAX_PATH,
+                     L"%s\\%s\\%.*s",
+                     pGlobalConfig->szFileSysvolOutDirectory, szDomainName, GUID_STR_SIZE, szGuid
+                  );
+                  if (bResult == FALSE)
+                     return FALSE;
+               }
 
                if (szShortFileName != NULL)
                {
-                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%s\\%.*s\\%llu_%s", pGlobalConfig->szFullSysvolOutDirectory, szDomainName, GUID_STR_SIZE, szGuid, hArchiveName, szShortFileName);
+                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%.*s\\%llu_%s", szDomainName, GUID_STR_SIZE, szGuid, hArchiveName, szShortFileName);
                }
                else
                {
-                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%s\\%.*s\\%llu", pGlobalConfig->szFullSysvolOutDirectory, szDomainName, GUID_STR_SIZE, szGuid, hArchiveName);
+                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%.*s\\%llu", szDomainName, GUID_STR_SIZE, szGuid, hArchiveName);
                }
             }
             else
             {
                if (szShortFileName != NULL)
                {
-                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%s\\%llu_%s", pGlobalConfig->szFullSysvolOutDirectory, szDomainName, hArchiveName, szShortFileName);
+                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%llu_%s", szDomainName, hArchiveName, szShortFileName);
                }
                else
                {
-                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%s\\%llu", pGlobalConfig->szFullSysvolOutDirectory, szDomainName, hArchiveName);
+                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%llu", szDomainName, hArchiveName);
                }
             }
 
-            bResult = BufferInitialize(&Buffer, szOutPath, TRUE);  // RAW BUFFER
+            bResult = BufferInitialize(&Buffer, szOutPath, FALSE, TRUE);  // BOM / SYSVOL
             if (bResult == TRUE)
             {
                BufferWriteFromFile(&Buffer, hFileRead);
                BufferClose(&Buffer);
             }
+            else
+               return FALSE;
 
             CloseHandle(hFileRead);
          }
@@ -703,4 +720,6 @@ pProcessSysvolFile (
 
    if (hFile != INVALID_HANDLE_VALUE)
       CloseHandle(hFile);
+
+   return TRUE;
 }

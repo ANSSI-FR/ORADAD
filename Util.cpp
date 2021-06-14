@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <Shlwapi.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <intsafe.h>
@@ -8,8 +9,9 @@
 #define INFO_MAX_SIZE      MSG_MAX_SIZE + 256         // 256: "%04u/%02u/%02u - %02u:%02u:%02u.%03u\t%d\t%s\t%s\t%d\t" + ... + "\r\n",
 
 extern HANDLE g_hHeap;
-extern HANDLE g_hLogFile;
 extern BOOL g_bSupportsAnsi;
+extern GLOBAL_CONFIG g_GlobalConfig;
+extern HANDLE g_hLogFile;
 
 VOID
 Log (
@@ -146,29 +148,44 @@ RemoveSpecialChars (
 
 BOOL
 WriteTextFile (
-   _In_ HANDLE hFile,
+   _In_ PBUFFER_OUTPUT pOutput,
    _In_z_ LPCSTR szFormat,
    ...
 )
 {
-   BOOL bReturn;
-   DWORD dwDataSize, dwDataWritten;
+   BOOL bResult, bReturn = TRUE;
    CHAR szMessage[MSG_MAX_SIZE];
+   SIZE_T MessageSize;
 
    va_list argptr;
    va_start(argptr, szFormat);
 
    vsprintf_s(szMessage, MSG_MAX_SIZE, szFormat, argptr);
+   MessageSize = strnlen_s(szMessage, MSG_MAX_SIZE);
 
-   (void)SIZETToDWord(strnlen_s(szMessage, MSG_MAX_SIZE), &dwDataSize);
-   bReturn = WriteFile(hFile, szMessage, dwDataSize, &dwDataWritten, NULL);
+   if (pOutput->hFile != NULL)
+   {
+      DWORD dwDataSize, dwDataWritten;
+
+      (void)SIZETToDWord(MessageSize, &dwDataSize);
+      bResult = WriteFile(pOutput->hFile, szMessage, dwDataSize, &dwDataWritten, NULL);
+      if (bResult == FALSE)
+         bReturn = FALSE;
+   }
+
+   if (pOutput->hMlaFile != NULL)
+   {
+      bResult = MlaBufferWrite(pOutput->hMlaFile, (PBYTE)szMessage, MessageSize);
+      if (bResult == FALSE)
+         bReturn = FALSE;
+   }
 
    return bReturn;
 }
 
 LPSTR
 LPWSTRtoLPSTR (
-   _In_opt_z_ LPWSTR szToConvert
+   _In_opt_z_ LPCWSTR szToConvert
 )
 {
    LPSTR szResult;
@@ -293,64 +310,54 @@ MetadataWriteFile (
 
 BOOL
 MetadataCreateFile (
-   _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szRootDns
+   _In_ PGLOBAL_CONFIG pGlobalConfig
 )
 {
    BOOL bResult;
 
-   WCHAR szMetadataFilename[MAX_PATH];
    WCHAR szMetadata[MAX_METADATA_VALUE];
 
+   DWORD dwComputerNameSize = MAX_METADATA_VALUE;
+
    // Open metadata file
-   swprintf(
-      szMetadataFilename, MAX_PATH,
-      L"%s\\%s\\%s\\metadata.tsv",
-      pGlobalConfig->szOutDirectory,
-      szRootDns,
-      pGlobalConfig->szSystemTime
-   );
+   bResult = BufferInitialize(&pGlobalConfig->BufferMetadata, L"metadata.tsv", TRUE, FALSE);
+   if (bResult == FALSE)
+      return FALSE;
 
-   WriteTextFile(pGlobalConfig->hTableFile, "metadata.tsv\tmetadata\tmetadata\t2\tkey\tnvarchar(255)\tvalue\tnvarchar(1024)\n");
+   WriteTextFile(&pGlobalConfig->TableFile, "metadata.tsv\tmetadata\tmetadata\t2\tkey\tnvarchar(255)\tvalue\tnvarchar(1024)\n");
 
-   bResult = BufferInitialize(&pGlobalConfig->BufferMetadata, szMetadataFilename);
-   if (bResult != FALSE)
+   // Exe version
+   GetFileVersion(szMetadata, MAX_METADATA_VALUE);
+   MetadataWriteFile(pGlobalConfig, L"oradad_version", szMetadata);
+
+   bResult = GetComputerNameEx(ComputerNameDnsFullyQualified, szMetadata, &dwComputerNameSize);
+   if (bResult == TRUE)
+      MetadataWriteFile(pGlobalConfig, L"computer_name", szMetadata);
+
+   // Parameters from config
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|level", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAutoGetDomain);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|autoGetDomain", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAutoGetTrusts);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|autoGetTrusts", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bOutputFiles);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|outputFiles", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bOutputMLA);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|outputMla", szMetadata);
+
+   for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
    {
-      DWORD dwComputerNameSize = MAX_METADATA_VALUE;
+      WCHAR szMetadataKey[MAX_METADATA_VALUE];
 
-      // Exe version
-      GetFileVersion(szMetadata, MAX_METADATA_VALUE);
-      MetadataWriteFile(pGlobalConfig, L"oradad_version", szMetadata);
+      swprintf_s(szMetadataKey, MAX_METADATA_VALUE, L"oradad|config|server|%u", i);
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s|%s", pGlobalConfig->DomainConfig[i].szServer,pGlobalConfig->DomainConfig[i].szDomainName);
 
-      bResult = GetComputerNameEx(ComputerNameDnsFullyQualified, szMetadata, &dwComputerNameSize);
-      if (bResult==TRUE)
-         MetadataWriteFile(pGlobalConfig, L"computer_name", szMetadata);
-
-      // Parameters from config
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|level", szMetadata);
-
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAutoGetDomain);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|autoGetDomain", szMetadata);
-
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bAutoGetTrusts);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|autoGetTrusts", szMetadata);
-
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bCompressionEnabled);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|compression", szMetadata);
-
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bEncryptionEnabled);
-      MetadataWriteFile(pGlobalConfig, L"oradad|config|encryption", szMetadata);
-
-      for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
-      {
-         WCHAR szMetadataKey[MAX_METADATA_VALUE];
-
-         swprintf_s(szMetadataKey, MAX_METADATA_VALUE, L"oradad|config|server|%u", i);
-         swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s|%s", pGlobalConfig->DomainConfig[i].szServer,pGlobalConfig->DomainConfig[i].szDomainName);
-
-         MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadata);
-      }
+      MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadata);
    }
 
    return TRUE;
@@ -541,4 +548,56 @@ GetBuildDateStatus (
    }
 
    return StartStatus::Unkwnon;
+}
+
+BOOL
+CheckAndCreateDirectory (
+   _In_z_ LPCWSTR szDirectoryPath
+)
+{
+   BOOL bResult;
+
+   bResult = PathFileExists(szDirectoryPath);
+   if (bResult == TRUE)
+      return TRUE;
+
+   bResult = CreateDirectory(szDirectoryPath, NULL);
+   if (bResult == FALSE)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+         "[!] %sUnable to create directory '%S'%s (error %u).",
+         COLOR_RED, szDirectoryPath, COLOR_RESET,
+         GetLastError()
+      );
+      return FALSE;
+   }
+
+   return TRUE;
+}
+
+BOOL
+FormatNameAndCreateDirectory (
+   _Out_writes_z_(dwNameSize) LPWSTR szOutputPath,
+   _In_ DWORD dwPathSize,
+   _In_z_ LPCWSTR szFormat,
+   ...
+)
+{
+   BOOL bResult;
+   va_list args;
+
+   va_start(args, szFormat);
+
+   vswprintf_s(
+      szOutputPath, dwPathSize,
+      szFormat, args
+   );
+
+   if (g_GlobalConfig.bOutputFiles == TRUE)
+      bResult = CheckAndCreateDirectory(szOutputPath);
+   else
+      return TRUE;
+
+   return bResult;
 }

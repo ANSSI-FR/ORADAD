@@ -1,9 +1,11 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by ORADAD.rc
-#define IDR_SCHEMA                     101
+//
+#define IDR_SCHEMA                      101
+#define IDR_MLAKEY                      102
 
-// Valeurs par défaut suivantes des nouveaux objets
+// Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS

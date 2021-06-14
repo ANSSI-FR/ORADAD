@@ -156,12 +156,9 @@
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Filters.cpp" />
-    <ClCompile Include="lz4\lz4.c" />
-    <ClCompile Include="lz4\lz4frame.c" />
-    <ClCompile Include="lz4\lz4hc.c" />
     <ClCompile Include="lz4\xxhash.c" />
+    <ClCompile Include="MLA.cpp" />
     <ClCompile Include="Sysvol.cpp" />
-    <ClCompile Include="tar\tar.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="Util_Db.cpp" />
     <ClCompile Include="XML.cpp" />
@@ -172,21 +169,20 @@
   <ItemGroup>
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Functions.h" />
-    <ClInclude Include="lz4\lz4.h" />
-    <ClInclude Include="lz4\lz4frame.h" />
-    <ClInclude Include="lz4\lz4frame_static.h" />
-    <ClInclude Include="lz4\lz4hc.h" />
     <ClInclude Include="lz4\xxhash.h" />
+    <ClInclude Include="mla.hpp" />
     <ClInclude Include="ORADAD.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Structures.h" />
-    <ClInclude Include="tar\tar.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ORADAD.rc" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="oradad-schema.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mlakey.pub" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,5 @@
 #pragma once
 #include <Windows.h>
-#include "lz4/lz4frame.h"
 
 //
 // Log levels
@@ -168,6 +167,12 @@ typedef struct _REQUEST_CONFIG
    PDWORD pdwStringMaxLength;
 } REQUEST_CONFIG, *PREQUEST_CONFIG;
 
+typedef struct _BUFFER_OUTPUT
+{
+   HANDLE hFile;
+   MLAArchiveFileHandle hMlaFile;
+} BUFFER_OUTPUT, *PBUFFER_OUTPUT;
+
 //
 // Buffer
 //
@@ -185,16 +190,12 @@ typedef struct _BUFFER_DATA
    PBYTE pbDataEncrypt;
    HANDLE hOutputFile;
    TCHAR szFileName[MAX_PATH];
-   LZ4F_cctx* lz4Ctx;
    HCRYPTPROV hProv;
    HCRYPTHASH hHash;
    HCRYPTKEY hCryptKey;
    ULONG64 ulFileSize;
+   MLAArchiveFileHandle hMlaFile;
 } BUFFER_DATA, *PBUFFER_DATA;
-
-#define BUFFER_VERSION        1
-#define BUFFER_COMPRESSED     1
-#define BUFFER_ENCRYPTED      2
 
 #pragma pack(push,1)
 #pragma warning(disable : 4200)
@@ -208,17 +209,8 @@ typedef struct _DB_ENTRY
    //LPWSTR szKeyValue;
    DWORD dwKeyValue;
    PVOID pNext;
-} DB_ENTRY, * PDB_ENTRY;
-
-typedef struct _BUFFER_HEADER
-{
-   CHAR Magic[6];
-   CHAR BufferVersion;
-   CHAR Flags;
-   DWORD dwExtraDataLen;
-   BYTE bExtraData[0];
-} BUFFER_HEADER, *PBUFFER_HEADER;
 #pragma pack(pop)
+} DB_ENTRY, *PDB_ENTRY;
 
 typedef struct _DOMAIN_CONFIG
 {
@@ -238,10 +230,10 @@ typedef struct _GLOBAL_CONFIG
    WCHAR szSystemTime[17];
 
    LPWSTR szOutDirectory;
-   WCHAR szFullOutDirectory[MAX_PATH];
    WCHAR szLogfilePath[MAX_PATH];
-   HANDLE hTableFile;
+   BUFFER_OUTPUT TableFile;
    BOOL bWriteHeader;
+   BOOL bDisplayProgress;
 
    BOOL bBypassLdapProcess;
    BOOL bAutoGetDomain;
@@ -258,10 +250,10 @@ typedef struct _GLOBAL_CONFIG
    BOOL dwSleepTime;
    BOOL bIsAdLds;
 
-   BOOL bCompressionEnabled;
-   BOOL bEncryptionEnabled;
-   BOOL bTarballEnabled;
-   LPWSTR szPublicKey;
+   BOOL bOutputFiles;
+   BOOL bOutputMLA;
+   LPWSTR szAdditionalMlaKeys;
+   BOOL bBypassIntegratedMLAKey;
 
    DWORD dwRequestCount;
    PREQUEST_CONFIG pRequests;
@@ -276,5 +268,9 @@ typedef struct _GLOBAL_CONFIG
 
    BOOL bProcessSysvol;
    LPWSTR szSysvolFilter;
-   WCHAR szFullSysvolOutDirectory[MAX_PATH];
+
+   WCHAR szFileOutDirectory[MAX_PATH];
+   WCHAR szFileSysvolOutDirectory[MAX_PATH];
+   WCHAR szMlaOutDirectory[MAX_PATH];
+   WCHAR szMlaSysvolOutDirectory[MAX_PATH];
 } GLOBAL_CONFIG, *PGLOBAL_CONFIG;

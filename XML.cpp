@@ -178,14 +178,14 @@ XmlReadConfigFile (
          pGlobalConfig->dwSleepTime = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"writeHeader") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->bWriteHeader = pReadBoolean(strNodeText);
-      else if ((wcscmp(strNodeName, L"compression") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->bCompressionEnabled = pReadBoolean(strNodeText);
-      else if ((wcscmp(strNodeName, L"encryption") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->bEncryptionEnabled = pReadBoolean(strNodeText);
-      else if ((wcscmp(strNodeName, L"tar_output") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->bTarballEnabled = pReadBoolean(strNodeText);
-      else if ((wcscmp(strNodeName, L"public_key") == 0) && (wcslen(strNodeText) > 0))
-         pGlobalConfig->szPublicKey = strNodeText;
+
+      else if ((wcscmp(strNodeName, L"outputFiles") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bOutputFiles = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"outputMLA") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bOutputMLA = pReadBoolean(strNodeText);
+      else if ((wcscmp(strNodeName, L"additionalMLAKeys") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->szAdditionalMlaKeys = strNodeText;
+
       else if ((wcscmp(strNodeName, L"process_sysvol") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->bProcessSysvol = pReadBoolean(strNodeText);
       else if ((wcscmp(strNodeName, L"sysvol_filter") == 0) && (wcslen(strNodeText) > 0))
@@ -193,6 +193,9 @@ XmlReadConfigFile (
          pGlobalConfig->szSysvolFilter = strNodeText;
          _wcslwr_s(pGlobalConfig->szSysvolFilter, wcslen(pGlobalConfig->szSysvolFilter) + 1);
       }
+
+      else if ((wcscmp(strNodeName, L"displayProgress") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->bDisplayProgress = pReadBoolean(strNodeText);
 
       _SafeCOMRelease(pXmlNodeConfig);
    }
@@ -287,6 +290,15 @@ XmlReadConfigFile (
       _SafeCOMRelease(pXMLNodeDomains);
    }
 
+   if ((pGlobalConfig->bOutputFiles == FALSE) && (pGlobalConfig->bOutputMLA == FALSE))
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+         "[!] %sAt least one output (file or MLA) must be enabled.%s", COLOR_RED, COLOR_RESET
+      );
+      return NULL;
+   }
+
    return pXMLDoc;
 }
 
@@ -306,11 +318,6 @@ XmlReadSchemaFile (
    IXMLDOMDocument2 *pXMLDoc = NULL;
    IXMLDOMNodeList *pXMLNodeList = NULL;
 
-   HMODULE hCurrentProcess;
-   DWORD dwSchemaSize = 0;
-   HRSRC hrSchema;
-   HGLOBAL hResource;
-   PBYTE pSchema = NULL;
    SAFEARRAY* psaSchema;
 
    long lLength;
@@ -344,6 +351,11 @@ XmlReadSchemaFile (
       SAFEARRAYBOUND rgsabound[1];
       VARIANT v;
 
+      HMODULE hCurrentProcess;
+      HRSRC hrSchema;
+      DWORD dwSchemaSize = 0;
+      PBYTE pSchema = NULL;
+
       //
       // Load config from resource
       //
@@ -351,6 +363,8 @@ XmlReadSchemaFile (
       hrSchema = FindResource(hCurrentProcess, MAKEINTRESOURCE(IDR_SCHEMA), TEXT("SCHEMA"));
       if (hrSchema != NULL)
       {
+         HGLOBAL hResource;
+
          hResource = LoadResource(hCurrentProcess, hrSchema);
          if (hResource != NULL)
          {

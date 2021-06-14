@@ -55,7 +55,7 @@ LdapProcessRequest(
 //
 // Sysvol.cpp
 //
-VOID
+BOOL
 ProcessSysvol(
    _In_ PGLOBAL_CONFIG pGlobalConfig,
    _In_ DWORD dwServerEntry,
@@ -67,7 +67,7 @@ ProcessSysvol(
 
 VOID
 SysvolWriteTableInfo(
-   _In_ HANDLE hTableFile,
+   _In_ PBUFFER_OUTPUT pTableFile,
    _In_z_ LPWSTR szDomainDns
 );
 
@@ -102,14 +102,14 @@ RemoveSpecialChars(
 
 BOOL
 WriteTextFile(
-   _In_ HANDLE hFile,
+   _In_ PBUFFER_OUTPUT pOutput,
    _In_z_ LPCSTR szFormat,
    ...
 );
 
 LPSTR
 LPWSTRtoLPSTR(
-   _In_opt_z_ LPWSTR szToConvert
+   _In_opt_z_ LPCWSTR szToConvert
 );
 
 _Success_(return)
@@ -128,8 +128,7 @@ MetadataWriteFile(
 
 BOOL
 MetadataCreateFile(
-   _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szRootDns
+   _In_ PGLOBAL_CONFIG pGlobalConfig
 );
 
 BOOL
@@ -151,6 +150,19 @@ GetCmdOption(
 
 StartStatus
 GetBuildDateStatus(
+);
+
+BOOL
+CheckAndCreateDirectory(
+   _In_z_ LPCWSTR szDirectoryPath
+);
+
+BOOL
+FormatNameAndCreateDirectory(
+   _Out_writes_z_(dwNameSize) LPWSTR szOutputPath,
+   _In_ DWORD dwPathSize,
+   _In_z_ LPCWSTR szFormat,
+   ...
 );
 
 //
@@ -181,8 +193,9 @@ DbFree(
 BOOL
 BufferInitialize(
    _Out_ PBUFFER_DATA pBuffer,
-   _In_z_ LPWSTR szFilename,
-   _In_ BOOL bRawBuffer = FALSE
+   _In_z_ LPCWSTR szFilename,
+   _In_ BOOL bWriteBomHeader,
+   _In_ BOOL bSysvolOutput
 );
 
 BOOL
@@ -257,8 +270,43 @@ BufferWriteSemicolon(
 
 BOOL
 BufferSave(
-   _In_ PBUFFER_DATA pBuffer,
-   _In_ BOOL bFinal
+   _In_ PBUFFER_DATA pBuffer
+);
+
+//
+// MLA.cpp
+//
+BOOL
+MlaInit(
+   _In_z_ LPCWSTR szMlaFilePath
+);
+
+BOOL
+MlaAddFile(
+   _In_z_ LPCWSTR szFilePath,
+   _Out_ MLAArchiveFileHandle *phMlaFile
+);
+
+BOOL
+MlaAddFileFromFile(
+   _In_z_ LPCWSTR szFilePathToAdd,
+   _In_z_ LPCWSTR szMLAFilePath
+);
+
+BOOL
+MlaCloseFile(
+   _Inout_ MLAArchiveFileHandle *phMlaFile
+);
+
+BOOL
+MlaBufferWrite(
+   _In_ MLAArchiveFileHandle hMlaFile,
+   _In_reads_(BufferSize) PBYTE pbBuffer,
+   _In_ uint64_t BufferSize
+);
+
+BOOL
+MlaClose(
 );
 
 //
@@ -274,46 +322,4 @@ LPWSTR
 ApplyFilter(
    _In_  PATTRIBUTE_CONFIG pAttributes,
    _In_z_ PVOID pvData
-);
-
-//
-// tar.cpp
-//
-BOOL
-TarInitialize(
-   _Out_ PHANDLE phTarFile,
-   _In_z_ LPWSTR szFilename,
-   _In_ BOOL bExtendedTar
-);
-
-VOID
-TarFilesRecursively(
-   _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szFolder,
-   _In_ HANDLE hTarFile,
-   _In_ BOOL bExtendedTar
-);
-
-BOOL
-TarFile(
-   _In_ PGLOBAL_CONFIG pGlobalConfig,
-   _In_z_ LPWSTR szFileName,
-   _In_opt_z_ LPWSTR szPrefix,
-   _In_ HANDLE hTarFile,
-   _In_ BOOL bExtendedTar
-);
-
-BOOL
-TarClose(
-   _In_ HANDLE hTarFile
-);
-
-BOOL
-TarPrepareHeader(
-   _Out_ PVOID pVoidTarHeader
-);
-
-BOOL
-TarComputeChecksum(
-   _Out_ PVOID pVoidTarHeader
 );

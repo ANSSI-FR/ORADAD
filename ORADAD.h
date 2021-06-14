@@ -39,5 +39,21 @@ enum class DbCompareMode
 //
 // Include
 //
+#include "mla.hpp"
 #include "Structures.h"
 #include "Functions.h"
+
+//
+// TraceLogging
+//
+// Uncomment to enable tracing
+//#define TRACELOGGING
+
+#ifdef TRACELOGGING
+#include <TraceLoggingProvider.h>
+#include <winmeta.h>                            // for WINEVENT_LEVEL_* definitions
+
+TRACELOGGING_DECLARE_PROVIDER(g_hOradadLoggingProvider);
+
+#define ORADAD_PROVIDER_KEYWORD_MLA       0x1
+#endif

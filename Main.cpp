@@ -20,7 +20,16 @@ HANDLE g_hLogFile = NULL;
 
 GLOBAL_CONFIG g_GlobalConfig = { 0 };
 BOOL g_bSupportsAnsi;
-BOOL g_bExtendedTarForAd = FALSE;
+
+#ifdef TRACELOGGING
+//{D29B3EEC-52D4-4AA1-8FCD-24E0EFAEB169}
+TRACELOGGING_DEFINE_PROVIDER(
+   g_hOradadLoggingProvider,
+   "OradadTraceLoggingProvider",
+   (0xD29B3EEC, 0x52D4, 0x4AA1, 0x8F, 0xCD, 0x24, 0xE0, 0xEF, 0xAE, 0xB1, 0x69)
+);
+
+#endif
 
 //__declspec(dllexport)
 int
@@ -39,6 +48,10 @@ wmain (
    LPWSTR szConfigPath = NULL;
    LPWSTR szSchemaPath = NULL;
    StartStatus DateStatus;
+
+#ifdef TRACELOGGING
+   TraceLoggingRegister(g_hOradadLoggingProvider);
+#endif
 
    DateStatus = GetBuildDateStatus();
    if (DateStatus == StartStatus::Unkwnon)
@@ -106,16 +119,29 @@ wmain (
       szResult = _wfullpath(g_GlobalConfig.szOutDirectory, argv[1], MAX_PATH);
    if (szResult == NULL)
    {
-      fprintf_s(stderr, "[!] Unable to get absolute path. Exit.\n");
+      fwprintf_s(stderr, L"[!] Unable to get absolute path. Exit.\n");
       return EXIT_FAILURE;
    }
 
+   //
+   // Create output folder
+   //
+   bResult = CreateDirectory(g_GlobalConfig.szOutDirectory, NULL);
+   if ((bResult == FALSE) && (GetLastError() != ERROR_ALREADY_EXISTS))
+   {
+      fwprintf_s(stderr, L"[!] Unable to open output folder '%s'. Exit.\n", g_GlobalConfig.szLogfilePath);
+      return EXIT_FAILURE;
+   }
+
+   //
+   // Open log file
+   //
    _stprintf_s(g_GlobalConfig.szLogfilePath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szOutDirectory);
 
    g_hLogFile = CreateFile(g_GlobalConfig.szLogfilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 0, NULL);
    if (g_hLogFile == INVALID_HANDLE_VALUE)
    {
-      fprintf_s(stderr, "[!] Unable to open log file '%S'. Exit.\n", g_GlobalConfig.szLogfilePath);
+      fwprintf_s(stderr, L"[!] Unable to open log file '%s'. Exit.\n", g_GlobalConfig.szLogfilePath);
       return EXIT_FAILURE;
    }
 
@@ -129,8 +155,10 @@ wmain (
    );
 
    //
-   // Read configuration
+   // Init and read configuration
    //
+   g_GlobalConfig.bDisplayProgress = TRUE;
+
    if (cmdOptionExists(argv, argc, L"-c"))
    {
       if (GetCmdOption(argv, argc, L"-c", ConfigTypeString, &szConfigPath) == FALSE)
@@ -171,7 +199,7 @@ wmain (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
-         "[.] Using Alternative Schema %S.", szSchemaPath
+         "[.] Using Alternative Schema '%S'.", szSchemaPath
       );
    }
 
@@ -212,13 +240,31 @@ End:
    );
    CloseHandle(g_hLogFile);
 
-   // Move log file to output directory
-   if (g_GlobalConfig.szFullOutDirectory[0] != 0)
+   //
+   // Move log file to outputs
+   //
+   if ((g_GlobalConfig.bOutputMLA == TRUE) && (g_GlobalConfig.szMlaOutDirectory[0]))
    {
       TCHAR szFinalPath[MAX_PATH];
 
-      _stprintf_s(szFinalPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szFullOutDirectory);
+      _stprintf_s(szFinalPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szMlaOutDirectory);
+      MlaAddFileFromFile(g_GlobalConfig.szLogfilePath, szFinalPath);
+   }
+
+   if ((g_GlobalConfig.bOutputFiles == TRUE) && (g_GlobalConfig.szFileOutDirectory[0]))
+   {
+      TCHAR szFinalPath[MAX_PATH];
+
+      _stprintf_s(szFinalPath, MAX_PATH, TEXT("%s\\oradad.log"), g_GlobalConfig.szFileOutDirectory);
       MoveFile(g_GlobalConfig.szLogfilePath, szFinalPath);
+   }
+
+   //
+   // Close MLA
+   //
+   if (g_GlobalConfig.bOutputMLA == TRUE)
+   {
+      MlaClose();
    }
 
    _SafeCOMRelease(pXMLDocConfig);
@@ -229,6 +275,10 @@ End:
    _SafeHeapRelease(szSchemaPath);
    _SafeHeapRelease(g_GlobalConfig.szOutDirectory);
    HeapDestroy(g_hHeap);
+
+#ifdef TRACELOGGING
+   TraceLoggingUnregister(g_hOradadLoggingProvider);
+#endif
 
    return EXIT_SUCCESS;
 }
