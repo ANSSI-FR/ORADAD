@@ -203,12 +203,14 @@ BufferWrite (
 )
 {
    SYSTEMTIME st;
-   WCHAR szDate[20];
+   WCHAR szDate[DATE_MAX_STR_SIZE];
 
    FileTimeToSystemTime(fileTime, &st);
+   if (st.wYear > 9999)
+      st.wYear = 9999;
    swprintf_s(
-      szDate, 20,
-      L"%04u-%02u-%02u %02u:%02u:%02u",
+      szDate, DATE_MAX_STR_SIZE,
+      DATE_FORMAT,
       st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond
    );
 

@@ -112,11 +112,29 @@ wmain (
       return EXIT_SUCCESS;
    }
 
+   //
+   // Get output directory
+   //
    g_GlobalConfig.szOutDirectory = (LPWSTR)_HeapAlloc(MAX_PATH * sizeof(WCHAR));
    if (argc < 2)
+   {
       szResult = _wfullpath(g_GlobalConfig.szOutDirectory, L".", MAX_PATH);
+   }
    else
-      szResult = _wfullpath(g_GlobalConfig.szOutDirectory, argv[1], MAX_PATH);
+   {
+      LPWSTR szLastArg = argv[argc - 1];
+
+      if ((szLastArg[0] == '-') && (szLastArg[1] == '-'))
+      {
+         // Last argument is an option
+         szResult = _wfullpath(g_GlobalConfig.szOutDirectory, L".", MAX_PATH);
+      }
+      else
+      {
+         szResult = _wfullpath(g_GlobalConfig.szOutDirectory, szLastArg, MAX_PATH);
+      }
+   }
+
    if (szResult == NULL)
    {
       fwprintf_s(stderr, L"[!] Unable to get absolute path. Exit.\n");

@@ -4,6 +4,7 @@
 #define MAX_OCTAL_SIZE           077777777777
 #define DWORD_MAX                0xffffffffUL         // See ntintsafe.h
 #define USE_GLOBAL_CREDENTIALS   DWORD_MAX
+
 //
 // Macros
 //
@@ -18,6 +19,9 @@
 //
 #define MAX_METADATA_KEY               255
 #define MAX_METADATA_VALUE             1024
+
+#define DATE_MAX_STR_SIZE              20
+#define DATE_FORMAT                    L"%04u-%02u-%02u %02u:%02u:%02u"
 
 //
 // Enum
