@@ -1325,8 +1325,8 @@
         <attribute name="msDS-cloudExtensionAttribute7" level="9" type="STR" />
         <attribute name="msDS-cloudExtensionAttribute8" level="9" type="STR" />
         <attribute name="msDS-cloudExtensionAttribute9" level="9" type="STR" />
-        <attribute name="msDS-CloudIsEnabled" level="9" type="BOOL" />
-        <attribute name="msDS-CloudIsManaged" level="9" type="BOOL" />
+        <attribute name="msDS-CloudIsEnabled" level="4" type="BOOL" />
+        <attribute name="msDS-CloudIsManaged" level="4" type="BOOL" />
         <attribute name="msDS-CloudIssuerPublicCertificates" level="9" type="BIN" />
         <attribute name="msDS-ComputerAllowedToAuthenticateTo" level="1" type="DACL" />
         <attribute name="msDS-ComputerAuthNPolicy" level="1" type="STR" />
@@ -4513,8 +4513,8 @@
         <attribute name="pKTGuid" level="2" type="GUID" />
         <attribute name="policyReplicationFlags" level="9" type="INT" />
         <attribute name="portName" level="9" type="STRS" />
-        <attribute name="possibleInferiors" level="9" type="STRS" />
-        <attribute name="possSuperiors" level="9" type="STRS" />
+        <attribute name="possibleInferiors" level="4" type="STRS" />
+        <attribute name="possSuperiors" level="4" type="STRS" />
         <attribute name="postalAddress" level="9" type="STRS" />
         <attribute name="postalCode" level="9" type="STR" />
         <attribute name="postOfficeBox" level="9" type="STRS" />
@@ -4685,7 +4685,7 @@
         <attribute name="st" level="9" type="STR" />
         <attribute name="street" level="9" type="STR" />
         <attribute name="structuralObjectClass" level="9" type="STRS" />
-        <attribute name="subClassOf" level="9" type="STR" />
+        <attribute name="subClassOf" level="4" type="STR" />
         <attribute name="subRefs" level="9" type="STRS" />
         <attribute name="subSchemaSubEntry" level="9" type="STRS" />
         <attribute name="superiorDNSRoot" level="1" type="STR" />
@@ -4703,7 +4703,7 @@
         <attribute name="systemMayContain" level="2" type="STRS" />
         <attribute name="systemMustContain" level="2" type="STRS" />
         <attribute name="systemOnly" level="2" type="BOOL" />
-        <attribute name="systemPossSuperiors" level="9" type="STRS" />
+        <attribute name="systemPossSuperiors" level="4" type="STRS" />
         <attribute name="telephoneNumber" level="9" type="STR" />
         <attribute name="teletexTerminalIdentifier" level="9" type="BIN" />
         <attribute name="telexNumber" level="9" type="BIN" />
