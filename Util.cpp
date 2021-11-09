@@ -578,7 +578,7 @@ CheckAndCreateDirectory (
 
 BOOL
 FormatNameAndCreateDirectory (
-   _Out_writes_z_(dwNameSize) LPWSTR szOutputPath,
+   _Out_writes_z_(dwPathSize) LPWSTR szOutputPath,
    _In_ DWORD dwPathSize,
    _In_z_ LPCWSTR szFormat,
    ...

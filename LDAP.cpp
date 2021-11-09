@@ -233,6 +233,7 @@ LdapProcessRequest (
 )
 {
    BOOL bResult;
+   BOOL bBufferOpen = FALSE;
    WCHAR szRelativePath[MAX_PATH];
    WCHAR szTableName[MAX_PATH];
    WCHAR szTableNameNoDomain[MAX_PATH];
@@ -428,9 +429,9 @@ LdapProcessRequest (
       //
       bResult = BufferInitialize(&Buffer, szRelativePath, TRUE, FALSE);
       if (bResult == FALSE)
-      {
          return FALSE;
-      }
+      else
+         bBufferOpen = TRUE;
 
       pBuffer = &Buffer;
 
@@ -492,7 +493,12 @@ LdapProcessRequest (
          //
          pLdapHandle = pLdapOpenConnection(pGlobalConfig, dwServerEntry, szServer, ulLdapPort);
          if (pLdapHandle == NULL)
+         {
+            if (bBufferOpen == TRUE)
+               BufferClose(&Buffer);
+
             return FALSE;
+         }
 
          // Add page control in controlArray[0]
          ulResult = ldap_create_page_control(
@@ -518,6 +524,10 @@ LdapProcessRequest (
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
                   "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
                );
+
+               if (bBufferOpen == TRUE)
+                  BufferClose(&Buffer);
+
                return FALSE;
             }
 

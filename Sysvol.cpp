@@ -47,6 +47,8 @@ ProcessSysvol (
 )
 {
    BOOL bResult;
+   BOOL bReturn = FALSE;
+   BOOL bBufferOpen = FALSE;
    WCHAR szOutput[MAX_PATH];
    WCHAR szRemoteName[MAX_PATH];
    HANDLE hToken = NULL;
@@ -66,6 +68,8 @@ ProcessSysvol (
    bResult = BufferInitialize(&Buffer, szOutput, TRUE, FALSE);
    if (bResult == FALSE)
       return FALSE;
+   else
+      bBufferOpen = TRUE;
 
    pBuffer = &Buffer;
    if (pGlobalConfig->bWriteHeader == TRUE)
@@ -128,7 +132,7 @@ ProcessSysvol (
                "[!] %sUnable to logon with explicit credentials (error %u).%s",
                COLOR_RED, GetLastError(), COLOR_RESET
             );
-            return FALSE;
+            goto End;
          }
 
          Log(
@@ -171,7 +175,7 @@ ProcessSysvol (
                "[!] %sUnable to logon with explicit credentials (error %u).%s",
                COLOR_RED, GetLastError(), COLOR_RESET
             );
-            return FALSE;
+            goto End;
          }
 
          Log(
@@ -184,11 +188,15 @@ ProcessSysvol (
 
    pProcessSysvolFolder(pGlobalConfig, szRootDns, szPath2, szRemoteName, hToken, pBuffer);
 
+   bReturn = TRUE;
+
+End:
    if (hToken != NULL)
       CloseHandle(hToken);
-   BufferClose(&Buffer);
+   if (bBufferOpen == TRUE)
+      BufferClose(&Buffer);
 
-   return TRUE;
+   return bReturn;
 }
 
 VOID
