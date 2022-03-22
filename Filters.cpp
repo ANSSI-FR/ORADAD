@@ -122,7 +122,8 @@ GetFilter (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnknown filter '%S'.%s", COLOR_RED, szFilter, COLOR_RESET
+         "[!] %sUnknown filter%s '%S'.",
+         COLOR_RED, COLOR_RESET, szFilter
       );
       return FALSE;
    }

@@ -71,7 +71,8 @@ Process (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sDC Locator is disabled, but no domain specified%s.", COLOR_RED, COLOR_RESET
+            "[!] %sDC Locator is disabled, but no domain specified%s.",
+            COLOR_RED, COLOR_RESET
          );
          return FALSE;
       }
@@ -282,8 +283,8 @@ Process (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-            "[!] %sUnable to open table file '%S'%s (error %u).",
-            COLOR_RED, szDirectory, COLOR_RESET, GetLastError()
+            "[!] %sUnable to open table file%s '%S' (error %u).",
+            COLOR_RED, COLOR_RESET, szDirectory, GetLastError()
          );
          pGlobalConfig->TableFile.hFile = NULL;
          return FALSE;
@@ -400,7 +401,8 @@ Process (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to enumerate trust (error %u).%s", COLOR_RED, dwResult, COLOR_RESET
+            "[!] %sUnable to enumerate trust (error %u).%s",
+            COLOR_RED, dwResult, COLOR_RESET
          );
       }
       else
@@ -528,7 +530,8 @@ pLocateDc (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to locate DC for domain '%S'%s (error %u).", COLOR_RED, szDomainName, COLOR_RESET, dwResult
+         "[!] %sUnable to locate DC for domain '%S'%s (error %u).",
+         COLOR_RED, szDomainName, COLOR_RESET, dwResult
       );
       return FALSE;
    }

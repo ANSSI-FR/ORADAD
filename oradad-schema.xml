@@ -446,11 +446,19 @@
         </request>
         <request>
             <name>msDS-ShadowPrincipal</name>
-            <description>All msDS-ShadowPrincipal from domain</description>
+            <description>All msDS-ShadowPrincipal from configuration partitions</description>
             <base>configuration</base>
             <scope>subtree</scope>
             <filter>(objectClass=msDS-ShadowPrincipal)</filter>
             <classes>msDS-ShadowPrincipal</classes>
+        </request>
+        <request>
+           <name>displaySpecifier</name>
+           <description>All displaySpecifier from configuration partitions</description>
+           <base>configuration</base>
+           <scope>subtree</scope>
+           <filter>(objectClass=displaySpecifier)</filter>
+           <classes>displaySpecifier</classes>
         </request>
         <!-- DNS -->
         <request>
@@ -519,6 +527,14 @@
             <scope>subtree</scope>
             <filter>(objectClass=msExchAdminGroup)</filter>
             <classes>msExchAdminGroup</classes>
+        </request>
+        <request>
+           <name>exchange_mrs_request</name>
+           <description>msExchMRSRequest informations</description>
+           <base>configuration</base>
+           <scope>subtree</scope>
+           <filter>(objectClass=msExchMRSRequest)</filter>
+           <classes>msExchMRSRequest</classes>
         </request>
         <!-- Exchange RBAC -->
         <request>
@@ -782,7 +798,7 @@
         <attribute name="homePostalAddress" level="9" type="STR" />
         <attribute name="addressSyntax" level="9" type="BIN" />
         <attribute name="addressType" level="9" type="STR" />
-        <attribute name="adminContextMenu" level="9" type="STRS" />
+        <attribute name="adminContextMenu" level="4" type="STRS" />
         <attribute name="adminCount" level="1" type="INT" />
         <attribute name="adminDescription" level="9" type="STR" />
         <attribute name="adminDisplayName" level="4" type="STR" />
@@ -2530,9 +2546,9 @@
         <attribute name="msExchMailboxManagerUserMessageFooter" level="9" type="STR" />
         <attribute name="msExchMailboxManagerUserMessageHeader" level="9" type="STR" />
         <attribute name="msExchMailboxMoveBatchName" level="9" type="STR" />
-        <attribute name="msExchMailboxMoveFilePath" level="9" type="STR" />
-        <attribute name="msExchMailboxMoveFlags" level="9" type="INT" />
-        <attribute name="msExchMailboxMoveRemoteHostName" level="9" type="STR" />
+        <attribute name="msExchMailboxMoveFilePath" level="4" type="STR" />
+        <attribute name="msExchMailboxMoveFlags" level="4" type="INT" />
+        <attribute name="msExchMailboxMoveRemoteHostName" level="4" type="STR" />
         <attribute name="msExchMailboxMoveRequestGuid" level="9" type="BIN" />
         <attribute name="msExchMailboxMoveSourceArchiveMDBBL" level="9" type="STRS" />
         <attribute name="msExchMailboxMoveSourceArchiveMDBLink" level="9" type="STR" />
@@ -2542,7 +2558,7 @@
         <attribute name="msExchMailboxMoveSourceMDBLinkSL" level="9" type="BIN" />
         <attribute name="msExchMailboxMoveSourceUserBL" level="9" type="STRS" />
         <attribute name="msExchMailboxMoveSourceUserLink" level="9" type="STR" />
-        <attribute name="msExchMailboxMoveStatus" level="9" type="INT" />
+        <attribute name="msExchMailboxMoveStatus" level="4" type="INT" />
         <attribute name="msExchMailboxMoveStorageMDBBL" level="9" type="STRS" />
         <attribute name="msExchMailboxMoveStorageMDBLink" level="9" type="STR" />
         <attribute name="msExchMailboxMoveStorageMDBLinkSL" level="9" type="BIN" />
@@ -2805,7 +2821,7 @@
         <attribute name="msExchMoveToLSA" level="9" type="BOOL" />
         <attribute name="msExchMRSProxyFlags" level="9" type="INT" />
         <attribute name="msExchMRSProxyMaxConnections" level="9" type="INT" />
-        <attribute name="msExchMRSRequestType" level="9" type="INT" />
+        <attribute name="msExchMRSRequestType" level="4" type="INT" />
         <attribute name="msExchMSMCertPolicyOid" level="9" type="STRS" />
         <attribute name="msExchMSOForwardSyncAsyncOperationIds" level="9" type="STRS" />
         <attribute name="msExchMSOForwardSyncCookiePropertySetVersion" level="9" type="INT" />

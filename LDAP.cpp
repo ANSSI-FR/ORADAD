@@ -261,7 +261,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            "[!] %sCannot allocate memory%s (error %u).",
+            COLOR_RED, COLOR_RESET, GetLastError()
          );
          return FALSE;
       }
@@ -286,7 +287,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            "[!] %sCannot allocate memory%s (error %u).",
+            COLOR_RED, COLOR_RESET, GetLastError()
          );
          return FALSE;
       }
@@ -412,7 +414,8 @@ LdapProcessRequest (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            "[!] %sCannot allocate memory%s (error %u).",
+            COLOR_RED, COLOR_RESET, GetLastError()
          );
          return FALSE;
       }
@@ -522,7 +525,8 @@ LdapProcessRequest (
             {
                Log(
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                  "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+                  "[!] %sCannot allocate memory%s (error %u).",
+                  COLOR_RED, COLOR_RESET, GetLastError()
                );
 
                if (bBufferOpen == TRUE)
@@ -1080,8 +1084,8 @@ LdapProcessRequest (
                      else
                         Log(
                            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-                           "[!] %sUnknwon boolean value ('%S').%s",
-                           COLOR_RED, ppValue[0], COLOR_RESET
+                           "[!] %sUnknwon boolean value%s ('%S').",
+                           COLOR_RED, COLOR_RESET, ppValue[0]
                         );
                   }
                }
@@ -1277,8 +1281,8 @@ pLdapOpenConnection (
       ulResult = LdapGetLastError();
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to open LDAP connection to '%S'%s (error %u: %s).",
-         COLOR_RED, szServerName, COLOR_RESET,  ulResult, ldap_err2stringA(ulResult)
+         "[!] %sUnable to open LDAP connection%s to '%S' (error %u: %s).",
+         COLOR_RED, COLOR_RESET, szServerName,  ulResult, ldap_err2stringA(ulResult)
       );
       return NULL;
    }
@@ -1288,7 +1292,8 @@ pLdapOpenConnection (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to connect to LDAP server%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         "[!] %sUnable to connect to LDAP server%s (error %u: %s).",
+         COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       ldap_unbind(pLdapHandle);
       return NULL;
@@ -1367,7 +1372,8 @@ pLdapOpenConnection (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to bind to LDAP server%s (error %u: %s).", COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
+         "[!] %sUnable to bind to LDAP server%s (error %u: %s).",
+         COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
       ldap_unbind(pLdapHandle);
       return NULL;
@@ -1535,7 +1541,8 @@ pWriteTableInfo (
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sData type unknown.%s", COLOR_RED, COLOR_RESET
+               "[!] %sData type unknown%s.",
+               COLOR_RED, COLOR_RESET
             );
             return FALSE;
          }

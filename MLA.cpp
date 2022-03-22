@@ -289,7 +289,8 @@ MlaAddFileFromFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sCannot get file size%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         "[!] %sCannot get file size%s (error %u).",
+         COLOR_RED, COLOR_RESET, GetLastError()
       );
       goto End;
    }

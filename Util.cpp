@@ -231,7 +231,8 @@ LPWSTRtoLPSTR (
 Fail:
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-      "[!] %sLPWSTRtoLPSTR(%S) failed.%s", COLOR_RED, szToConvert, COLOR_RESET
+      "[!] %sLPWSTRtoLPSTR(%S) failed%s.",
+      COLOR_RED, szToConvert, COLOR_RESET
    );
 
    return NULL;

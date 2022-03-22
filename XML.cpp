@@ -1034,7 +1034,8 @@ pXmlParseRequest (
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sCannot allocate memory%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+               "[!] %sCannot allocate memory%s (error %u).",
+               COLOR_RED, COLOR_RESET, GetLastError()
             );
             break;
          }

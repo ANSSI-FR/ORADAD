@@ -46,8 +46,9 @@ BufferInitialize (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to open outfile '%S'%s (error %u).",
-            COLOR_RED, pBuffer->szFileName, COLOR_RESET, GetLastError()
+            "[!] %sUnable to open outfile%s '%S' (error %u).",
+            COLOR_RED, COLOR_RESET,
+            pBuffer->szFileName, GetLastError()
          );
          return FALSE;
       }
@@ -95,7 +96,8 @@ BufferClose (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sUnable to save buffer%s.", COLOR_RED, COLOR_RESET
+         "[!] %sUnable to save buffer%s.",
+         COLOR_RED, COLOR_RESET
       );
       return FALSE;
    }
@@ -156,7 +158,8 @@ BufferWrite (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to save buffer%s.", COLOR_RED, COLOR_RESET
+            "[!] %sUnable to save buffer%s.",
+            COLOR_RED, COLOR_RESET
          );
          return 0;
       }
@@ -267,7 +270,8 @@ BufferWriteFromFile (
    {
       Log(
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sCannot get file size%s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         "[!] %sCannot get file size%s (error %u).",
+         COLOR_RED, COLOR_RESET, GetLastError()
       );
       return 0;
    }
@@ -286,7 +290,8 @@ BufferWriteFromFile (
       {
          Log(
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot read file %s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+            "[!] %sCannot read file%s (error %u).",
+            COLOR_RED, COLOR_RESET, GetLastError()
          );
          break;
       }

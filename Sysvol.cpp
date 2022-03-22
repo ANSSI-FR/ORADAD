@@ -5,6 +5,9 @@
 #include "ORADAD.h"
 #include "lz4/xxhash.h"
 
+// In this file, errors are treated as warning (which may be legitimate for permissions on GPO
+// not authorizing access) and to not worry users
+
 #define SYSVOL_ROW_COUNT         14
 #define GUID_STR_SIZE            38             // {23456789-1234-6789-1234-678901234567}
 
@@ -129,8 +132,8 @@ ProcessSysvol (
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sUnable to logon with explicit credentials (error %u).%s",
-               COLOR_RED, GetLastError(), COLOR_RESET
+               "[!] %sUnable to logon with explicit credentials%s (error %u).",
+               COLOR_RED, COLOR_RESET, GetLastError()
             );
             goto End;
          }
@@ -172,8 +175,8 @@ ProcessSysvol (
          {
             Log(
                __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sUnable to logon with explicit credentials (error %u).%s",
-               COLOR_RED, GetLastError(), COLOR_RESET
+               "[!] %sUnable to logon with explicit credentials%s (error %u).",
+               COLOR_RED, COLOR_RESET, GetLastError()
             );
             goto End;
          }
@@ -432,9 +435,9 @@ pProcessSysvolFile (
       dwInitialError = GetLastError();
       Log(
          __FILE__, __FUNCTION__, __LINE__,
-         (dwInitialError == ERROR_ACCESS_DENIED) ? LOG_LEVEL_VERBOSE : LOG_LEVEL_ERROR,
-         "[!] %sCannot open sysvol file '%S'%s (error %u).",
-         COLOR_RED, szFileName, COLOR_RESET, dwInitialError
+         (dwInitialError == ERROR_ACCESS_DENIED) ? LOG_LEVEL_VERBOSE : LOG_LEVEL_WARNING,
+         "[!] %sCannot open sysvol file%s '%S' (error %u).",
+         COLOR_YELLOW, COLOR_RESET, szFileName, dwInitialError
       );
       bHaveFileSecurityInfo = FALSE;
    }
@@ -443,9 +446,9 @@ pProcessSysvolFile (
    if (bResult == FALSE)
    {
       Log(
-         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-         "[!] %sCannot get file attributes for '%S'%s (error %u).",
-         COLOR_RED, szFileName, COLOR_RESET, GetLastError()
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+         "[!] %sCannot get file attributes%s for '%S' (error %u).",
+         COLOR_YELLOW, COLOR_RESET, szFileName, GetLastError()
       );
       bHaveFileInfo = FALSE;
    }
@@ -476,8 +479,9 @@ pProcessSysvolFile (
       if (dwRet != ERROR_SUCCESS)
       {
          Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sCannot get security descriptor for '%S' (error %u).%s", COLOR_RED, szFileName, dwRet, COLOR_RESET
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+            "[!] %sCannot get security descriptor%s for '%S' (error %u).",
+            COLOR_YELLOW, COLOR_RESET, szFileName, dwRet
          );
          bHaveFileSecurityInfo = FALSE;
       }
@@ -487,8 +491,9 @@ pProcessSysvolFile (
          if (bResult == FALSE)
          {
             Log(
-               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sCannot get security descriptor control for '%S' (error %u).%s", COLOR_RED, szFileName, GetLastError(), COLOR_RESET
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+               "[!] %sCannot get security descriptor control%s for '%S' (error %u).",
+               COLOR_YELLOW, COLOR_RESET, szFileName, GetLastError()
             );
             bHaveFileSecurityInfo = FALSE;
          }
@@ -505,7 +510,8 @@ pProcessSysvolFile (
                // SD should never be absolute, if necessary, should convert it here. For now, fail.
                Log(
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
-                  "[!] %sSecurity descriptor for '%S' is not relative.%s", COLOR_YELLOW, szFileName, COLOR_RESET
+                  "[!] %sSecurity descriptor for '%S' is not relative%s.",
+                  COLOR_YELLOW, szFileName, COLOR_RESET
                );
                bHaveFileSecurityInfo = FALSE;
             }
@@ -657,8 +663,9 @@ pProcessSysvolFile (
          {
             dwErrorCode = GetLastError();
             Log(
-               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-               "[!] %sCannot open sysvol file '%S' for read (error %u).%s", COLOR_RED, szFileName, dwErrorCode, COLOR_RESET
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+               "[!] %sCannot open sysvol file%s '%S' for read (error %u).",
+               COLOR_YELLOW, COLOR_RESET, szFileName, dwErrorCode
             );
          }
          else
