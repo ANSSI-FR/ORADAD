@@ -163,8 +163,6 @@ Process (
 
    if (pGlobalConfig->bOutputMLA == TRUE)
    {
-      WCHAR szMlaFilePath[MAX_PATH];
-
       // <forest>\<date>
       swprintf(
          pGlobalConfig->szMlaOutDirectory, MAX_PATH,
@@ -185,14 +183,14 @@ Process (
       // Open MLA output file
       //
       swprintf(
-         szMlaFilePath, MAX_PATH,
+         pGlobalConfig->szMlaFilePath, MAX_PATH,
          L"%s\\%s_%s.mla",
          pGlobalConfig->szOutDirectory,
          szRootDns,
          pGlobalConfig->szSystemTime
       );
 
-      bResult = MlaInit(szMlaFilePath);
+      bResult = MlaInit(pGlobalConfig->szMlaFilePath);
       if (bResult == FALSE)
          return FALSE;
    }
@@ -327,18 +325,24 @@ Process (
    {
       if (pGlobalConfig->pRequests[i].dwBase & BASE_CONFIGURATION)
       {
-         LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_CONFIGURATION, NULL, RootDse.configurationNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         bResult = LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_CONFIGURATION, NULL, RootDse.configurationNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         if (bResult == FALSE)
+            return FALSE;
       }
 
       if (pGlobalConfig->pRequests[i].dwBase & BASE_SCHEMA)
       {
-         LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_SCHEMA, NULL, RootDse.schemaNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         bResult = LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_SCHEMA, NULL, RootDse.schemaNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         if (bResult == FALSE)
+            return FALSE;
       }
 
       // Forest DNS, but only with AD-DS
       if ((pGlobalConfig->pRequests[i].dwBase & BASE_FOREST_DNS) && (pGlobalConfig->bIsAdLds == FALSE))
       {
-         LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_FOREST_DNS, NULL, RootDse.forestDnsNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         bResult = LdapProcessRequest(pGlobalConfig, 0, szServer, ulLdapPort, RootDse.bIsLocalAdmin, szRootDns, STR_FOREST_DNS, NULL, RootDse.forestDnsNamingContext, &pGlobalConfig->pRequests[i], TRUE, TRUE, FALSE);
+         if (bResult == FALSE)
+            return FALSE;
       }
    }
 
@@ -404,6 +408,7 @@ Process (
             "[!] %sUnable to enumerate trust (error %u).%s",
             COLOR_RED, dwResult, COLOR_RESET
          );
+         return FALSE;
       }
       else
       {
@@ -437,7 +442,10 @@ Process (
                   "[.] Processing domain in forest: %S",
                   pTrust[i].DnsDomainName
                );
-               pProcessDomain(pGlobalConfig, USE_GLOBAL_CREDENTIALS, &pGlobalConfig->DomainConfig[i].RootDseConfig, szDomainServer, ulLdapPort, szRootDns, TRUE, FALSE);
+
+               bResult = pProcessDomain(pGlobalConfig, USE_GLOBAL_CREDENTIALS, &pGlobalConfig->DomainConfig[i].RootDseConfig, szDomainServer, ulLdapPort, szRootDns, TRUE, FALSE);
+               if (bResult == FALSE)
+                  return FALSE;
 
                _SafeHeapRelease(szDomainServer);
             }
@@ -460,7 +468,9 @@ Process (
 
    for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
    {
-      pProcessDomain(pGlobalConfig, 0, &pGlobalConfig->DomainConfig[i].RootDseConfig, NULL, 0, szRootDns, FALSE, TRUE);
+      bResult = pProcessDomain(pGlobalConfig, 0, &pGlobalConfig->DomainConfig[i].RootDseConfig, NULL, 0, szRootDns, FALSE, TRUE);
+      if (bResult == FALSE)
+         return FALSE;
    }
 
    //
@@ -533,7 +543,15 @@ pLocateDc (
          "[!] %sUnable to locate DC for domain '%S'%s (error %u).",
          COLOR_RED, szDomainName, COLOR_RESET, dwResult
       );
-      return FALSE;
+
+      if (dwResult == ERROR_NO_SUCH_DOMAIN)
+      {
+         // This is a common error.
+         g_GlobalConfig.bProcessHasError = TRUE;
+         return TRUE;
+      }
+      else
+         return FALSE;
    }
 
    Log(
@@ -625,7 +643,9 @@ pProcessOtherNamingContexts (
          // Special case for NDNC or ADLS: get BASE_DOMAIN objects but prefix tables with STR_APPLICATION
          if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN)
          {
-            LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_APPLICATION, szPartition, pRootDse->pszNamingContexts[dwIdx], &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            bResult = LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_APPLICATION, szPartition, pRootDse->pszNamingContexts[dwIdx], &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            if (bResult == FALSE)
+               return FALSE;
          }
       }
 
@@ -716,6 +736,8 @@ pProcessDomain (
    // Process other NC (NDNC, AD-LDS)
    //
    bResult = pProcessOtherNamingContexts(pGlobalConfig, dwServerEntry, pRootDse, szServer, ulLdapPort, szRootDns, bRequestLdap, bWriteTableInfo);
+   if (bResult == FALSE)
+      return FALSE;
 
    //
    // Be sure NC were not previously proceeded
@@ -764,7 +786,7 @@ pProcessDomain (
       //
       if ((pGlobalConfig->pRequests[i].dwBase & BASE_ROOTDSE) && (bProcessDomain == TRUE))
       {
-         LdapProcessRequest(
+         bResult = LdapProcessRequest(
             pGlobalConfig,
             dwServerEntry,
             szServer, ulLdapPort,
@@ -778,6 +800,8 @@ pProcessDomain (
             bWriteTableInfo,
             TRUE
          );
+         if (bResult == FALSE)
+            return FALSE;
       }
 
       //
@@ -788,12 +812,16 @@ pProcessDomain (
       {
          if (pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN)
          {
-            LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, pRootDse->defaultNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            bResult = LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN, szDomainDns, pRootDse->defaultNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            if (bResult == FALSE)
+               return FALSE;
          }
 
          if ((pGlobalConfig->pRequests[i].dwBase & BASE_DOMAIN_DNS) && (bProcessDomainDns == TRUE))
          {
-            LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN_DNS, szDomainDns, pRootDse->domainDnsNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            bResult = LdapProcessRequest(pGlobalConfig, dwServerEntry, szServer, ulLdapPort, pRootDse->bIsLocalAdmin, szRootDns, STR_DOMAIN_DNS, szDomainDns, pRootDse->domainDnsNamingContext, &pGlobalConfig->pRequests[i], bRequestLdap, bWriteTableInfo, FALSE);
+            if (bResult == FALSE)
+               return FALSE;
          }
       }
 

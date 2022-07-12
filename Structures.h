@@ -273,4 +273,7 @@ typedef struct _GLOBAL_CONFIG
    WCHAR szFileSysvolOutDirectory[MAX_PATH];
    WCHAR szMlaOutDirectory[MAX_PATH];
    WCHAR szMlaSysvolOutDirectory[MAX_PATH];
+   WCHAR szMlaFilePath[MAX_PATH];
+
+   BOOL bProcessHasError;
 } GLOBAL_CONFIG, *PGLOBAL_CONFIG;

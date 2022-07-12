@@ -599,7 +599,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_search_ext_s('%S', '%S')%s (error %u: %s).",
                COLOR_RED, szLdapBase, pRequest->szFilter, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            goto End;
+            return FALSE;
+            //goto End;
          }
 
          ulEntriesCount = ldap_count_entries(
@@ -1166,7 +1167,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_parse_result()%s (error %u: %s).",
                COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            goto End;
+            return FALSE;
+            //goto End;
          }
 
          ulResult = ldap_parse_page_control(pLdapHandle, currControls, NULL, (berval * *)& pLdapNewCookie);
@@ -1177,7 +1179,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_parse_page_control()%s (error %u: %s).",
                COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            goto End;
+            return FALSE;
+            //goto End;
          }
 
          if ((pLdapNewCookie->bv_len == 0) || (pLdapNewCookie->bv_val == 0))
@@ -1199,7 +1202,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_create_page_control()%s (error %u: %s).",
                COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            goto End;
+            return FALSE;
+            //goto End;
          }
 
          ldap_msgfree(pLdapMessage);
@@ -1672,6 +1676,13 @@ pGetRangedAttribute (
          "[!] %sError in ldap_search_s(%S)%s (error %u: %s).",
          COLOR_RED, szRangeAttrName, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
       );
+
+      if (ulResult != LDAP_NO_SUCH_OBJECT)
+      {
+         // LDAP_NO_SUCH_OBJECT is a common error.
+         g_GlobalConfig.bProcessHasError = TRUE;
+      }
+
       goto End;
    }
 

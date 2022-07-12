@@ -246,7 +246,15 @@ wmain (
       }
    }
 
-   Process(&g_GlobalConfig);
+   bResult = Process(&g_GlobalConfig);
+   if (bResult == FALSE)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sAn error has occurred during capture.%s Try to solve problem and try again.",
+         COLOR_RED, COLOR_RESET
+      );
+   }
 
    //
    // Release
@@ -256,6 +264,16 @@ End:
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
       "[.] %sEnd.%s", COLOR_CYAN, COLOR_RESET
    );
+
+   if (g_GlobalConfig.bProcessHasError == TRUE)
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sAn error has occurred during capture.%s The dump may be partial. Check log and try again.",
+         COLOR_YELLOW, COLOR_RESET
+      );
+   }
+
    CloseHandle(g_hLogFile);
 
    //
@@ -285,6 +303,12 @@ End:
       MlaClose();
    }
 
+   // If dump has error, delete MLA file
+   if (bResult == FALSE)
+   {
+      DeleteFile(g_GlobalConfig.szMlaFilePath);
+   }
+
    _SafeCOMRelease(pXMLDocConfig);
    _SafeCOMRelease(pXMLDocSchema);
    CoUninitialize();
@@ -298,5 +322,8 @@ End:
    TraceLoggingUnregister(g_hOradadLoggingProvider);
 #endif
 
-   return EXIT_SUCCESS;
+   if (bResult == FALSE)
+      return EXIT_FAILURE;
+   else
+      return EXIT_SUCCESS;
 }
