@@ -10,6 +10,16 @@ extern GLOBAL_CONFIG g_GlobalConfig;
 #define READ_BUFFER_SIZE 1024 * 1024
 
 //
+// Private functions
+//
+DWORD
+pBufferWriteInternal(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
+   _In_ DWORD dwNumberOfBytesToWrite
+);
+
+//
 // Public functions
 //
 BOOL
@@ -78,7 +88,7 @@ BufferInitialize (
    {
       BYTE pbBomUTF16LE[2] = { 0xFF, 0xFE };
 
-      BufferWrite(pBuffer, pbBomUTF16LE, 2);
+      pBufferWriteInternal(pBuffer, pbBomUTF16LE, 2);
    }
 
    return TRUE;
@@ -120,89 +130,67 @@ BufferClose (
 DWORD
 BufferWrite (
    _In_ PBUFFER_DATA pBuffer,
-   _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
-   _In_ DWORD dwNumberOfBytesToWrite
-)
-{
-   if (pBuffer == NULL)
-      return 0;
-
-   if (pBuffer->pbData == NULL)
-      return 0;
-
-   if (pvData == NULL)
-      return 0;
-
-   if (dwNumberOfBytesToWrite == 0)
-      return 0;
-
-   if (dwNumberOfBytesToWrite >= pBuffer->BufferSize)
-   {
-      // Can't write data bigger than buffer size
-      return 0;
-   }
-   else if ((pBuffer->BufferSize - pBuffer->Position) >= dwNumberOfBytesToWrite)
-   {
-      // Copy data to buffer
-      memcpy(pBuffer->pbData + pBuffer->Position, pvData, dwNumberOfBytesToWrite);
-      pBuffer->Position += dwNumberOfBytesToWrite;
-      return dwNumberOfBytesToWrite;
-   }
-   else
-   {
-      BOOL bResult;
-
-      // Save buffer
-      bResult = BufferSave(pBuffer);
-      if (bResult == FALSE)
-      {
-         Log(
-            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-            "[!] %sUnable to save buffer%s.",
-            COLOR_RED, COLOR_RESET
-         );
-         return 0;
-      }
-
-      // Copy data to buffer
-      memcpy(pBuffer->pbData + pBuffer->Position, pvData, dwNumberOfBytesToWrite);
-      pBuffer->Position += dwNumberOfBytesToWrite;
-      return dwNumberOfBytesToWrite;
-   }
-}
-
-DWORD
-BufferWrite (
-   _In_ PBUFFER_DATA pBuffer,
    _In_opt_z_ LPWSTR szString
 )
 {
    size_t StringSize;
 
    if (pBuffer == NULL)
-      return FALSE;
+      return 0;
 
    if (pBuffer->pbData == NULL)
-      return FALSE;
+      return 0;
 
    if (szString == NULL)
-      return TRUE;
+      return 0;
 
    StringSize = wcslen(szString);
    RemoveSpecialChars(szString);
 
    if (StringSize == ((size_t)(-1)))
-      return FALSE;
+      return 0;
    else if (StringSize == 0)
-      return TRUE;
+      return 0;
    else
-      return BufferWrite(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)));
+      return pBufferWriteInternal(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)));
+}
+
+DWORD
+BufferWriteStringWithLimit (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString,
+   _In_ DWORD dwLimit
+)
+{
+   size_t StringSize;
+
+   if (dwLimit == 0)
+      return BufferWrite(pBuffer, szString);
+
+   if (pBuffer == NULL)
+      return 0;
+
+   if (pBuffer->pbData == NULL)
+      return 0;
+
+   if (szString == NULL)
+      return 0;
+
+   StringSize = min(wcslen(szString), dwLimit);
+   RemoveSpecialChars(szString);
+
+   if (StringSize == ((size_t)(-1)))
+      return 0;
+   else if (StringSize == 0)
+      return 0;
+   else
+      return pBufferWriteInternal(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)));
 }
 
 DWORD
 BufferWrite (
    _In_ PBUFFER_DATA pBuffer,
-   _In_ const FILETIME* fileTime
+   _In_ const FILETIME *fileTime
 )
 {
    SYSTEMTIME st;
@@ -297,7 +285,7 @@ BufferWriteFromFile (
       }
 
       liFilePos.QuadPart += dwReadLength;
-      dwBytesWritten = BufferWrite(pBuffer, pReadBuffer, dwReadLength);
+      dwBytesWritten = pBufferWriteInternal(pBuffer, pReadBuffer, dwReadLength);
    }
 
    _SafeHeapRelease(pReadBuffer);
@@ -318,7 +306,7 @@ BufferWriteHex (
       WCHAR szChar[3];
 
       swprintf_s(szChar, 3, L"%02x", pbData[i]);
-      dwDataSizeSum += BufferWrite(pBuffer, szChar, 4);
+      dwDataSizeSum += pBufferWriteInternal(pBuffer, szChar, 4);
    }
 
    return dwDataSizeSum;
@@ -329,7 +317,7 @@ BufferWriteLine (
    _In_ PBUFFER_DATA pBuffer
 )
 {
-   return BufferWrite(pBuffer, (LPVOID)L"\r\n", 2 * sizeof(WCHAR));
+   return pBufferWriteInternal(pBuffer, (LPVOID)L"\r\n", 2 * sizeof(WCHAR));
 }
 
 DWORD
@@ -337,7 +325,7 @@ BufferWriteTab (
    _In_ PBUFFER_DATA pBuffer
 )
 {
-   return BufferWrite(pBuffer, (LPVOID)L"\t", 2);
+   return pBufferWriteInternal(pBuffer, (LPVOID)L"\t", 2);
 }
 
 DWORD
@@ -345,7 +333,7 @@ BufferWriteSemicolon (
    _In_ PBUFFER_DATA pBuffer
 )
 {
-   return BufferWrite(pBuffer, (LPVOID)L";", 2);
+   return pBufferWriteInternal(pBuffer, (LPVOID)L";", 2);
 }
 
 BOOL
@@ -394,4 +382,61 @@ BufferSave (
       pBuffer->Position = 0;
 
    return bReturn;
+}
+
+//
+// Private functions
+//
+DWORD
+pBufferWriteInternal (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
+   _In_ DWORD dwNumberOfBytesToWrite
+)
+{
+   if (pBuffer == NULL)
+      return 0;
+
+   if (pBuffer->pbData == NULL)
+      return 0;
+
+   if (pvData == NULL)
+      return 0;
+
+   if (dwNumberOfBytesToWrite == 0)
+      return 0;
+
+   if (dwNumberOfBytesToWrite >= pBuffer->BufferSize)
+   {
+      // Can't write data bigger than buffer size
+      return 0;
+   }
+   else if ((pBuffer->BufferSize - pBuffer->Position) >= dwNumberOfBytesToWrite)
+   {
+      // Copy data to buffer
+      memcpy(pBuffer->pbData + pBuffer->Position, pvData, dwNumberOfBytesToWrite);
+      pBuffer->Position += dwNumberOfBytesToWrite;
+      return dwNumberOfBytesToWrite;
+   }
+   else
+   {
+      BOOL bResult;
+
+      // Save buffer
+      bResult = BufferSave(pBuffer);
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sUnable to save buffer%s.",
+            COLOR_RED, COLOR_RESET
+         );
+         return 0;
+      }
+
+      // Copy data to buffer
+      memcpy(pBuffer->pbData + pBuffer->Position, pvData, dwNumberOfBytesToWrite);
+      pBuffer->Position += dwNumberOfBytesToWrite;
+      return dwNumberOfBytesToWrite;
+   }
 }

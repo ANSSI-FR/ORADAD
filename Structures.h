@@ -105,6 +105,8 @@ typedef struct _ATTRIBUTE_CONFIG
    ATTRIBUTE_TYPE Type;
    tFilter fFilter;
    PVOID pvFilterData;
+   BOOL bConfidential;
+   DWORD dwLimit;
 } ATTRIBUTE_CONFIG, *PATTRIBUTE_CONFIG;
 
 typedef struct _CLASS_CONFIG
@@ -227,6 +229,9 @@ typedef struct _DOMAIN_CONFIG
 
 typedef struct _GLOBAL_CONFIG
 {
+   TOKEN_ELEVATION_TYPE TokenType;
+   OSVERSIONINFOEX osvi;
+
    WCHAR szSystemTime[17];
 
    LPWSTR szOutDirectory;
@@ -247,6 +252,7 @@ typedef struct _GLOBAL_CONFIG
    PDOMAIN_CONFIG DomainConfig;
 
    DWORD dwLevel;
+   DWORD dwConfidential;
    BOOL dwSleepTime;
    BOOL bIsAdLds;
 

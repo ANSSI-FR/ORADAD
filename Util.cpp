@@ -335,6 +335,12 @@ MetadataCreateFile (
    if (bResult == TRUE)
       MetadataWriteFile(pGlobalConfig, L"computer_name", szMetadata);
 
+   // Token and computer info
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->TokenType);
+   MetadataWriteFile(pGlobalConfig, L"token_type", szMetadata);
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d (%d.%d)", pGlobalConfig->osvi.wProductType, pGlobalConfig->osvi.dwMajorVersion, pGlobalConfig->osvi.dwMinorVersion);
+   MetadataWriteFile(pGlobalConfig, L"product_type", szMetadata);
+
    // Parameters from config
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
    MetadataWriteFile(pGlobalConfig, L"oradad|config|level", szMetadata);
@@ -350,6 +356,9 @@ MetadataCreateFile (
 
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bOutputMLA);
    MetadataWriteFile(pGlobalConfig, L"oradad|config|outputMla", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bWriteHeader);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|writeHeader", szMetadata);
 
    for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
    {

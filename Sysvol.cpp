@@ -249,9 +249,9 @@ BOOL
 pSysvolCrackName (
    _In_z_ LPWSTR szFilePath,
    _In_z_ LPWSTR szDomain,
-   _Outptr_result_maybenull_z_ LPWSTR* szNewFilePath,
-   _Outptr_result_maybenull_z_ LPWSTR* szGuid,
-   _Outptr_result_maybenull_z_ LPWSTR* szFileName
+   _Outptr_result_maybenull_z_ LPWSTR *szNewFilePath,
+   _Outptr_result_maybenull_z_ LPWSTR *szGuid,
+   _Outptr_result_maybenull_z_ LPWSTR *szFileName
 )
 {
    LPWSTR szStrippedFilename;
@@ -567,7 +567,7 @@ pProcessSysvolFile (
       BufferWriteTab(pBuffer);
 
       // Column 'guid'
-      _CallWriteAndGetMax(BufferWrite(pBuffer, szGuid, GUID_STR_SIZE * sizeof(WCHAR)), g_dwSysvolMaxLength[dwIdx]);
+      _CallWriteAndGetMax(BufferWrite(pBuffer, szGuid), g_dwSysvolMaxLength[dwIdx]);
       ++dwIdx;
       BufferWriteTab(pBuffer);
 

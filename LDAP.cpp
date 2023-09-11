@@ -57,7 +57,7 @@ pParseRange(
 
 LPWSTR*
 pGetRangedAttribute(
-   _In_ LDAP* pLdapHandle,
+   _In_ LDAP *pLdapHandle,
    _In_ LPWSTR szDn,
    _In_ LPWSTR szAttribute,
    _In_ PDWORD pdwRangeStart
@@ -77,11 +77,11 @@ LdapGetRootDse (
 {
    ULONG ulResult;
 
-   LDAP* pLdapHandle;
+   LDAP *pLdapHandle;
    LDAPMessage *pLdapMessage = NULL;
-   LDAPMessage* pEntry = NULL;
+   LDAPMessage *pEntry = NULL;
    PWCHAR pAttribute = NULL;
-   BerElement* pBer = NULL;
+   BerElement *pBer = NULL;
 
    LPCWSTR szAttrsSearch[] = {
       L"dnsHostName" , L"serverName" ,
@@ -269,7 +269,26 @@ LdapProcessRequest (
 
       for (DWORD i = 0; i < dwAttributesCount; i++)
       {
+         BOOL bAddAttribute = FALSE;
+
          if (pGlobalConfig->pRootDSEAttributes[i].dwLevel <= pGlobalConfig->dwLevel)
+         {
+            if ((pGlobalConfig->dwConfidential > 0) || (pGlobalConfig->pRootDSEAttributes[i].bConfidential == FALSE))
+            {
+               bAddAttribute = TRUE;
+
+               if (pGlobalConfig->dwConfidential >= 2)
+               {
+                  pGlobalConfig->pRootDSEAttributes[i].dwLimit = 0;
+               }
+            }
+            else if (pGlobalConfig->pRootDSEAttributes[i].dwLimit > 0)        // ((dwConfidential == 0) && (bConfidential == TRUE))
+            {
+               bAddAttribute = TRUE;         // Size will be limited
+            }
+         }
+
+         if (bAddAttribute == TRUE)
          {
             pAttributes[dwIdx] = &(pGlobalConfig->pRootDSEAttributes[i]);
             dwIdx++;
@@ -277,7 +296,7 @@ LdapProcessRequest (
       }
       dwAttributesCount = dwIdx;
    }
-   else
+   else        // (bIsRootDSE == FALSE)
    {
       DWORD dwIdx = 0;
 
@@ -295,7 +314,26 @@ LdapProcessRequest (
 
       for (DWORD i = 0; i < dwAttributesCount; i++)
       {
+         BOOL bAddAttribute = FALSE;
+
          if (pRequest->pAttributes[i]->dwLevel <= pGlobalConfig->dwLevel)
+         {
+            if ((pGlobalConfig->dwConfidential > 0) || (pRequest->pAttributes[i]->bConfidential == FALSE))
+            {
+               bAddAttribute = TRUE;
+
+               if (pGlobalConfig->dwConfidential >= 2)
+               {
+                  pRequest->pAttributes[i]->dwLimit = 0;
+               }
+            }
+            else if (pRequest->pAttributes[i]->dwLimit > 0)        // ((dwConfidential == 0) && (bConfidential == TRUE))
+            {
+               bAddAttribute = TRUE;         // Size will be limited
+            }
+         }
+
+         if (bAddAttribute == TRUE)
          {
             pAttributes[dwIdx] = pRequest->pAttributes[i];
             dwIdx++;
@@ -390,7 +428,7 @@ LdapProcessRequest (
       BUFFER_DATA Buffer;
       PBUFFER_DATA pBuffer;
 
-      LDAP* pLdapHandle;
+      LDAP *pLdapHandle;
       LDAPMessage *pLdapMessage = NULL;
 
       LPWSTR *pszAttributes = NULL;
@@ -398,7 +436,7 @@ LdapProcessRequest (
       PLDAPControl pLdapControl = NULL;
       PLDAPControl *controlArray = NULL;
 
-      LDAPMessage* pEntry = NULL;
+      LDAPMessage *pEntry = NULL;
 
       LDAP_BERVAL LdapCookie = { 0, NULL };
       PLDAP_BERVAL pLdapNewCookie = NULL;
@@ -516,9 +554,9 @@ LdapProcessRequest (
 
          for (DWORD dwControlIt = 0; dwControlIt < pRequest->dwControlsCount; ++dwControlIt)
          {
-            LDAPControl* LdapControl;
-            BerElement* pBerElmt = NULL;
-            berval* pBerVal = NULL;
+            LDAPControl *LdapControl;
+            BerElement *pBerElmt = NULL;
+            berval *pBerVal = NULL;
 
             LdapControl = (LDAPControl*)_HeapAlloc(sizeof(LDAPControl));
             if (LdapControl == NULL)
@@ -702,8 +740,8 @@ LdapProcessRequest (
             for (DWORD j = 0; j < dwAttributesCount; j++)
             {
                LPWSTR pAttribute = NULL;
-               LPWSTR* ppValue = NULL;
-               berval** ppval = NULL;
+               LPWSTR *ppValue = NULL;
+               berval **ppval = NULL;
 
                ppval = NULL;
                pAttribute = pszAttributes[j];
@@ -751,7 +789,7 @@ LdapProcessRequest (
                      else
                      {
                         // STR
-                        _CallWriteAndGetMax(BufferWrite(pBuffer, ppValue[0]), pRequest->pdwStringMaxLength[j]);
+                        _CallWriteAndGetMax(BufferWriteStringWithLimit(pBuffer, ppValue[0], (*pAttributes[j]).dwLimit), pRequest->pdwStringMaxLength[j]);
                      }
                   }
                   else if ((((*pAttributes[j]).Type == TYPE_INT) || ((*pAttributes[j]).Type == TYPE_INT64)) && ((*pAttributes[j]).fFilter != NULL))
@@ -778,7 +816,7 @@ LdapProcessRequest (
                         {
                            if (k == 0)
                            {
-                              dwTotalSize += BufferWrite(pBuffer, ppValue[k]);
+                              dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValue[k], (*pAttributes[j]).dwLimit);
                            }
                            else
                            {
@@ -1119,7 +1157,10 @@ LdapProcessRequest (
                         }
                         else
                         {
-                           dwTotalSize += BufferWriteHex(pBuffer, (PBYTE)ppval[k]->bv_val, ppval[k]->bv_len);
+                           if ((*pAttributes[j]).dwLimit == 0)
+                              dwTotalSize += BufferWriteHex(pBuffer, (PBYTE)ppval[k]->bv_val, ppval[k]->bv_len);
+                           else
+                              dwTotalSize += BufferWriteHex(pBuffer, (PBYTE)ppval[k]->bv_val, min(ppval[k]->bv_len, (*pAttributes[j]).dwLimit));
                         }
                      }
                      pRequest->pdwStringMaxLength[j] = __max(pRequest->pdwStringMaxLength[j], dwTotalSize);
@@ -1277,7 +1318,7 @@ pLdapOpenConnection (
    ULONG ulVersion = LDAP_VERSION3;
    void *pvValue = NULL;
 
-   LDAP* pLdapHandle = NULL;
+   LDAP *pLdapHandle = NULL;
 
    pLdapHandle = ldap_open(szServerName, (ulLdapPort == 0) ? LDAP_PORT : ulLdapPort);
    if (pLdapHandle == NULL)
@@ -1638,7 +1679,7 @@ pParseRange (
 
 LPWSTR*
 pGetRangedAttribute (
-   _In_ LDAP* pLdapHandle,
+   _In_ LDAP *pLdapHandle,
    _In_ LPWSTR szDn,
    _In_ LPWSTR szAttribute,
    _In_ PDWORD pdwRangeStart
@@ -1652,7 +1693,7 @@ pGetRangedAttribute (
 
    LPWSTR ptRangeAttributes[2] = { NULL };
    WCHAR szRangeAttrName[MAX_ATTRIBUTE_NAME + 20] = { 0 };        // 20: ';range=%d-*'
-   PWCHAR* ppValue = NULL;
+   PWCHAR *ppValue = NULL;
    LPWSTR szNewAttributeName = NULL;
 
    swprintf_s(szRangeAttrName, MAX_ATTRIBUTE_NAME + 20, L"%s;range=%d-*", szAttribute, *pdwRangeStart);

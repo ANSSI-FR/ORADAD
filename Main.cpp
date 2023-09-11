@@ -48,11 +48,42 @@ wmain (
    LPWSTR szConfigPath = NULL;
    LPWSTR szSchemaPath = NULL;
    StartStatus DateStatus;
+   DWORD dwSize;
+   HANDLE hProcessToken;
 
 #ifdef TRACELOGGING
    TraceLoggingRegister(g_hOradadLoggingProvider);
 #endif
 
+   //
+   // Check OS type and token type
+   //
+   bResult = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hProcessToken);
+   bResult = GetTokenInformation(hProcessToken, TokenElevationType, &g_GlobalConfig.TokenType, sizeof(g_GlobalConfig.TokenType), &dwSize);
+   if (bResult == FALSE)
+   {
+      fwprintf_s(stderr, L"\r\n* Error *\r\n");
+      fwprintf_s(stderr, L"Unable to get current process token information.\r\n\r\n");
+
+      return EXIT_FAILURE;
+   }
+
+   g_GlobalConfig.osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+#pragma warning(suppress: 4996) // GetVersionEx is deprecated, we know.
+   bResult = GetVersionEx((OSVERSIONINFO*)&g_GlobalConfig.osvi);
+
+   if ((g_GlobalConfig.TokenType == TokenElevationTypeLimited) && (g_GlobalConfig.osvi.wProductType == VER_NT_DOMAIN_CONTROLLER))
+   {
+      fwprintf_s(stderr, L"\r\n* Error *\r\n");
+      fwprintf_s(stderr, L"You are running ORADAD on a domain controller in a shell with a retricted token (UAC).\r\n");
+      fwprintf_s(stderr, L"Please open an elevated command prompt and run ORADAD from it.\r\n\r\n");
+
+      return EXIT_FAILURE;
+   }
+
+   //
+   // Check current date and build date
+   //
    DateStatus = GetBuildDateStatus();
    if (DateStatus == StartStatus::Unkwnon)
       return EXIT_FAILURE;

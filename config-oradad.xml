@@ -32,6 +32,13 @@
    </domains>
 
    <level>4</level>
+   <!--
+   This flag (confidential), together with the limit attributes in oradad-schema.xml, controls whether AD attributes defined as confidential are fetched.
+   If set to: 0 (default), confidential attributes are not fetched, except if limit is defined in which case they are fetched up to the limit.
+              1, confidential attributes are fetched (up to the limit if any).
+              2, confidential attributes are fetched with no limit.
+   -->
+   <confidential>0</confidential>
    <process_sysvol>1</process_sysvol>                  <!-- Process domains sysvol -->
    <sysvol_filter>*\GPT.INI;*\GPE.INI;*\comment.cmtx;*\Registry.pol;*\GptTmpl.inf;*\audit.csv;*\scripts.ini;*\psscripts.ini;*\*.aas;*\ScheduledTasks.xml;*\Groups.xml;*\Registry.xml;*\InternetSettings.xml;*\Shortcuts.xml;*\Devices.xml;*\EnvironmentVariables.xml;*\FolderOptions.xml;*\Services.xml;*\*.cmd;*\*.bat;*\*.vbs;*\*.vbe;*\*.ps1;*\*.reg</sysvol_filter>  <!-- Files to collect from sysvol -->
    <writeHeader>0</writeHeader>

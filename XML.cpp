@@ -174,6 +174,8 @@ XmlReadConfigFile (
          pGlobalConfig->szUserPassword = strNodeText;
       else if ((wcscmp(strNodeName, L"level") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->dwLevel = pReadUInteger(strNodeText);
+      else if ((wcscmp(strNodeName, L"confidential") == 0) && (wcslen(strNodeText) > 0))
+         pGlobalConfig->dwConfidential = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"sleepTime") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->dwSleepTime = pReadUInteger(strNodeText);
       else if ((wcscmp(strNodeName, L"writeHeader") == 0) && (wcslen(strNodeText) > 0))
@@ -518,8 +520,11 @@ pReadAttributes (
 
    for (long i = 0; i < lLength; i++)
    {
+      BOOL bResult;
+
       LPWSTR szType;
       LPWSTR szFilter;
+      LPWSTR szFlags;
 
       IXMLDOMNode *pXmlNodeAttribute = NULL;
       IXMLDOMNamedNodeMap *pXmlAttributeMap = NULL;
@@ -531,11 +536,11 @@ pReadAttributes (
       pReadAttributeInterger(pXmlAttributeMap, (LPWSTR)L"level", &(*pAttributes)[i].dwLevel);
       pReadAttributeString(pXmlAttributeMap, (LPWSTR)L"type", &szType);
       pReadAttributeString(pXmlAttributeMap, (LPWSTR)L"filter", &szFilter);
+      pReadAttributeString(pXmlAttributeMap, (LPWSTR)L"flags", &szFlags);
+      pReadAttributeInterger(pXmlAttributeMap, (LPWSTR)L"limit", &(*pAttributes)[i].dwLimit);
 
       if (szFilter != NULL)
       {
-         BOOL bResult;
-
          bResult = GetFilter(&(*pAttributes)[i], szFilter);
          if (bResult == FALSE)
             return FALSE;
@@ -572,6 +577,15 @@ pReadAttributes (
             "[!] %sUnknown type (%S).%s", COLOR_RED, szType, COLOR_RESET
          );
          return FALSE;
+      }
+
+      if (szFlags != NULL)
+      {
+         if (wcsstr(szFlags, L"confidential") != NULL)
+         {
+            if ((*pAttributes)[i].dwLimit < 99999)
+               (*pAttributes)[i].bConfidential = TRUE;
+         }
       }
 
       _SafeCOMRelease(pXmlAttributeMap);
@@ -619,15 +633,19 @@ pReadAttributeInterger (
    int r;
    IXMLDOMNode *pXmlNodeAttribute = NULL;
    BSTR strName;
-   DWORD dwValue;
+   DWORD dwValue = 0;
 
    hr = pXmlAttributeMap->getNamedItem((BSTR)szAttributeName, &pXmlNodeAttribute);
-   hr = pXmlNodeAttribute->get_text(&strName);
+   if (hr == S_OK)
+   {
+      hr = pXmlNodeAttribute->get_text(&strName);
+      r = swscanf_s(strName, L"%u", &dwValue);
 
-   r = swscanf_s(strName, L"%u", &dwValue);
+      _SafeCOMRelease(pXmlNodeAttribute);
+   }
    *pdwValue = dwValue;
 
-   _SafeCOMRelease(pXmlNodeAttribute);
+
 
    return TRUE;
 }

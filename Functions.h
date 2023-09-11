@@ -206,20 +206,20 @@ BufferClose(
 DWORD
 BufferWrite(
    _In_ PBUFFER_DATA pBuffer,
-   _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
-   _In_ DWORD dwNumberOfBytesToWrite
-);
-
-DWORD
-BufferWrite(
-   _In_ PBUFFER_DATA pBuffer,
    _In_opt_z_ LPWSTR szString
 );
 
 DWORD
+BufferWriteStringWithLimit(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString,
+   _In_ DWORD dwLimit
+);
+
+DWORD
 BufferWrite(
    _In_ PBUFFER_DATA pBuffer,
-   _In_ const FILETIME* fileTime
+   _In_ const FILETIME *fileTime
 );
 
 DWORD

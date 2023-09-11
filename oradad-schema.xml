@@ -788,27 +788,32 @@
         <attribute name="aCSServiceType" level="9" type="INT" />
         <attribute name="aCSTimeOfDay" level="9" type="STR" />
         <attribute name="aCSTotalNoOfFlows" level="9" type="INT" />
-        <attribute name="notes" level="9" type="STR" />
+        <attribute name="activationSchedule" level="9" type="BIN" />
+        <attribute name="activationStyle" level="9" type="INT" />
         <attribute name="additionalTrustedServiceNames" level="2" type="STRS" />
-        <attribute name="streetAddress" level="9" type="STR" />
         <attribute name="addressBookRoots" level="9" type="STRS" />
         <attribute name="addressBookRoots2" level="9" type="STRS" />
         <attribute name="addressEntryDisplayTable" level="9" type="BIN" />
         <attribute name="addressEntryDisplayTableMSDOS" level="9" type="BIN" />
-        <attribute name="homePostalAddress" level="9" type="STR" />
         <attribute name="addressSyntax" level="9" type="BIN" />
         <attribute name="addressType" level="9" type="STR" />
+        <attribute name="aDMD" level="9" type="STR" />
         <attribute name="adminContextMenu" level="4" type="STRS" />
         <attribute name="adminCount" level="1" type="INT" />
         <attribute name="adminDescription" level="9" type="STR" />
         <attribute name="adminDisplayName" level="4" type="STR" />
+        <attribute name="adminExtensionDLL" level="9" type="STR" />
         <attribute name="adminMultiselectPropertyPages" level="9" type="STRS" />
         <attribute name="adminPropertyPages" level="9" type="STRS" />
         <attribute name="allowedAttributes" level="9" type="STRS" />
         <attribute name="allowedAttributesEffective" level="9" type="STRS" />
         <attribute name="allowedChildClasses" level="9" type="STRS" />
         <attribute name="allowedChildClassesEffective" level="9" type="STRS" />
+        <attribute name="altRecipient" level="3" type="STR" />
+        <attribute name="altRecipientBL" level="3" type="STRS" />
         <attribute name="altSecurityIdentities" level="1" type="STRS" />
+        <attribute name="anonymousAccess" level="9" type="BOOL" />
+        <attribute name="anonymousAccount" level="9" type="STR" />
         <attribute name="aNR" level="9" type="STR" />
         <attribute name="applicationName" level="1" type="STR" />
         <attribute name="appliesTo" level="1" type="STRS" />
@@ -817,7 +822,10 @@
         <attribute name="assistant" level="9" type="STR" />
         <attribute name="associatedDomain" level="9" type="STRS" />
         <attribute name="associatedName" level="9" type="STRS" />
+        <attribute name="associationLifetime" level="9" type="INT" />
         <attribute name="assocNTAccount" level="9" type="BIN" />
+        <attribute name="assocRemoteDXA" level="9" type="STRS" />
+        <attribute name="attributeCertificate" level="9" type="BIN" />
         <attribute name="attributeCertificateAttribute" level="3" type="BIN" />
         <attribute name="attributeDisplayNames" level="9" type="STRS" />
         <attribute name="attributeID" level="3" type="STR" />
@@ -827,24 +835,37 @@
         <attribute name="audio" level="9" type="BIN" />
         <attribute name="auditingPolicy" level="1" type="BIN" />
         <attribute name="authenticationOptions" level="9" type="INT" />
+        <attribute name="authOrig" level="3" type="BIN" />
+        <attribute name="authOrigBL" level="3" type="STRS" />
         <attribute name="authorityRevocationList" level="1" type="BIN" />
+        <attribute name="authorizedDomain" level="9" type="STR" />
+        <attribute name="authorizedPassword" level="9" type="BIN" />
+        <attribute name="authorizedUser" level="9" type="STR" />
+        <attribute name="autoReply" level="9" type="BOOL" />
+        <attribute name="autoReplyMessage" level="9" type="STR" />
         <attribute name="auxiliaryClass" level="2" type="STRS" />
+        <attribute name="availableAuthorizationPackages" level="9" type="STRS" />
+        <attribute name="availableDistributions" level="9" type="STR" />
         <attribute name="badPasswordTime" level="1" type="DATEINT64" />
         <attribute name="badPwdCount" level="1" type="INT" />
         <attribute name="birthLocation" level="9" type="BIN" />
         <attribute name="bootFile" level="9" type="STRS" />
         <attribute name="bootParameter" level="9" type="STRS" />
         <attribute name="bridgeheadServerListBL" level="2" type="STRS" />
+        <attribute name="bridgeheadServers" level="9" type="STRS" />
         <attribute name="bridgeheadTransportList" level="2" type="STRS" />
         <attribute name="buildingName" level="9" type="STRS" />
         <attribute name="builtinCreationTime" level="2" type="INT64" />
         <attribute name="builtinModifiedCount" level="2" type="INT64" />
         <attribute name="businessCategory" level="9" type="STRS" />
+        <attribute name="businessRoles" level="9" type="BIN" />
         <attribute name="bytesPerMinute" level="9" type="INT" />
+        <attribute name="c" level="9" type="STR" />
         <attribute name="cACertificate" level="1" type="BIN" />
         <attribute name="cACertificateDN" level="1" type="STR" />
         <attribute name="cAConnect" level="9" type="STR" />
         <attribute name="canonicalName" level="9" type="STRS" />
+        <attribute name="canPreserveDNs" level="9" type="BOOL" />
         <attribute name="canUpgradeScript" level="9" type="STRS" />
         <attribute name="carLicense" level="9" type="STRS" />
         <attribute name="catalogs" level="9" type="STRS" />
@@ -853,27 +874,46 @@
         <attribute name="cAUsages" level="9" type="STRS" />
         <attribute name="cAWEBURL" level="9" type="STR" />
         <attribute name="certificateAuthorityObject" level="9" type="STR" />
+        <attribute name="certificateChainV3" level="9" type="BIN" />
         <attribute name="certificateRevocationList" level="1" type="BIN" />
+        <attribute name="certificateRevocationListV1" level="9" type="BIN" />
+        <attribute name="certificateRevocationListV3" level="9" type="BIN" />
         <attribute name="certificateTemplates" level="2" type="STRS" />
+        <attribute name="characterSet" level="9" type="STR" />
+        <attribute name="characterSetList" level="9" type="STRS" />
         <attribute name="classDisplayName" level="9" type="STRS" />
+        <attribute name="clientAccessEnabled" level="9" type="BOOL" />
+        <attribute name="clockAlertOffset" level="9" type="INT" />
+        <attribute name="clockAlertRepair" level="9" type="BOOL" />
+        <attribute name="clockWarningOffset" level="9" type="INT" />
+        <attribute name="clockWarningRepair" level="9" type="BOOL" />
+        <attribute name="cn" level="1" type="STR" />
+        <attribute name="co" level="9" type="STR" />
         <attribute name="codePage" level="9" type="INT" />
         <attribute name="cOMClassID" level="9" type="STRS" />
         <attribute name="cOMCLSID" level="9" type="STR" />
         <attribute name="cOMInterfaceID" level="9" type="STRS" />
-        <attribute name="info" level="2" type="STR" />
-        <attribute name="cn" level="1" type="STR" />
+        <attribute name="comment" level="1" type="STR" />
         <attribute name="cOMOtherProgId" level="9" type="STRS" />
         <attribute name="company" level="9" type="STR" />
         <attribute name="cOMProgID" level="9" type="STRS" />
+        <attribute name="compromisedKeyList" level="9" type="BIN" />
+        <attribute name="computerName" level="9" type="STR" />
         <attribute name="cOMTreatAsClassId" level="9" type="STR" />
         <attribute name="cOMTypelibId" level="9" type="STRS" />
         <attribute name="cOMUniqueLIBID" level="9" type="STR" />
+        <attribute name="connectedDomains" level="9" type="STRS" />
+        <attribute name="connectionListFilter" level="9" type="BIN" />
+        <attribute name="connectionListFilterType" level="9" type="INT" />
+        <attribute name="containerInfo" level="9" type="INT" />
         <attribute name="contentIndexingAllowed" level="9" type="BOOL" />
+        <attribute name="contentType" level="9" type="INT" />
         <attribute name="contextMenu" level="9" type="STRS" />
         <attribute name="controlAccessRights" level="2" type="BIN" />
+        <attribute name="controlMsgFolderID" level="9" type="BIN" />
+        <attribute name="controlMsgRules" level="9" type="BIN" />
         <attribute name="cost" level="2" type="INT" />
         <attribute name="countryCode" level="9" type="INT" />
-        <attribute name="c" level="9" type="STR" />
         <attribute name="createDialog" level="9" type="STR" />
         <attribute name="createTimeStamp" level="9" type="DATE" />
         <attribute name="createWizardExt" level="9" type="STRS" />
@@ -882,19 +922,29 @@
         <attribute name="creator" level="9" type="STR" />
         <attribute name="cRLObject" level="1" type="STR" />
         <attribute name="cRLPartitionedRevocationList" level="9" type="BIN" />
+        <attribute name="crossCertificateCRL" level="9" type="BIN" />
         <attribute name="crossCertificatePair" level="9" type="BIN" />
         <attribute name="currentLocation" level="9" type="BIN" />
         <attribute name="currentParentCA" level="9" type="STRS" />
         <attribute name="currentValue" level="9" type="BIN" />
         <attribute name="currMachineId" level="9" type="BIN" />
         <attribute name="dBCSPwd" level="9" type="BIN" />
+        <attribute name="dc" level="1" type="STR" />
         <attribute name="defaultClassStore" level="9" type="STRS" />
         <attribute name="defaultGroup" level="9" type="STR" />
         <attribute name="defaultHidingValue" level="9" type="BOOL" />
         <attribute name="defaultLocalPolicyObject" level="3" type="STR" />
+        <attribute name="defaultMessageFormat" level="9" type="BOOL" />
         <attribute name="defaultObjectCategory" level="9" type="STR" />
         <attribute name="defaultPriority" level="9" type="INT" />
         <attribute name="defaultSecurityDescriptor" level="1" type="STR" />
+        <attribute name="delegateUser" level="9" type="BOOL" />
+        <attribute name="deletedItemFlags" level="9" type="INT" />
+        <attribute name="delivContLength" level="9" type="INT" />
+        <attribute name="delivEITs" level="9" type="BIN" />
+        <attribute name="deliverAndRedirect" level="3" type="BOOL" />
+        <attribute name="deliveryMechanism" level="3" type="INT" />
+        <attribute name="delivExtContTypes" level="9" type="BIN" />
         <attribute name="deltaRevocationList" level="1" type="BIN" />
         <attribute name="department" level="9" type="STR" />
         <attribute name="departmentNumber" level="9" type="STRS" />
@@ -919,12 +969,23 @@
         <attribute name="dhcpType" level="9" type="INT" />
         <attribute name="dhcpUniqueKey" level="9" type="INT64" />
         <attribute name="dhcpUpdateTime" level="9" type="INT64" />
+        <attribute name="diagnosticRegKey" level="9" type="STR" />
+        <attribute name="directReports" level="9" type="STRS" />
+        <attribute name="disabledGatewayProxy" level="9" type="STRS" />
         <attribute name="displayName" level="1" type="STR" />
         <attribute name="displayNamePrintable" level="9" type="STR" />
+        <attribute name="distinguishedName" level="9" type="STR" />
         <attribute name="dITContentRules" level="9" type="STRS" />
         <attribute name="division" level="9" type="STR" />
+        <attribute name="dLMemberRule" level="9" type="BIN" />
+        <attribute name="dLMemDefault" level="9" type="INT" />
+        <attribute name="dLMemRejectPerms" level="9" type="BIN" />
+        <attribute name="dLMemRejectPermsBL" level="9" type="STRS" />
+        <attribute name="dLMemSubmitPerms" level="9" type="BIN" />
+        <attribute name="dLMemSubmitPermsBL" level="9" type="STRS" />
         <attribute name="dMDLocation" level="1" type="STR" />
         <attribute name="dmdName" level="9" type="STR" />
+        <attribute name="dnQualifier" level="9" type="STR" />
         <attribute name="dNReferenceUpdate" level="1" type="STRS" />
         <attribute name="dnsAllowDynamic" level="1" type="BOOL" />
         <attribute name="dnsAllowXFR" level="1" type="BOOL" />
@@ -942,14 +1003,16 @@
         <attribute name="documentTitle" level="9" type="STRS" />
         <attribute name="documentVersion" level="9" type="STRS" />
         <attribute name="domainCAs" level="9" type="STRS" />
-        <attribute name="dc" level="1" type="STR" />
         <attribute name="domainCrossRef" level="1" type="STR" />
+        <attribute name="domainDefAltRecip" level="9" type="STR" />
         <attribute name="domainID" level="9" type="STR" />
         <attribute name="domainIdentifier" level="1" type="INT" />
+        <attribute name="domainName" level="9" type="STR" />
         <attribute name="domainPolicyObject" level="3" type="STR" />
         <attribute name="domainPolicyReference" level="9" type="STR" />
         <attribute name="domainReplica" level="2" type="STR" />
         <attribute name="domainWidePolicy" level="9" type="BIN" />
+        <attribute name="doOABVersion" level="9" type="INT" />
         <attribute name="drink" level="9" type="STRS" />
         <attribute name="driverName" level="9" type="STR" />
         <attribute name="driverVersion" level="9" type="INT" />
@@ -959,27 +1022,100 @@
         <attribute name="dSUIAdminMaximum" level="9" type="INT" />
         <attribute name="dSUIAdminNotification" level="9" type="STRS" />
         <attribute name="dSUIShellMaximum" level="9" type="INT" />
+        <attribute name="dXAAdminCopy" level="9" type="BOOL" />
+        <attribute name="dXAAdminForward" level="9" type="BOOL" />
+        <attribute name="dXAAdminUpdate" level="9" type="INT" />
+        <attribute name="dXAAppendReqCN" level="9" type="BOOL" />
+        <attribute name="dXAConfContainerList" level="9" type="STRS" />
+        <attribute name="dXAConfReqTime" level="9" type="DATE" />
+        <attribute name="dXAConfSeq" level="9" type="STR" />
+        <attribute name="dXAConfSeqUSN" level="9" type="INT" />
+        <attribute name="dXAExchangeOptions" level="9" type="INT" />
+        <attribute name="dXAExportNow" level="9" type="BOOL" />
+        <attribute name="dXAImportNow" level="9" type="BOOL" />
+        <attribute name="dXAImpSeq" level="9" type="STR" />
+        <attribute name="dXAImpSeqTime" level="9" type="DATE" />
+        <attribute name="dXAImpSeqUSN" level="9" type="INT" />
+        <attribute name="dXAInTemplateMap" level="9" type="STRS" />
+        <attribute name="dXALocalAdmin" level="9" type="STR" />
+        <attribute name="dXANativeAddressType" level="9" type="STR" />
+        <attribute name="dXAOutTemplateMap" level="9" type="STRS" />
+        <attribute name="dXAPassword" level="9" type="STR" />
+        <attribute name="dXAPrevExchangeOptions" level="9" type="INT" />
+        <attribute name="dXAPrevExportNativeOnly" level="9" type="BOOL" />
+        <attribute name="dXAPrevInExchangeSensitivity" level="9" type="INT" />
+        <attribute name="dXAPrevRemoteEntries" level="9" type="STR" />
+        <attribute name="dXAPrevReplicationSensitivity" level="9" type="INT" />
+        <attribute name="dXAPrevTemplateOptions" level="9" type="INT" />
+        <attribute name="dXAPrevTypes" level="9" type="INT" />
+        <attribute name="dXARecipientCP" level="9" type="STR" />
+        <attribute name="dXARemoteClient" level="9" type="STR" />
+        <attribute name="dXAReqName" level="9" type="STR" />
+        <attribute name="dXAReqSeq" level="9" type="STR" />
+        <attribute name="dXAReqSeqTime" level="9" type="DATE" />
+        <attribute name="dXAReqSeqUSN" level="9" type="INT" />
+        <attribute name="dXASvrSeq" level="9" type="STR" />
+        <attribute name="dXASvrSeqTime" level="9" type="DATE" />
+        <attribute name="dXASvrSeqUSN" level="9" type="INT" />
+        <attribute name="dXATemplateOptions" level="9" type="INT" />
+        <attribute name="dXATemplateTimeStamp" level="9" type="DATE" />
+        <attribute name="dXATypes" level="9" type="INT" />
+        <attribute name="dXAUnConfContainerList" level="9" type="STRS" />
         <attribute name="dynamicLDAPServer" level="9" type="STR" />
         <attribute name="eFSPolicy" level="2" type="BIN" />
-        <attribute name="mail" level="2" type="STR" />
         <attribute name="employeeID" level="9" type="STR" />
         <attribute name="employeeNumber" level="9" type="STR" />
         <attribute name="employeeType" level="9" type="STR" />
+        <attribute name="enableCompatibility" level="9" type="BOOL" />
         <attribute name="Enabled" level="1" type="BOOL" />
+        <attribute name="enabledAuthorizationPackages" level="9" type="STRS" />
         <attribute name="enabledConnection" level="1" type="BOOL" />
+        <attribute name="enabledProtocolCfg" level="9" type="BOOL" />
+        <attribute name="enabledProtocols" level="9" type="INT" />
+        <attribute name="encapsulationMethod" level="9" type="INT" />
+        <attribute name="encrypt" level="9" type="BOOL" />
+        <attribute name="encryptAlgListNA" level="9" type="STRS" />
+        <attribute name="encryptAlgListOther" level="9" type="STRS" />
+        <attribute name="encryptAlgSelectedNA" level="9" type="STR" />
+        <attribute name="encryptAlgSelectedOther" level="9" type="STR" />
         <attribute name="enrollmentProviders" level="4" type="STR" />
         <attribute name="entryTTL" level="9" type="INT" />
+        <attribute name="expandDLsLocally" level="9" type="BOOL" />
+        <attribute name="expirationTime" level="9" type="DATE" />
+        <attribute name="exportContainers" level="9" type="STRS" />
+        <attribute name="exportCustomRecipients" level="9" type="BOOL" />
         <attribute name="extendedAttributeInfo" level="9" type="STRS" />
         <attribute name="extendedCharsAllowed" level="9" type="BOOL" />
         <attribute name="extendedClassInfo" level="9" type="STRS" />
+        <attribute name="extensionAttribute1" level="9" type="STR" />
+        <attribute name="extensionAttribute10" level="9" type="STR" />
+        <attribute name="extensionAttribute11" level="9" type="STR" />
+        <attribute name="extensionAttribute12" level="9" type="STR" />
+        <attribute name="extensionAttribute13" level="9" type="STR" />
+        <attribute name="extensionAttribute14" level="9" type="STR" />
+        <attribute name="extensionAttribute15" level="9" type="STR" />
+        <attribute name="extensionAttribute2" level="9" type="STR" />
+        <attribute name="extensionAttribute3" level="9" type="STR" />
+        <attribute name="extensionAttribute4" level="9" type="STR" />
+        <attribute name="extensionAttribute5" level="9" type="STR" />
+        <attribute name="extensionAttribute6" level="9" type="STR" />
+        <attribute name="extensionAttribute7" level="9" type="STR" />
+        <attribute name="extensionAttribute8" level="9" type="STR" />
+        <attribute name="extensionAttribute9" level="9" type="STR" />
+        <attribute name="extensionData" level="9" type="BIN" />
         <attribute name="extensionName" level="9" type="STRS" />
         <attribute name="extraColumns" level="9" type="STRS" />
         <attribute name="facsimileTelephoneNumber" level="9" type="STR" />
         <attribute name="fileExtPriority" level="9" type="STRS" />
+        <attribute name="fileVersion" level="9" type="BIN" />
+        <attribute name="filterLocalAddresses" level="9" type="BOOL" />
         <attribute name="flags" level="1" type="INT" />
         <attribute name="flatName" level="1" type="STR" />
+        <attribute name="folderPathname" level="9" type="STR" />
         <attribute name="forceLogoff" level="2" type="INT64" />
         <attribute name="foreignIdentifier" level="1" type="BIN" />
+        <attribute name="formData" level="9" type="BIN" />
+        <attribute name="forwardingAddress" level="9" type="STR" />
         <attribute name="friendlyNames" level="9" type="STRS" />
         <attribute name="fromEntry" level="9" type="BOOL" />
         <attribute name="fromServer" level="1" type="STR" />
@@ -1014,6 +1150,10 @@
         <attribute name="fRSWorkingPath" level="2" type="STR" />
         <attribute name="fSMORoleOwner" level="1" type="STR" />
         <attribute name="garbageCollPeriod" level="2" type="INT" />
+        <attribute name="gatewayLocalCred" level="9" type="STR" />
+        <attribute name="gatewayLocalDesig" level="9" type="STR" />
+        <attribute name="gatewayProxy" level="9" type="STRS" />
+        <attribute name="gatewayRoutingTree" level="9" type="BIN" />
         <attribute name="gecos" level="9" type="STR" />
         <attribute name="generatedConnection" level="1" type="BOOL" />
         <attribute name="generationQualifier" level="9" type="STR" />
@@ -1034,25 +1174,45 @@
         <attribute name="groupPriority" level="9" type="STRS" />
         <attribute name="groupsToIgnore" level="9" type="STRS" />
         <attribute name="groupType" level="1" type="INT" filter="groupType" />
+        <attribute name="gWARTLastModified" level="9" type="DATE" />
         <attribute name="hasMasterNCs" level="2" type="STRS" />
         <attribute name="hasPartialReplicaNCs" level="2" type="STRS" />
         <attribute name="helpData16" level="9" type="BIN" />
         <attribute name="helpData32" level="9" type="BIN" />
         <attribute name="helpFileName" level="9" type="STR" />
+        <attribute name="heuristics" level="4" type="INT" />
+        <attribute name="hideDLMembership" level="9" type="BOOL" />
         <attribute name="hideFromAB" level="9" type="BOOL" />
         <attribute name="homeDirectory" level="9" type="STR" />
         <attribute name="homeDrive" level="9" type="STR" />
+        <attribute name="homeMDB" level="3" type="STR" />
+        <attribute name="homeMDBBL" level="3" type="STRS" />
+        <attribute name="homeMTA" level="1" type="STR" />
+        <attribute name="homePhone" level="9" type="STR" />
+        <attribute name="homePostalAddress" level="9" type="STR" />
         <attribute name="host" level="9" type="STRS" />
         <attribute name="houseIdentifier" level="9" type="STRS" />
+        <attribute name="hTTPPubABAttributes" level="9" type="STRS" />
+        <attribute name="hTTPPubGAL" level="9" type="BOOL" />
+        <attribute name="hTTPPubGALLimit" level="9" type="INT" />
+        <attribute name="hTTPPubPF" level="9" type="BIN" />
+        <attribute name="hTTPServers" level="9" type="STRS" />
         <attribute name="iconPath" level="9" type="STRS" />
         <attribute name="implementedCategories" level="9" type="BIN" />
+        <attribute name="importContainer" level="9" type="STR" />
+        <attribute name="importedFrom" level="9" type="STR" />
+        <attribute name="inboundSites" level="9" type="STRS" />
+        <attribute name="incomingMsgSizeLimit" level="9" type="INT" />
         <attribute name="indexedScopes" level="9" type="STRS" />
+        <attribute name="info" level="2" type="STR" />
         <attribute name="initialAuthIncoming" level="2" type="STR" />
         <attribute name="initialAuthOutgoing" level="2" type="STR" />
         <attribute name="initials" level="9" type="STR" />
+        <attribute name="iNSAdmin" level="9" type="STR" />
         <attribute name="installUiLevel" level="3" type="INT" />
         <attribute name="instanceType" level="9" type="INT" />
         <attribute name="internationalISDNNumber" level="9" type="STRS" />
+        <attribute name="internetEncoding" level="9" type="INT" />
         <attribute name="interSiteTopologyFailover" level="9" type="INT" />
         <attribute name="interSiteTopologyGenerator" level="9" type="STR" />
         <attribute name="interSiteTopologyRenew" level="9" type="INT" />
@@ -1060,6 +1220,7 @@
         <attribute name="ipHostNumber" level="2" type="STRS" />
         <attribute name="ipNetmaskNumber" level="9" type="STR" />
         <attribute name="ipNetworkNumber" level="9" type="STR" />
+        <attribute name="ipPhone" level="9" type="STR" />
         <attribute name="ipProtocolNumber" level="9" type="INT" />
         <attribute name="ipsecData" level="9" type="BIN" />
         <attribute name="ipsecDataType" level="9" type="INT" />
@@ -1079,15 +1240,19 @@
         <attribute name="isDefunct" level="9" type="BOOL" />
         <attribute name="isDeleted" level="1" type="BOOL" />
         <attribute name="isEphemeral" level="9" type="BOOL" />
-        <attribute name="memberOf" level="1" type="STRS" />
         <attribute name="isMemberOfPartialAttributeSet" level="1" type="BOOL" />
         <attribute name="isPrivilegeHolder" level="9" type="STRS" />
         <attribute name="isRecycled" level="1" type="BOOL" />
         <attribute name="isSingleValued" level="2" type="BOOL" />
         <attribute name="jpegPhoto" level="9" type="BIN" />
+        <attribute name="kCCStatus" level="9" type="BIN" />
         <attribute name="keywords" level="3" type="STRS" />
+        <attribute name="kMServer" level="9" type="STR" />
         <attribute name="knowledgeInformation" level="9" type="STRS" />
+        <attribute name="l" level="9" type="STR" />
         <attribute name="labeledURI" level="9" type="STRS" />
+        <attribute name="language" level="9" type="STR" />
+        <attribute name="languageCode" level="9" type="INT" />
         <attribute name="lastBackupRestorationTime" level="2" type="DATE" />
         <attribute name="lastContentIndexed" level="9" type="INT64" />
         <attribute name="lastKnownParent" level="3" type="STR" />
@@ -1099,12 +1264,17 @@
         <attribute name="lDAPAdminLimits" level="9" type="STRS" />
         <attribute name="lDAPDisplayName" level="2" type="STR" />
         <attribute name="lDAPIPDenyList" level="9" type="BIN" />
+        <attribute name="lDAPSearchCfg" level="9" type="INT" />
         <attribute name="legacyExchangeDN" level="4" type="STR" />
+        <attribute name="lineWrap" level="9" type="INT" />
         <attribute name="linkID" level="1" type="INT" />
         <attribute name="linkTrackSecret" level="9" type="BIN" />
+        <attribute name="listPublicFolders" level="9" type="BOOL" />
         <attribute name="lmPwdHistory" level="9" type="BIN" />
+        <attribute name="localBridgeHead" level="9" type="STR" />
+        <attribute name="localBridgeHeadAddress" level="9" type="STR" />
         <attribute name="localeID" level="9" type="INT" />
-        <attribute name="l" level="9" type="STR" />
+        <attribute name="localInitialTurn" level="9" type="BOOL" />
         <attribute name="localizationDisplayId" level="1" type="INT" />
         <attribute name="localizedDescription" level="9" type="STRS" />
         <attribute name="localPolicyFlags" level="9" type="INT" />
@@ -1114,11 +1284,12 @@
         <attribute name="lockOutObservationWindow" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="lockoutThreshold" level="1" type="INT" />
         <attribute name="lockoutTime" level="1" type="DATEINT64" />
+        <attribute name="logFilename" level="9" type="STR" />
         <attribute name="loginShell" level="2" type="STR" />
-        <attribute name="thumbnailLogo" level="9" type="BIN" />
         <attribute name="logonCount" level="1" type="INT" />
         <attribute name="logonHours" level="2" type="BIN" />
         <attribute name="logonWorkstation" level="3" type="BIN" />
+        <attribute name="logRolloverInterval" level="9" type="INT" />
         <attribute name="lSACreationTime" level="1" type="DATEINT64" />
         <attribute name="lSAModifiedCount" level="1" type="INT64" />
         <attribute name="macAddress" level="9" type="STRS" />
@@ -1126,17 +1297,29 @@
         <attribute name="machinePasswordChangeInterval" level="9" type="INT64" />
         <attribute name="machineRole" level="9" type="INT" />
         <attribute name="machineWidePolicy" level="9" type="BIN" />
+        <attribute name="mail" level="2" type="STR" />
+        <attribute name="mailAddress" level="9" type="STR" />
+        <attribute name="mailNickname" level="9" type="STR" />
         <attribute name="managedBy" level="2" type="STR" />
         <attribute name="managedObjects" level="3" type="STRS" />
         <attribute name="manager" level="3" type="STR" />
         <attribute name="mAPIID" level="1" type="INT" />
+        <attribute name="mAPIRecipient" level="9" type="BOOL" />
         <attribute name="marshalledInterface" level="9" type="BIN" />
         <attribute name="masteredBy" level="9" type="STRS" />
+        <attribute name="maximumObjectID" level="9" type="BIN" />
         <attribute name="maxPwdAge" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="maxRenewAge" level="9" type="INT64" />
         <attribute name="maxStorage" level="9" type="INT64" />
         <attribute name="maxTicketAge" level="9" type="INT64" />
         <attribute name="mayContain" level="2" type="STRS" />
+        <attribute name="mDBBackoffInterval" level="9" type="INT" />
+        <attribute name="mDBMsgTimeOutPeriod" level="9" type="INT" />
+        <attribute name="mDBOverHardQuotaLimit" level="9" type="INT" />
+        <attribute name="mDBOverQuotaLimit" level="9" type="INT" />
+        <attribute name="mDBStorageQuota" level="9" type="INT" />
+        <attribute name="mDBUnreadLimit" level="9" type="INT" />
+        <attribute name="mDBUseDefaults" level="9" type="BOOL" />
         <attribute name="meetingAdvertiseScope" level="9" type="STR" />
         <attribute name="meetingApplication" level="9" type="STRS" />
         <attribute name="meetingBandwidth" level="9" type="INT" />
@@ -1163,17 +1346,111 @@
         <attribute name="meetingURL" level="9" type="STRS" />
         <attribute name="member" level="1" type="STRS" />
         <attribute name="memberNisNetgroup" level="9" type="STRS" />
+        <attribute name="memberOf" level="1" type="STRS" />
         <attribute name="memberUid" level="2" type="STRS" />
+        <attribute name="messageSizeLimit" level="9" type="INT" />
+        <attribute name="messageTrackingEnabled" level="9" type="BOOL" />
         <attribute name="mhsORAddress" level="9" type="STRS" />
+        <attribute name="middleName" level="9" type="STR" />
         <attribute name="minPwdAge" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="minPwdLength" level="1" type="INT" />
         <attribute name="minTicketAge" level="9" type="INT64" />
+        <attribute name="mobile" level="9" type="STR" />
         <attribute name="modifiedCount" level="2" type="INT64" />
         <attribute name="modifiedCountAtLastProm" level="2" type="INT64" />
         <attribute name="modifyTimeStamp" level="9" type="DATE" />
         <attribute name="moniker" level="9" type="BIN" />
         <attribute name="monikerDisplayName" level="9" type="STRS" />
+        <attribute name="monitorClock" level="9" type="BOOL" />
+        <attribute name="monitoredConfigurations" level="9" type="STRS" />
+        <attribute name="monitoredServers" level="9" type="STRS" />
+        <attribute name="monitoredServices" level="9" type="STRS" />
+        <attribute name="monitoringAlertDelay" level="9" type="INT" />
+        <attribute name="monitoringAlertUnits" level="9" type="INT" />
+        <attribute name="monitoringAvailabilityStyle" level="9" type="INT" />
+        <attribute name="monitoringAvailabilityWindow" level="9" type="BIN" />
+        <attribute name="monitoringCachedViaMail" level="9" type="STRS" />
+        <attribute name="monitoringCachedViaRPC" level="9" type="STRS" />
+        <attribute name="monitoringEscalationProcedure" level="9" type="BIN" />
+        <attribute name="monitoringHotsitePollInterval" level="9" type="INT" />
+        <attribute name="monitoringHotsitePollUnits" level="9" type="INT" />
+        <attribute name="monitoringMailUpdateInterval" level="9" type="INT" />
+        <attribute name="monitoringMailUpdateUnits" level="9" type="INT" />
+        <attribute name="monitoringNormalPollInterval" level="9" type="INT" />
+        <attribute name="monitoringNormalPollUnits" level="9" type="INT" />
+        <attribute name="monitoringRecipients" level="9" type="STRS" />
+        <attribute name="monitoringRecipientsNDR" level="9" type="STRS" />
+        <attribute name="monitoringRPCUpdateInterval" level="9" type="INT" />
+        <attribute name="monitoringRPCUpdateUnits" level="9" type="INT" />
+        <attribute name="monitoringWarningDelay" level="9" type="INT" />
+        <attribute name="monitoringWarningUnits" level="9" type="INT" />
+        <attribute name="monitorServers" level="9" type="BOOL" />
+        <attribute name="monitorServices" level="9" type="BOOL" />
         <attribute name="moveTreeState" level="9" type="BIN" />
+        <attribute name="mS-DS-ConsistencyChildCount" level="9" type="INT" />
+        <attribute name="mS-DS-ConsistencyGuid" level="9" type="BIN" />
+        <attribute name="mS-DS-CreatorSID" level="3" type="SID" />
+        <attribute name="ms-DS-MachineAccountQuota" level="3" type="INT" />
+        <attribute name="mS-DS-ReplicatesNCReason" level="2" type="BIN" />
+        <attribute name="ms-Mcs-AdmPwd" level="9" type="STR" flags="confidential" />
+        <attribute name="ms-Mcs-AdmPwdExpirationTime" level="4" type="INT64" />
+        <attribute name="msLAPS-EncryptedDSRMPassword" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-EncryptedDSRMPasswordHistory" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-EncryptedPassword" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-EncryptedPasswordHistory" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-Password" level="4" type="STR" flags="confidential"/>
+        <attribute name="msLAPS-PasswordExpirationTime" level="4" type="INT64" filter="Filetime" />
+        <attribute name="ms-net-ieee-80211-GP-PolicyData" level="9" type="STR" />
+        <attribute name="ms-net-ieee-80211-GP-PolicyGUID" level="9" type="STR" />
+        <attribute name="ms-net-ieee-80211-GP-PolicyReserved" level="9" type="BIN" />
+        <attribute name="ms-net-ieee-8023-GP-PolicyData" level="9" type="STR" />
+        <attribute name="ms-net-ieee-8023-GP-PolicyGUID" level="9" type="STR" />
+        <attribute name="ms-net-ieee-8023-GP-PolicyReserved" level="9" type="BIN" />
+        <attribute name="mS-SQL-Alias" level="9" type="STR" />
+        <attribute name="mS-SQL-AllowAnonymousSubscription" level="9" type="BOOL" />
+        <attribute name="mS-SQL-AllowImmediateUpdatingSubscription" level="9" type="BOOL" />
+        <attribute name="mS-SQL-AllowKnownPullSubscription" level="9" type="BOOL" />
+        <attribute name="mS-SQL-AllowQueuedUpdatingSubscription" level="9" type="BOOL" />
+        <attribute name="mS-SQL-AllowSnapshotFilesFTPDownloading" level="9" type="BOOL" />
+        <attribute name="mS-SQL-AppleTalk" level="9" type="STR" />
+        <attribute name="mS-SQL-Applications" level="9" type="STRS" />
+        <attribute name="mS-SQL-Build" level="9" type="INT" />
+        <attribute name="mS-SQL-CharacterSet" level="9" type="INT" />
+        <attribute name="mS-SQL-Clustered" level="9" type="BOOL" />
+        <attribute name="mS-SQL-ConnectionURL" level="9" type="STR" />
+        <attribute name="mS-SQL-Contact" level="9" type="STR" />
+        <attribute name="mS-SQL-CreationDate" level="9" type="STR" />
+        <attribute name="mS-SQL-Database" level="9" type="STR" />
+        <attribute name="mS-SQL-Description" level="9" type="STR" />
+        <attribute name="mS-SQL-GPSHeight" level="9" type="STR" />
+        <attribute name="mS-SQL-GPSLatitude" level="9" type="STR" />
+        <attribute name="mS-SQL-GPSLongitude" level="9" type="STR" />
+        <attribute name="mS-SQL-InformationDirectory" level="9" type="BOOL" />
+        <attribute name="mS-SQL-InformationURL" level="9" type="STR" />
+        <attribute name="mS-SQL-Keywords" level="9" type="STRS" />
+        <attribute name="mS-SQL-Language" level="9" type="STR" />
+        <attribute name="mS-SQL-LastBackupDate" level="9" type="STR" />
+        <attribute name="mS-SQL-LastDiagnosticDate" level="9" type="STR" />
+        <attribute name="mS-SQL-LastUpdatedDate" level="9" type="STR" />
+        <attribute name="mS-SQL-Location" level="9" type="STR" />
+        <attribute name="mS-SQL-Memory" level="9" type="INT64" />
+        <attribute name="mS-SQL-MultiProtocol" level="9" type="STR" />
+        <attribute name="mS-SQL-Name" level="9" type="STR" />
+        <attribute name="mS-SQL-NamedPipe" level="9" type="STR" />
+        <attribute name="mS-SQL-PublicationURL" level="9" type="STR" />
+        <attribute name="mS-SQL-Publisher" level="9" type="STR" />
+        <attribute name="mS-SQL-RegisteredOwner" level="9" type="STR" />
+        <attribute name="mS-SQL-ServiceAccount" level="9" type="STR" />
+        <attribute name="mS-SQL-Size" level="9" type="INT64" />
+        <attribute name="mS-SQL-SortOrder" level="9" type="STR" />
+        <attribute name="mS-SQL-SPX" level="9" type="STR" />
+        <attribute name="mS-SQL-Status" level="9" type="INT64" />
+        <attribute name="mS-SQL-TCPIP" level="9" type="STR" />
+        <attribute name="mS-SQL-ThirdParty" level="9" type="BOOL" />
+        <attribute name="mS-SQL-Type" level="9" type="STR" />
+        <attribute name="mS-SQL-UnicodeSortOrder" level="9" type="INT" />
+        <attribute name="mS-SQL-Version" level="9" type="STR" />
+        <attribute name="mS-SQL-Vines" level="9" type="STR" />
         <attribute name="msAuthz-CentralAccessPolicyID" level="9" type="SID" />
         <attribute name="msAuthz-EffectiveSecurityPolicy" level="9" type="STR" />
         <attribute name="msAuthz-LastEffectiveSecurityPolicy" level="9" type="STR" />
@@ -1196,6 +1473,11 @@
         <attribute name="msDFS-LinkSecurityDescriptorv2" level="9" type="SD" />
         <attribute name="msDFS-NamespaceIdentityGUIDv2" level="2" type="GUID" />
         <attribute name="msDFS-Propertiesv2" level="2" type="STRS" />
+        <attribute name="msDFS-SchemaMajorVersion" level="1" type="INT" />
+        <attribute name="msDFS-SchemaMinorVersion" level="2" type="INT" />
+        <attribute name="msDFS-ShortNameLinkPathv2" level="9" type="STR" />
+        <attribute name="msDFS-TargetListv2" level="2" type="BIN" />
+        <attribute name="msDFS-Ttlv2" level="2" type="INT" />
         <attribute name="msDFSR-CachePolicy" level="9" type="INT" />
         <attribute name="msDFSR-CommonStagingPath" level="2" type="STR" />
         <attribute name="msDFSR-CommonStagingSizeInMb" level="9" type="INT64" />
@@ -1239,11 +1521,6 @@
         <attribute name="msDFSR-StagingSizeInMb" level="9" type="INT64" />
         <attribute name="msDFSR-TombstoneExpiryInMin" level="9" type="INT" />
         <attribute name="msDFSR-Version" level="1" type="STR" />
-        <attribute name="msDFS-SchemaMajorVersion" level="1" type="INT" />
-        <attribute name="msDFS-SchemaMinorVersion" level="2" type="INT" />
-        <attribute name="msDFS-ShortNameLinkPathv2" level="9" type="STR" />
-        <attribute name="msDFS-TargetListv2" level="2" type="BIN" />
-        <attribute name="msDFS-Ttlv2" level="2" type="INT" />
         <attribute name="msDNS-DNSKEYRecords" level="9" type="BIN" />
         <attribute name="msDNS-DNSKEYRecordSetTTL" level="2" type="INT" />
         <attribute name="msDNS-DSRecordAlgorithms" level="3" type="INT" />
@@ -1273,8 +1550,8 @@
         <attribute name="msDS-AllowedToDelegateTo" level="1" type="STRS" />
         <attribute name="msDS-AllUsersTrustQuota" level="2" type="INT" />
         <attribute name="msDS-AppliesToResourceTypes" level="9" type="STRS" />
-        <attribute name="msDS-ApproximateLastLogonTimeStamp" level="9" type="INT64" />
         <attribute name="msDS-Approx-Immed-Subordinates" level="9" type="INT" />
+        <attribute name="msDS-ApproximateLastLogonTimeStamp" level="9" type="INT64" />
         <attribute name="msDS-AssignedAuthNPolicy" level="2" type="STR" />
         <attribute name="msDS-AssignedAuthNPolicyBL" level="1" type="STRS" />
         <attribute name="msDS-AssignedAuthNPolicySilo" level="2" type="STR" />
@@ -1349,9 +1626,6 @@
         <attribute name="msDS-ComputerAuthNPolicyBL" level="1" type="STRS" />
         <attribute name="msDS-ComputerSID" level="9" type="SID" />
         <attribute name="msDS-ComputerTGTLifetime" level="1" type="INT64" filter="Filetime" />
-        <attribute name="mS-DS-ConsistencyChildCount" level="9" type="INT" />
-        <attribute name="mS-DS-ConsistencyGuid" level="9" type="BIN" />
-        <attribute name="mS-DS-CreatorSID" level="3" type="SID" />
         <attribute name="msDS-CustomKeyInformation" level="9" type="BIN" />
         <attribute name="msDS-DateTime" level="9" type="DATE" />
         <attribute name="msDS-DefaultQuota" level="9" type="INT" />
@@ -1400,12 +1674,11 @@
         <attribute name="msDS-IsFullReplicaFor" level="9" type="STRS" />
         <attribute name="msDS-isGC" level="1" type="BOOL" />
         <attribute name="msDS-IsManaged" level="9" type="BOOL" />
-        <attribute name="msds-memberOfTransitive" level="9" type="STRS" />
         <attribute name="msDS-IsPartialReplicaFor" level="9" type="STRS" />
         <attribute name="msDS-IsPossibleValuesPresent" level="9" type="BOOL" />
         <attribute name="msDS-IsPrimaryComputerFor" level="9" type="STRS" />
         <attribute name="msDS-isRODC" level="1" type="BOOL" />
-        <attribute name="msDS-IssuerCertificates" level="9" type="BIN" />
+        <attribute name="msDS-IssuerCertificates" level="9" type="BIN" flags="confidential"/>
         <attribute name="msDS-IssuerPublicCertificates" level="9" type="BIN" />
         <attribute name="msDS-IsUsedAsResourceSecurityAttribute" level="9" type="BOOL" />
         <attribute name="msDS-IsUserCachableAtRodc" level="9" type="INT" />
@@ -1429,7 +1702,6 @@
         <attribute name="msDS-LockoutObservationWindow" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="msDS-LockoutThreshold" level="1" type="INT" />
         <attribute name="msDS-LogonTimeSyncInterval" level="2" type="INT" />
-        <attribute name="ms-DS-MachineAccountQuota" level="3" type="INT" />
         <attribute name="msDS-ManagedPassword" level="9" type="BIN" />
         <attribute name="msDS-ManagedPasswordId" level="1" type="BIN" />
         <attribute name="msDS-ManagedPasswordInterval" level="3" type="INT" />
@@ -1438,6 +1710,7 @@
         <attribute name="msDS-MaximumPasswordAge" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="msDS-MaximumRegistrationInactivityPeriod" level="9" type="INT" />
         <attribute name="msDs-MaxValues" level="9" type="INT" />
+        <attribute name="msds-memberOfTransitive" level="9" type="STRS" />
         <attribute name="msDS-MembersForAzRole" level="9" type="STRS" />
         <attribute name="msDS-MembersForAzRoleBL" level="9" type="STRS" />
         <attribute name="msDS-MembersOfResourcePropertyList" level="9" type="STRS" />
@@ -1445,17 +1718,17 @@
         <attribute name="msds-memberTransitive" level="9" type="STRS" />
         <attribute name="msDS-MinimumPasswordAge" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="msDS-MinimumPasswordLength" level="1" type="INT" />
-        <attribute name="msDS-NCReplCursors" level="9" type="STRS" />
         <attribute name="msDS-NC-Replica-Locations" level="2" type="STRS" />
-        <attribute name="msDS-NCReplInboundNeighbors" level="9" type="STRS" />
-        <attribute name="msDS-NCReplOutboundNeighbors" level="9" type="STRS" />
         <attribute name="msDS-NC-RO-Replica-Locations" level="2" type="STRS" />
         <attribute name="msDS-NC-RO-Replica-Locations-BL" level="9" type="STRS" />
+        <attribute name="msDS-NCReplCursors" level="9" type="STRS" />
+        <attribute name="msDS-NCReplInboundNeighbors" level="9" type="STRS" />
+        <attribute name="msDS-NCReplOutboundNeighbors" level="9" type="STRS" />
         <attribute name="msDS-NcType" level="9" type="INT" />
         <attribute name="msDS-NeverRevealGroup" level="3" type="STRS" />
+        <attribute name="msDS-Non-Security-Group-Extra-Classes" level="9" type="STRS" />
         <attribute name="msDS-NonMembers" level="1" type="STRS" />
         <attribute name="msDS-NonMembersBL" level="1" type="STRS" />
-        <attribute name="msDS-Non-Security-Group-Extra-Classes" level="9" type="STRS" />
         <attribute name="msDS-ObjectReference" level="9" type="STRS" />
         <attribute name="msDS-ObjectReferenceBL" level="9" type="STRS" />
         <attribute name="msDS-ObjectSoa" level="9" type="STR" />
@@ -1480,8 +1753,8 @@
         <attribute name="msDS-PhoneticDisplayName" level="9" type="STR" />
         <attribute name="msDS-PhoneticFirstName" level="9" type="STR" />
         <attribute name="msDS-PhoneticLastName" level="9" type="STR" />
-        <attribute name="msDS-preferredDataLocation" level="9" type="STR" />
         <attribute name="msDS-Preferred-GC-Site" level="9" type="STR" />
+        <attribute name="msDS-preferredDataLocation" level="9" type="STR" />
         <attribute name="msDS-PrimaryComputer" level="1" type="STRS" />
         <attribute name="msDS-PrincipalName" level="9" type="STR" />
         <attribute name="msDS-PromotionSettings" level="9" type="STR" />
@@ -1495,10 +1768,9 @@
         <attribute name="msDS-RegisteredUsers" level="9" type="BIN" />
         <attribute name="msDS-RegistrationQuota" level="9" type="INT" />
         <attribute name="msDS-ReplAttributeMetaData" level="4" type="STRS" />
-        <attribute name="mS-DS-ReplicatesNCReason" level="2" type="BIN" />
-        <attribute name="msDS-ReplicationEpoch" level="1" type="INT" />
         <attribute name="msDS-Replication-Notify-First-DSA-Delay" level="2" type="INT" />
         <attribute name="msDS-Replication-Notify-Subsequent-DSA-Delay" level="2" type="INT" />
+        <attribute name="msDS-ReplicationEpoch" level="1" type="INT" />
         <attribute name="msDS-ReplValueMetaData" level="4" type="STRS" />
         <attribute name="msDS-ReplValueMetaDataExt" level="9" type="STRS" />
         <attribute name="msDS-RequiredDomainBehaviorVersion" level="9" type="INT" />
@@ -1543,7 +1815,7 @@
         <attribute name="msDS-TombstoneQuotaFactor" level="9" type="INT" />
         <attribute name="msDS-TopQuotaUsage" level="9" type="STRS" />
         <attribute name="msDS-TransformationRules" level="9" type="STR" />
-        <attribute name="msDS-TransformationRulesCompiled" level="9" type="BIN" />
+        <attribute name="msDS-TransformationRulesCompiled" level="9" type="BIN" flags="confidential" />
         <attribute name="msDS-TrustForestTrustInfo" level="1" type="BIN" />
         <attribute name="msDS-UpdateScript" level="1" type="STR" />
         <attribute name="msDS-User-Account-Control-Computed" level="1" type="INT" filter="userAccountControl" />
@@ -1568,8 +1840,6 @@
         <attribute name="msExchAccountForestLink" level="9" type="STR" />
         <attribute name="msExchActivationConfig" level="3" type="INT" />
         <attribute name="msExchActivationPreference" level="3" type="INT" />
-        <attribute name="activationSchedule" level="9" type="BIN" />
-        <attribute name="activationStyle" level="9" type="INT" />
         <attribute name="msExchActiveInstanceSleepInterval" level="9" type="INT" />
         <attribute name="msExchActiveSyncDeviceAutoBlockDuration" level="9" type="INT" />
         <attribute name="msExchActiveSyncDeviceAutoblockThresholdIncidenceDuration" level="9" type="INT" />
@@ -1595,7 +1865,6 @@
         <attribute name="msExchAddressRewriteInternalName" level="9" type="STR" />
         <attribute name="msExchAddressRewriteMappingType" level="9" type="INT" />
         <attribute name="msExchAdfsAuthenticationRawConfiguration" level="9" type="STR" />
-        <attribute name="aDMD" level="9" type="STR" />
         <attribute name="msExchAdminACL" level="3" type="STR" />
         <attribute name="msExchAdminAuditLogAgeLimit" level="3" type="INT" />
         <attribute name="msExchAdminAuditLogCmdlets" level="3" type="STRS" />
@@ -1603,7 +1872,6 @@
         <attribute name="msExchAdminAuditLogFlags" level="3" type="INT" />
         <attribute name="msExchAdminAuditLogMailbox" level="9" type="STR" />
         <attribute name="msExchAdminAuditLogParameters" level="3" type="STRS" />
-        <attribute name="adminExtensionDLL" level="9" type="STR" />
         <attribute name="msExchAdminGroupMode" level="3" type="INT" />
         <attribute name="msExchAdminGroupsEnabled" level="3" type="BOOL" />
         <attribute name="msExchAdministrativeUnitBL" level="9" type="STRS" />
@@ -1628,10 +1896,6 @@
         <attribute name="msExchAlternateFileShareWitnessDirectory" level="9" type="STR" />
         <attribute name="msExchAlternateMailboxes" level="9" type="STRS" />
         <attribute name="msExchAlternateServer" level="9" type="STR" />
-        <attribute name="altRecipient" level="3" type="STR" />
-        <attribute name="altRecipientBL" level="3" type="STRS" />
-        <attribute name="anonymousAccess" level="9" type="BOOL" />
-        <attribute name="anonymousAccount" level="9" type="STR" />
         <attribute name="msExchAnonymousThrottlingPolicyState" level="9" type="STR" />
         <attribute name="msExchAnonymousThrottlingPolicyStateEx" level="9" type="STR" />
         <attribute name="msExchAppliesToSmtpVS" level="9" type="STRS" />
@@ -1656,15 +1920,12 @@
         <attribute name="msExchAssociatedAcceptedDomainBL" level="9" type="STRS" />
         <attribute name="msExchAssociatedAcceptedDomainLink" level="9" type="STRS" />
         <attribute name="msExchAssociatedAG" level="9" type="STR" />
-        <attribute name="associationLifetime" level="9" type="INT" />
-        <attribute name="assocRemoteDXA" level="9" type="STRS" />
         <attribute name="msExchAttachmentFilteringAdminMessage" level="9" type="STR" />
         <attribute name="msExchAttachmentFilteringAttachmentNames" level="9" type="STRS" />
         <attribute name="msExchAttachmentFilteringContentTypes" level="9" type="STRS" />
         <attribute name="msExchAttachmentFilteringExceptionConnectorsLink" level="9" type="STRS" />
         <attribute name="msExchAttachmentFilteringFilterAction" level="9" type="INT" />
         <attribute name="msExchAttachmentFilteringRejectResponse" level="9" type="STR" />
-        <attribute name="attributeCertificate" level="9" type="BIN" />
         <attribute name="msExchAuditAdmin" level="9" type="INT" />
         <attribute name="msExchAuditDelegate" level="9" type="INT" />
         <attribute name="msExchAuditDelegateAdmin" level="9" type="INT" />
@@ -1684,14 +1945,9 @@
         <attribute name="msExchAuthMailDisposition" level="9" type="INT" />
         <attribute name="msExchAuthMetadataUrl" level="9" type="STR" />
         <attribute name="msExchAuthNextEffectiveDate" level="9" type="DATE" />
-        <attribute name="authOrig" level="3" type="BIN" />
-        <attribute name="authOrigBL" level="3" type="STRS" />
         <attribute name="msExchAuthoritativePolicyTagGUID" level="9" type="BIN" />
         <attribute name="msExchAuthoritativePolicyTagNote" level="9" type="STR" />
         <attribute name="msExchAuthorizationPersistence" level="9" type="INT" />
-        <attribute name="authorizedDomain" level="9" type="STR" />
-        <attribute name="authorizedPassword" level="9" type="BIN" />
-        <attribute name="authorizedUser" level="9" type="STR" />
         <attribute name="msExchAuthPolicyBL" level="9" type="STRS" />
         <attribute name="msExchAuthPolicyLink" level="9" type="STR" />
         <attribute name="msExchAuthRealm" level="9" type="STR" />
@@ -1717,8 +1973,6 @@
         <attribute name="msExchAutoDiscoverServer" level="9" type="STR" />
         <attribute name="msExchAutoDiscoverSPA" level="9" type="STR" />
         <attribute name="msExchAutoDiscoverTTL" level="9" type="INT" />
-        <attribute name="autoReply" level="9" type="BOOL" />
-        <attribute name="autoReplyMessage" level="9" type="STR" />
         <attribute name="msExchAuxMailboxParentObjectIdBL" level="9" type="STRS" />
         <attribute name="msExchAuxMailboxParentObjectIdLink" level="9" type="STR" />
         <attribute name="msExchAvailabilityAccessMethod" level="9" type="INT" />
@@ -1732,8 +1986,6 @@
         <attribute name="msExchAvailabilityUserName" level="9" type="STR" />
         <attribute name="msExchAvailabilityUserPassword" level="9" type="STR" />
         <attribute name="msExchAvailabilityUseServiceAccount" level="9" type="BOOL" />
-        <attribute name="availableAuthorizationPackages" level="9" type="STRS" />
-        <attribute name="availableDistributions" level="9" type="STR" />
         <attribute name="msExchAvailableServers" level="9" type="STRS" />
         <attribute name="msExchAVAuthenticationService" level="9" type="STR" />
         <attribute name="msExchBackEndVDirURL" level="9" type="STR" />
@@ -1744,8 +1996,6 @@
         <attribute name="msExchBlockedSendersHash" level="9" type="BIN" />
         <attribute name="msExchBridgeheadedLocalConnectorsDNBL" level="9" type="STR" />
         <attribute name="msExchBridgeheadedRemoteConnectorsDNBL" level="9" type="STR" />
-        <attribute name="bridgeheadServers" level="9" type="STRS" />
-        <attribute name="businessRoles" level="9" type="BIN" />
         <attribute name="msExchBypassAudit" level="3" type="BOOL" />
         <attribute name="msExchBypassModerationBL" level="9" type="STRS" />
         <attribute name="msExchBypassModerationFromDLMembersBL" level="9" type="STRS" />
@@ -1769,7 +2019,6 @@
         <attribute name="msExchCanaryData0" level="9" type="BIN" />
         <attribute name="msExchCanaryData1" level="9" type="BIN" />
         <attribute name="msExchCanaryData2" level="9" type="BIN" />
-        <attribute name="canPreserveDNs" level="9" type="BOOL" />
         <attribute name="msExchCapabilityIdentifiers" level="9" type="INT" />
         <attribute name="msExchCASchemaPolicy" level="9" type="STR" />
         <attribute name="msExchCatalog" level="9" type="BIN" />
@@ -1785,11 +2034,6 @@
         <attribute name="msExchccMailPOName" level="9" type="STR" />
         <attribute name="msExchccMailPOPath" level="9" type="STR" />
         <attribute name="msExchCertificate" level="9" type="STR" />
-        <attribute name="certificateChainV3" level="9" type="BIN" />
-        <attribute name="certificateRevocationListV1" level="9" type="BIN" />
-        <attribute name="certificateRevocationListV3" level="9" type="BIN" />
-        <attribute name="characterSet" level="9" type="STR" />
-        <attribute name="characterSetList" level="9" type="STRS" />
         <attribute name="msExchChatAccess" level="9" type="STR" />
         <attribute name="msExchChatAdminMessage" level="9" type="STR" />
         <attribute name="msExchChatBanMask" level="9" type="STR" />
@@ -1846,11 +2090,6 @@
         <attribute name="msExchCIUpdateSchedule" level="9" type="BIN" />
         <attribute name="msExchCIUpdateStyle" level="9" type="INT" />
         <attribute name="msExchClassFactory" level="9" type="STR" />
-        <attribute name="clientAccessEnabled" level="9" type="BOOL" />
-        <attribute name="clockAlertOffset" level="9" type="INT" />
-        <attribute name="clockAlertRepair" level="9" type="BOOL" />
-        <attribute name="clockWarningOffset" level="9" type="INT" />
-        <attribute name="clockWarningRepair" level="9" type="BOOL" />
         <attribute name="msExchClusterReplicationOrderedPrefixes" level="9" type="STR" />
         <attribute name="msExchClusterStorageType" level="9" type="INT" />
         <attribute name="msExchCmdletExtensionFlags" level="9" type="INT" />
@@ -1868,9 +2107,7 @@
         <attribute name="msExchCommunityURL" level="9" type="STR" />
         <attribute name="msExchCommunityURLEnabled" level="9" type="BOOL" />
         <attribute name="msExchComponentStates" level="9" type="STRS" />
-        <attribute name="compromisedKeyList" level="9" type="BIN" />
         <attribute name="msExchComputerLink" level="9" type="STR" />
-        <attribute name="computerName" level="9" type="STR" />
         <attribute name="msExchConferenceMailbox" level="9" type="STR" />
         <attribute name="msExchConferenceMailboxBL" level="9" type="STR" />
         <attribute name="msExchConferenceZone" level="9" type="STR" />
@@ -1881,11 +2118,7 @@
         <attribute name="msExchConfigurationUnitBL" level="9" type="STRS" />
         <attribute name="msExchConfigurationUnitLink" level="9" type="STRS" />
         <attribute name="msExchConfigurationXML" level="3" type="STR" />
-        <attribute name="connectedDomains" level="9" type="STRS" />
-        <attribute name="connectionListFilter" level="9" type="BIN" />
-        <attribute name="connectionListFilterType" level="9" type="INT" />
         <attribute name="msExchConnectorType" level="9" type="STR" />
-        <attribute name="containerInfo" level="9" type="INT" />
         <attribute name="msExchContentAggregationFlags" level="9" type="INT" />
         <attribute name="msExchContentAggregationMaxAcceptedJobsPerProcessor" level="9" type="INT" />
         <attribute name="msExchContentAggregationMaxActiveJobsPerProcessor" level="9" type="INT" />
@@ -1900,11 +2133,8 @@
         <attribute name="msExchContentConversionSettings" level="9" type="INT" />
         <attribute name="msExchContentPreferredInternetCodePageForShiftJis" level="9" type="INT" />
         <attribute name="msExchContentRequiredCharSetCoverage" level="9" type="INT" />
-        <attribute name="contentType" level="9" type="INT" />
         <attribute name="msExchContinuousReplicationMaxMemoryPerMDB" level="9" type="INT64" />
         <attribute name="msExchControllingZone" level="9" type="STR" />
-        <attribute name="controlMsgFolderID" level="9" type="BIN" />
-        <attribute name="controlMsgRules" level="9" type="BIN" />
         <attribute name="msExchControlPanelFeedbackEnabled" level="9" type="BOOL" />
         <attribute name="msExchControlPanelFeedbackURL" level="9" type="STR" />
         <attribute name="msExchControlPanelHelpURL" level="9" type="STR" />
@@ -1915,7 +2145,6 @@
         <attribute name="msExchCorrelationId" level="9" type="BIN" />
         <attribute name="msExchCost" level="9" type="INT" />
         <attribute name="msExchCountries" level="9" type="STRS" />
-        <attribute name="crossCertificateCRL" level="9" type="BIN" />
         <attribute name="msExchCTPClassGUID" level="9" type="STR" />
         <attribute name="msExchCTPFrameHint" level="9" type="INT" />
         <attribute name="msExchCTPPropertySchema" level="9" type="STRS" />
@@ -1946,21 +2175,13 @@
         <attribute name="msExchDefaultDomain" level="3" type="STR" />
         <attribute name="msExchDefaultLoadFile" level="9" type="STR" />
         <attribute name="msExchDefaultLogonDomain" level="9" type="STR" />
-        <attribute name="defaultMessageFormat" level="9" type="BOOL" />
         <attribute name="msExchDefaultPublicFolderMailbox" level="9" type="STR" />
         <attribute name="msExchDefaultPublicMDB" level="9" type="STR" />
         <attribute name="msExchDefaultPublicMDBBL" level="9" type="STRS" />
         <attribute name="msExchDelegateListBL" level="9" type="STRS" />
         <attribute name="msExchDelegateListLink" level="3" type="STRS" />
-        <attribute name="delegateUser" level="9" type="BOOL" />
-        <attribute name="deletedItemFlags" level="9" type="INT" />
         <attribute name="msExchDeletionPeriod" level="9" type="DATE" />
-        <attribute name="delivContLength" level="9" type="INT" />
-        <attribute name="delivEITs" level="9" type="BIN" />
-        <attribute name="deliverAndRedirect" level="3" type="BOOL" />
-        <attribute name="deliveryMechanism" level="3" type="INT" />
         <attribute name="msExchDeliveryOrder" level="9" type="STR" />
-        <attribute name="delivExtContTypes" level="9" type="BIN" />
         <attribute name="msExchDeltaSyncClientCertificateThumbprint" level="9" type="STR" />
         <attribute name="msExchDereferenceAliases" level="9" type="BOOL" />
         <attribute name="msExchDestBHAddress" level="9" type="STR" />
@@ -1984,7 +2205,6 @@
         <attribute name="msExchDeviceTelephoneNumber" level="9" type="STR" />
         <attribute name="msExchDeviceType" level="9" type="STR" />
         <attribute name="msExchDeviceUserAgent" level="9" type="STR" />
-        <attribute name="diagnosticRegKey" level="9" type="STR" />
         <attribute name="msExchDirBrowseFlags" level="9" type="INT" />
         <attribute name="msExchDirsyncAuthorityMetadata" level="9" type="STRS" />
         <attribute name="msExchDirsyncFilters" level="9" type="STRS" />
@@ -1999,7 +2219,6 @@
         <attribute name="msExchDisabledArchiveDatabaseLink" level="9" type="STR" />
         <attribute name="msExchDisabledArchiveDatabaseLinkSL" level="9" type="BIN" />
         <attribute name="msExchDisabledArchiveGUID" level="9" type="BIN" />
-        <attribute name="disabledGatewayProxy" level="9" type="STRS" />
         <attribute name="msExchDisableUDGConversion" level="9" type="INT" />
         <attribute name="msExchDiscretionaryCritical" level="9" type="INT" />
         <attribute name="msExchDiscretionaryOverloaded" level="9" type="INT" />
@@ -2010,24 +2229,15 @@
         <attribute name="msExchDistributionGroupNamingPolicy" level="9" type="STR" />
         <attribute name="msExchDistributionListCountQuota" level="9" type="INT" />
         <attribute name="msExchDistributionListOU" level="9" type="STR" />
-        <attribute name="dLMemberRule" level="9" type="BIN" />
-        <attribute name="dLMemDefault" level="9" type="INT" />
-        <attribute name="dLMemRejectPerms" level="9" type="BIN" />
-        <attribute name="dLMemRejectPermsBL" level="9" type="STRS" />
-        <attribute name="dLMemSubmitPerms" level="9" type="BIN" />
-        <attribute name="dLMemSubmitPermsBL" level="9" type="STRS" />
         <attribute name="msExchDoFullReplication" level="9" type="BOOL" />
         <attribute name="msExchDomainContentConfigFlags" level="9" type="INT" />
-        <attribute name="domainDefAltRecip" level="9" type="STR" />
         <attribute name="msExchDomainGlobalGroupGuid" level="9" type="STR" />
         <attribute name="msExchDomainGlobalGroupSid" level="9" type="STR" />
         <attribute name="msExchDomainLink" level="9" type="STR" />
         <attribute name="msExchDomainLocalGroupGuid" level="9" type="STR" />
         <attribute name="msExchDomainLocalGroupSid" level="9" type="STR" />
-        <attribute name="domainName" level="9" type="STR" />
         <attribute name="msExchDomainRestrictionBL" level="3" type="STRS" />
         <attribute name="msExchDomainRestrictionLink" level="3" type="STR" />
-        <attribute name="doOABVersion" level="9" type="INT" />
         <attribute name="msExchDownGradeMultipartSigned" level="9" type="BOOL" />
         <attribute name="msExchDS2MBOptions" level="9" type="INT" />
         <attribute name="msExchDSNFlags" level="9" type="INT" />
@@ -2035,45 +2245,6 @@
         <attribute name="msExchDSNText" level="9" type="STR" />
         <attribute name="msExchDumpsterQuota" level="9" type="INT" />
         <attribute name="msExchDumpsterWarningQuota" level="9" type="INT" />
-        <attribute name="dXAAdminCopy" level="9" type="BOOL" />
-        <attribute name="dXAAdminForward" level="9" type="BOOL" />
-        <attribute name="dXAAdminUpdate" level="9" type="INT" />
-        <attribute name="dXAAppendReqCN" level="9" type="BOOL" />
-        <attribute name="dXAConfContainerList" level="9" type="STRS" />
-        <attribute name="dXAConfReqTime" level="9" type="DATE" />
-        <attribute name="dXAConfSeq" level="9" type="STR" />
-        <attribute name="dXAConfSeqUSN" level="9" type="INT" />
-        <attribute name="dXAExchangeOptions" level="9" type="INT" />
-        <attribute name="dXAExportNow" level="9" type="BOOL" />
-        <attribute name="dXAImportNow" level="9" type="BOOL" />
-        <attribute name="dXAImpSeq" level="9" type="STR" />
-        <attribute name="dXAImpSeqTime" level="9" type="DATE" />
-        <attribute name="dXAImpSeqUSN" level="9" type="INT" />
-        <attribute name="dXAInTemplateMap" level="9" type="STRS" />
-        <attribute name="dXALocalAdmin" level="9" type="STR" />
-        <attribute name="dXANativeAddressType" level="9" type="STR" />
-        <attribute name="dXAOutTemplateMap" level="9" type="STRS" />
-        <attribute name="dXAPassword" level="9" type="STR" />
-        <attribute name="dXAPrevExchangeOptions" level="9" type="INT" />
-        <attribute name="dXAPrevExportNativeOnly" level="9" type="BOOL" />
-        <attribute name="dXAPrevInExchangeSensitivity" level="9" type="INT" />
-        <attribute name="dXAPrevRemoteEntries" level="9" type="STR" />
-        <attribute name="dXAPrevReplicationSensitivity" level="9" type="INT" />
-        <attribute name="dXAPrevTemplateOptions" level="9" type="INT" />
-        <attribute name="dXAPrevTypes" level="9" type="INT" />
-        <attribute name="dXARecipientCP" level="9" type="STR" />
-        <attribute name="dXARemoteClient" level="9" type="STR" />
-        <attribute name="dXAReqName" level="9" type="STR" />
-        <attribute name="dXAReqSeq" level="9" type="STR" />
-        <attribute name="dXAReqSeqTime" level="9" type="DATE" />
-        <attribute name="dXAReqSeqUSN" level="9" type="INT" />
-        <attribute name="dXASvrSeq" level="9" type="STR" />
-        <attribute name="dXASvrSeqTime" level="9" type="DATE" />
-        <attribute name="dXASvrSeqUSN" level="9" type="INT" />
-        <attribute name="dXATemplateOptions" level="9" type="INT" />
-        <attribute name="dXATemplateTimeStamp" level="9" type="DATE" />
-        <attribute name="dXATypes" level="9" type="INT" />
-        <attribute name="dXAUnConfContainerList" level="9" type="STRS" />
         <attribute name="msExchDynamicDLBaseDN" level="9" type="STR" />
         <attribute name="msExchDynamicDLFilter" level="9" type="STR" />
         <attribute name="msExchEASThrottlingPolicyState" level="9" type="STR" />
@@ -2142,19 +2313,9 @@
         <attribute name="msExchELCMessageClass" level="9" type="STR" />
         <attribute name="msExchELCOrganizationalRootURL" level="9" type="STR" />
         <attribute name="msExchELCSchedule" level="9" type="BIN" />
-        <attribute name="enableCompatibility" level="9" type="BOOL" />
-        <attribute name="enabledAuthorizationPackages" level="9" type="STRS" />
-        <attribute name="enabledProtocolCfg" level="9" type="BOOL" />
-        <attribute name="enabledProtocols" level="9" type="INT" />
         <attribute name="msExchEnableInternalEvaluator" level="9" type="BOOL" />
         <attribute name="msExchEnableModeration" level="9" type="BOOL" />
-        <attribute name="encapsulationMethod" level="9" type="INT" />
         <attribute name="msExchEncodeSMTPRelay" level="9" type="BOOL" />
-        <attribute name="encrypt" level="9" type="BOOL" />
-        <attribute name="encryptAlgListNA" level="9" type="STRS" />
-        <attribute name="encryptAlgListOther" level="9" type="STRS" />
-        <attribute name="encryptAlgSelectedNA" level="9" type="STR" />
-        <attribute name="encryptAlgSelectedOther" level="9" type="STR" />
         <attribute name="msExchEncryptedAnonymousPassword" level="9" type="BIN" />
         <attribute name="msExchEncryptedPassword" level="9" type="BIN" />
         <attribute name="msExchEncryptedPassword2" level="9" type="BIN" />
@@ -2228,27 +2389,15 @@
         <attribute name="msExchExchangeServerLink" level="9" type="STR" />
         <attribute name="msExchExchangeSite" level="9" type="STR" />
         <attribute name="msExchExcludedMailboxDatabases" level="9" type="STRS" />
-        <attribute name="expandDLsLocally" level="9" type="BOOL" />
         <attribute name="msExchExpansionServerName" level="9" type="STR" />
-        <attribute name="expirationTime" level="9" type="DATE" />
-        <attribute name="exportContainers" level="9" type="STRS" />
         <attribute name="msExchExportContainersBL" level="9" type="STR" />
         <attribute name="msExchExportContainersLinked" level="9" type="STRS" />
-        <attribute name="exportCustomRecipients" level="9" type="BOOL" />
         <attribute name="msExchExportDLs" level="9" type="BOOL" />
         <attribute name="msExchExtendedProtectionSPNList" level="9" type="STRS" />
-        <attribute name="extensionAttribute1" level="9" type="STR" />
-        <attribute name="extensionAttribute10" level="9" type="STR" />
-        <attribute name="extensionAttribute11" level="9" type="STR" />
-        <attribute name="extensionAttribute12" level="9" type="STR" />
-        <attribute name="extensionAttribute13" level="9" type="STR" />
-        <attribute name="extensionAttribute14" level="9" type="STR" />
-        <attribute name="extensionAttribute15" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute16" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute17" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute18" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute19" level="9" type="STR" />
-        <attribute name="extensionAttribute2" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute20" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute21" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute22" level="9" type="STR" />
@@ -2259,7 +2408,6 @@
         <attribute name="msExchExtensionAttribute27" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute28" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute29" level="9" type="STR" />
-        <attribute name="extensionAttribute3" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute30" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute31" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute32" level="9" type="STR" />
@@ -2270,24 +2418,17 @@
         <attribute name="msExchExtensionAttribute37" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute38" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute39" level="9" type="STR" />
-        <attribute name="extensionAttribute4" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute40" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute41" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute42" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute43" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute44" level="9" type="STR" />
         <attribute name="msExchExtensionAttribute45" level="9" type="STR" />
-        <attribute name="extensionAttribute5" level="9" type="STR" />
-        <attribute name="extensionAttribute6" level="9" type="STR" />
-        <attribute name="extensionAttribute7" level="9" type="STR" />
-        <attribute name="extensionAttribute8" level="9" type="STR" />
-        <attribute name="extensionAttribute9" level="9" type="STR" />
         <attribute name="msExchExtensionCustomAttribute1" level="9" type="STRS" />
         <attribute name="msExchExtensionCustomAttribute2" level="9" type="STRS" />
         <attribute name="msExchExtensionCustomAttribute3" level="9" type="STRS" />
         <attribute name="msExchExtensionCustomAttribute4" level="9" type="STRS" />
         <attribute name="msExchExtensionCustomAttribute5" level="9" type="STRS" />
-        <attribute name="extensionData" level="9" type="BIN" />
         <attribute name="msExchExternalAuthenticationMethods" level="3" type="INT" />
         <attribute name="msExchExternalDirectoryObjectClass" level="9" type="STR" />
         <attribute name="msExchExternalDirectoryObjectId" level="9" type="STR" />
@@ -2299,6 +2440,7 @@
         <attribute name="msExchFedAcceptedDomainBL" level="9" type="STRS" />
         <attribute name="msExchFedAcceptedDomainLink" level="9" type="STRS" />
         <attribute name="msExchFedAccountNamespace" level="9" type="STR" />
+        <attribute name="msExchFedAdminKey" level="9" type="STR" />
         <attribute name="msExchFedApplicationId" level="9" type="STR" />
         <attribute name="msExchFedApplicationURI" level="9" type="STR" />
         <attribute name="msExchFedClientTrust" level="9" type="STR" />
@@ -2314,10 +2456,13 @@
         <attribute name="msExchFedOrgAdminContact" level="9" type="STR" />
         <attribute name="msExchFedOrgApprovalContact" level="9" type="STR" />
         <attribute name="msExchFedOrgCertificate" level="9" type="BIN" />
+        <attribute name="msExchFedOrgNextCertificate" level="9" type="BIN" />
+        <attribute name="msExchFedOrgNextPrivCertificate" level="9" type="BIN" />
         <attribute name="msExchFedOrgPrevCertificate" level="9" type="BIN" />
         <attribute name="msExchFedOrgPrevPrivCertificate" level="9" type="BIN" />
         <attribute name="msExchFedOrgPrivCertificate" level="9" type="BIN" />
         <attribute name="msExchFedPolicyReferenceURI" level="9" type="STR" />
+        <attribute name="msExchFedProvisioningProvider" level="9" type="STR" />
         <attribute name="msExchFedRemoteTargetAddress" level="9" type="STR" />
         <attribute name="msExchFedTargetApplicationURI" level="9" type="STR" />
         <attribute name="msExchFedTargetAutodiscoverEPR" level="9" type="STR" />
@@ -2334,13 +2479,10 @@
         <attribute name="msExchFedWebRequestorRedirectEPR" level="9" type="STR" />
         <attribute name="msExchFileShareWitness" level="9" type="STR" />
         <attribute name="msExchFileShareWitnessDirectory" level="9" type="STR" />
-        <attribute name="fileVersion" level="9" type="BIN" />
-        <attribute name="filterLocalAddresses" level="9" type="BOOL" />
         <attribute name="msExchFirstInstance" level="9" type="BOOL" />
         <attribute name="msExchFirstSyncTime" level="9" type="DATE" />
         <attribute name="msExchFolderAffinityCustom" level="9" type="INT" />
         <attribute name="msExchFolderAffinityList" level="9" type="STRS" />
-        <attribute name="folderPathname" level="9" type="STR" />
         <attribute name="msExchForeignForestFQDN" level="9" type="STR" />
         <attribute name="msExchForeignForestOrgAdminUSGSid" level="9" type="SID" />
         <attribute name="msExchForeignForestPublicFolderAdminUSGSid" level="9" type="SID" />
@@ -2349,8 +2491,6 @@
         <attribute name="msExchForeignForestServerAdminUSGSid" level="9" type="SID" />
         <attribute name="msExchForeignGroupSID" level="9" type="SID" />
         <attribute name="msExchForestModeFlag" level="9" type="INT" />
-        <attribute name="formData" level="9" type="BIN" />
-        <attribute name="forwardingAddress" level="9" type="STR" />
         <attribute name="msExchGalsyncDisableLiveIdOnRemove" level="9" type="BOOL" />
         <attribute name="msExchGalsyncFederatedTenantSourceAttribute" level="9" type="STR" />
         <attribute name="msExchGalsyncLastSyncRun" level="9" type="DATE" />
@@ -2360,10 +2500,6 @@
         <attribute name="msExchGalsyncSchedule" level="9" type="BIN" />
         <attribute name="msExchGalsyncSourceActiveDirectorySchemaVersion" level="9" type="INT" />
         <attribute name="msExchGalsyncWlidUseSmtpPrimary" level="9" type="BOOL" />
-        <attribute name="gatewayLocalCred" level="9" type="STR" />
-        <attribute name="gatewayLocalDesig" level="9" type="STR" />
-        <attribute name="gatewayProxy" level="9" type="STRS" />
-        <attribute name="gatewayRoutingTree" level="9" type="BIN" />
         <attribute name="msExchGeneralThrottlingPolicyState" level="9" type="STR" />
         <attribute name="msExchGeneralThrottlingPolicyStateEx" level="9" type="STR" />
         <attribute name="msExchGenericForwardingAddress" level="9" type="STR" />
@@ -2376,7 +2512,6 @@
         <attribute name="msExchGroupJoinRestriction" level="9" type="INT" />
         <attribute name="msExchGroupMemberCount" level="9" type="INT" />
         <attribute name="msExchGroupSecurityFlags" level="3" type="INT" />
-        <attribute name="gWARTLastModified" level="9" type="DATE" />
         <attribute name="msExchGWiseAPIGateway" level="9" type="STR" />
         <attribute name="msExchGWiseAPIGatewayPath" level="9" type="STR" />
         <attribute name="msExchGWiseFilterType" level="9" type="INT" />
@@ -2390,13 +2525,8 @@
         <attribute name="msExchHABShowInDepartments" level="9" type="STRS" />
         <attribute name="msExchHABShowInDepartmentsBL" level="9" type="STRS" />
         <attribute name="msExchHasLocalCopy" level="9" type="INT" />
-        <attribute name="heuristics" level="4" type="INT" />
-        <attribute name="hideDLMembership" level="9" type="BOOL" />
         <attribute name="msExchHideFromAddressLists" level="9" type="BOOL" />
-        <attribute name="homeMDB" level="3" type="STR" />
-        <attribute name="homeMDBBL" level="3" type="STRS" />
         <attribute name="msExchHomeMDBSL" level="9" type="BIN" />
-        <attribute name="homeMTA" level="1" type="STR" />
         <attribute name="msExchHomeMTASL" level="9" type="BIN" />
         <attribute name="msExchHomePublicMDB" level="9" type="STR" />
         <attribute name="msExchHomeRoutingGroup" level="9" type="STR" />
@@ -2413,11 +2543,6 @@
         <attribute name="msExchHTTPProtocolLogFilePath" level="9" type="STR" />
         <attribute name="msExchHTTPProtocolLogLoggingLevel" level="9" type="INT" />
         <attribute name="msExchHTTPProtocolLogPerFileSizeQuota" level="9" type="INT64" />
-        <attribute name="hTTPPubABAttributes" level="9" type="STRS" />
-        <attribute name="hTTPPubGAL" level="9" type="BOOL" />
-        <attribute name="hTTPPubGALLimit" level="9" type="INT" />
-        <attribute name="hTTPPubPF" level="9" type="BIN" />
-        <attribute name="hTTPServers" level="9" type="STRS" />
         <attribute name="msExchHygieneConfigurationLink" level="9" type="STR" />
         <attribute name="msExchHygieneConfigurationMalwareBL" level="9" type="STRS" />
         <attribute name="msExchHygieneConfigurationSpamBL" level="9" type="STRS" />
@@ -2440,21 +2565,16 @@
         <attribute name="msExchImmutableId" level="9" type="STR" />
         <attribute name="msExchImmutableSid" level="9" type="SID" />
         <attribute name="msExchIMPhysicalURL" level="9" type="STR" />
-        <attribute name="importContainer" level="9" type="STR" />
         <attribute name="msExchImportContainerLinked" level="9" type="STR" />
-        <attribute name="importedFrom" level="9" type="STR" />
         <attribute name="msExchIMProxy" level="9" type="BIN" />
         <attribute name="msExchIMServerHostsUsers" level="9" type="BOOL" />
         <attribute name="msExchIMServerIISId" level="9" type="INT" />
         <attribute name="msExchIMServerName" level="9" type="STR" />
         <attribute name="msExchIMVirtualServer" level="9" type="STR" />
-        <attribute name="inboundSites" level="9" type="STRS" />
         <attribute name="msExchIncludedMailboxDatabases" level="9" type="STRS" />
         <attribute name="msExchIncomingConnectionTimeout" level="9" type="INT" />
-        <attribute name="incomingMsgSizeLimit" level="9" type="INT" />
         <attribute name="msExchInconsistentState" level="9" type="INT" />
         <attribute name="msExchIndustry" level="9" type="INT" />
-        <attribute name="iNSAdmin" level="9" type="STR" />
         <attribute name="msExchInstalledComponents" level="9" type="BIN" />
         <attribute name="msExchInstallPath" level="9" type="STR" />
         <attribute name="msExchIntendedMailboxPlanBL" level="9" type="STRS" />
@@ -2467,7 +2587,6 @@
         <attribute name="msExchInternalMaintenanceUnderloaded" level="9" type="INT" />
         <attribute name="msExchInternalNLBBypassHostName" level="9" type="STR" />
         <attribute name="msExchInternalSMTPServers" level="9" type="STRS" />
-        <attribute name="internetEncoding" level="9" type="INT" />
         <attribute name="msExchInternetName" level="9" type="STR" />
         <attribute name="msExchInternetWebProxy" level="9" type="STR" />
         <attribute name="msExchInterOrgAddressType" level="9" type="STR" />
@@ -2489,36 +2608,24 @@
         <attribute name="msExchJournalingReconciliationUsername" level="9" type="STR" />
         <attribute name="msExchJournalingReportNDRTo" level="9" type="STR" />
         <attribute name="msExchJournalingRulesLink" level="9" type="STR" />
-        <attribute name="kCCStatus" level="9" type="BIN" />
-        <attribute name="kMServer" level="9" type="STR" />
         <attribute name="msExchLabeledURI" level="9" type="STRS" />
-        <attribute name="languageCode" level="9" type="INT" />
-        <attribute name="language" level="9" type="STR" />
         <attribute name="msExchLastAppliedRecipientFilter" level="9" type="STR" />
         <attribute name="msExchLastExchangeChangedTime" level="9" type="DATE" />
         <attribute name="msExchLastUpdateTime" level="9" type="DATE" />
-        <attribute name="lDAPSearchCfg" level="9" type="INT" />
         <attribute name="msExchLegacyAccount" level="9" type="STR" />
         <attribute name="msExchLegacyDomain" level="9" type="STR" />
         <attribute name="msExchLegacyPW" level="9" type="STR" />
         <attribute name="msExchLegacyRedirectType" level="9" type="INT" />
         <attribute name="msExchLicenseToken" level="9" type="STR" />
-        <attribute name="lineWrap" level="9" type="INT" />
         <attribute name="msExchListPublic" level="9" type="BOOL" />
-        <attribute name="listPublicFolders" level="9" type="BOOL" />
         <attribute name="msExchLitigationHoldDate" level="9" type="DATE" />
         <attribute name="msExchLitigationHoldOwner" level="9" type="STR" />
-        <attribute name="localBridgeHead" level="9" type="STR" />
-        <attribute name="localBridgeHeadAddress" level="9" type="STR" />
         <attribute name="msExchLocalDomains" level="9" type="STRS" />
         <attribute name="msExchLocales" level="9" type="INT" />
-        <attribute name="localInitialTurn" level="9" type="BOOL" />
         <attribute name="msExchLocalizationFlags" level="9" type="INT" />
         <attribute name="msExchLocalName" level="9" type="STR" />
-        <attribute name="logFilename" level="9" type="STR" />
         <attribute name="msExchLogonACL" level="9" type="SD" />
         <attribute name="msExchLogonMethod" level="9" type="INT" />
-        <attribute name="logRolloverInterval" level="9" type="INT" />
         <attribute name="msExchLogType" level="9" type="INT" />
         <attribute name="msExchMailboxAuditEnable" level="3" type="BOOL" />
         <attribute name="msExchMailboxAuditLastAdminAccess" level="3" type="DATE" />
@@ -2586,7 +2693,6 @@
         <attribute name="msExchMailflowPolicyTransportRulesTemplateXml" level="9" type="STR" />
         <attribute name="msExchMailflowPolicyVersion" level="9" type="STR" />
         <attribute name="msExchMailGatewayFlags" level="9" type="INT" />
-        <attribute name="mailNickname" level="9" type="STR" />
         <attribute name="msExchMailTipsLargeAudienceThreshold" level="9" type="INT" />
         <attribute name="msExchMailTipsSettings" level="9" type="INT64" />
         <attribute name="msExchMaintenanceSchedule" level="9" type="BIN" />
@@ -2617,7 +2723,6 @@
         <attribute name="msExchManagementSiteLink" level="9" type="STR" />
         <attribute name="msExchManagementSiteLinkSL" level="9" type="BIN" />
         <attribute name="msExchMandatoryAttributes" level="9" type="STRS" />
-        <attribute name="mAPIRecipient" level="9" type="BOOL" />
         <attribute name="msExchMasterAccountHistory" level="9" type="SID" />
         <attribute name="msExchMasterAccountSid" level="9" type="SID" />
         <attribute name="msExchMasterServerOrAvailabilityGroup" level="3" type="STR" />
@@ -2632,7 +2737,6 @@
         <attribute name="msExchMaxDumpsterSizePerStorageGroup" level="9" type="INT" />
         <attribute name="msExchMaxDumpsterTime" level="9" type="INT" />
         <attribute name="msExchMaxExtensionTime" level="9" type="INT" />
-        <attribute name="maximumObjectID" level="9" type="BIN" />
         <attribute name="msExchMaximumRecurringInstances" level="9" type="INT" />
         <attribute name="msExchMaximumRecurringInstancesMonths" level="9" type="INT" />
         <attribute name="msExchMaxIncomingConnections" level="9" type="INT" />
@@ -2656,16 +2760,9 @@
         <attribute name="msExchMDBAvailabilityGroupName" level="9" type="STR" />
         <attribute name="msExchMDBAvailabilityGroupNetworkSettings" level="9" type="INT64" />
         <attribute name="msExchMDBAvailabilityGroupReplicationPort" level="9" type="INT" />
-        <attribute name="mDBBackoffInterval" level="9" type="INT" />
         <attribute name="msExchMDBCopyParentClass" level="3" type="STR" />
-        <attribute name="mDBMsgTimeOutPeriod" level="9" type="INT" />
         <attribute name="msExchMDBName" level="9" type="STR" />
-        <attribute name="mDBOverHardQuotaLimit" level="9" type="INT" />
-        <attribute name="mDBOverQuotaLimit" level="9" type="INT" />
         <attribute name="msExchMDBRulesQuota" level="9" type="INT" />
-        <attribute name="mDBStorageQuota" level="9" type="INT" />
-        <attribute name="mDBUnreadLimit" level="9" type="INT" />
-        <attribute name="mDBUseDefaults" level="9" type="BOOL" />
         <attribute name="msExchMemberBaseDN" level="9" type="STR" />
         <attribute name="msExchMemberFilter" level="9" type="STR" />
         <attribute name="msExchMessageClassificationBanner" level="9" type="STR" />
@@ -2709,8 +2806,6 @@
         <attribute name="msExchMessageHygieneStaticEntryRejectionResponse" level="9" type="STR" />
         <attribute name="msExchMessageHygieneTempErrorAction" level="9" type="INT" />
         <attribute name="msExchMessageJournalRecipient" level="9" type="STR" />
-        <attribute name="messageSizeLimit" level="9" type="INT" />
-        <attribute name="messageTrackingEnabled" level="9" type="BOOL" />
         <attribute name="msExchMessageTrackLogFilter" level="9" type="INT" />
         <attribute name="msExchMetabasePath" level="3" type="STR" />
         <attribute name="msExchMigrationFlags" level="9" type="INT" />
@@ -2783,41 +2878,16 @@
         <attribute name="msExchModeratedByLink" level="9" type="STRS" />
         <attribute name="msExchModeratedObjectsBL" level="9" type="STRS" />
         <attribute name="msExchModerationFlags" level="9" type="INT" />
-        <attribute name="monitorClock" level="9" type="BOOL" />
-        <attribute name="monitoredConfigurations" level="9" type="STRS" />
-        <attribute name="monitoredServers" level="9" type="STRS" />
-        <attribute name="monitoredServices" level="9" type="STRS" />
-        <attribute name="monitoringAlertDelay" level="9" type="INT" />
-        <attribute name="monitoringAlertUnits" level="9" type="INT" />
-        <attribute name="monitoringAvailabilityStyle" level="9" type="INT" />
-        <attribute name="monitoringAvailabilityWindow" level="9" type="BIN" />
-        <attribute name="monitoringCachedViaMail" level="9" type="STRS" />
-        <attribute name="monitoringCachedViaRPC" level="9" type="STRS" />
         <attribute name="msExchMonitoringDiskSpace" level="9" type="STRS" />
-        <attribute name="monitoringEscalationProcedure" level="9" type="BIN" />
-        <attribute name="monitoringHotsitePollInterval" level="9" type="INT" />
-        <attribute name="monitoringHotsitePollUnits" level="9" type="INT" />
-        <attribute name="monitoringMailUpdateInterval" level="9" type="INT" />
-        <attribute name="monitoringMailUpdateUnits" level="9" type="INT" />
         <attribute name="msExchMonitoringMode" level="9" type="INT" />
         <attribute name="msExchMonitoringMonitoredServices" level="9" type="STRS" />
-        <attribute name="monitoringNormalPollInterval" level="9" type="INT" />
-        <attribute name="monitoringNormalPollUnits" level="9" type="INT" />
         <attribute name="msExchMonitoringNotificationRate" level="9" type="INT" />
         <attribute name="msExchMonitoringOverrideApplyVersion" level="9" type="STR" />
         <attribute name="msExchMonitoringPollingRate" level="9" type="STRS" />
         <attribute name="msExchMonitoringQueuePollingFrequency" level="9" type="INT" />
         <attribute name="msExchMonitoringQueuePollingInterval" level="9" type="INT" />
-        <attribute name="monitoringRecipients" level="9" type="STRS" />
-        <attribute name="monitoringRecipientsNDR" level="9" type="STRS" />
         <attribute name="msExchMonitoringResources" level="9" type="STRS" />
         <attribute name="msExchMonitoringResponses" level="9" type="STRS" />
-        <attribute name="monitoringRPCUpdateInterval" level="9" type="INT" />
-        <attribute name="monitoringRPCUpdateUnits" level="9" type="INT" />
-        <attribute name="monitoringWarningDelay" level="9" type="INT" />
-        <attribute name="monitoringWarningUnits" level="9" type="INT" />
-        <attribute name="monitorServers" level="9" type="BOOL" />
-        <attribute name="monitorServices" level="9" type="BOOL" />
         <attribute name="msExchMoveToLSA" level="9" type="BOOL" />
         <attribute name="msExchMRSProxyFlags" level="9" type="INT" />
         <attribute name="msExchMRSProxyMaxConnections" level="9" type="INT" />
@@ -2833,15 +2903,11 @@
         <attribute name="msExchMSOForwardSyncRecipientCookie" level="9" type="BIN" />
         <attribute name="msExchMSOForwardSyncReplayList" level="9" type="STRS" />
         <attribute name="msExchMTADatabasePath" level="9" type="STR" />
-        <attribute name="mTALocalCred" level="9" type="STR" />
-        <attribute name="mTALocalDesig" level="9" type="STR" />
         <attribute name="msExchMultiMailboxDatabasesBL" level="9" type="STRS" />
         <attribute name="msExchMultiMailboxDatabasesLink" level="9" type="STRS" />
         <attribute name="msExchMultiMailboxGUIDs" level="9" type="STRS" />
         <attribute name="msExchMultiMailboxLocationsBL" level="9" type="STRS" />
         <attribute name="msExchMultiMailboxLocationsLink" level="9" type="STRS" />
-        <attribute name="nAddress" level="9" type="BIN" />
-        <attribute name="nAddressType" level="9" type="INT" />
         <attribute name="msExchNonAuthoritativeDomains" level="9" type="STRS" />
         <attribute name="msExchNonMIMECharacterSet" level="9" type="STR" />
         <attribute name="msExchNoPFConnection" level="9" type="BOOL" />
@@ -2865,8 +2931,6 @@
         <attribute name="msExchNTAuthenticationProviders" level="9" type="STR" />
         <attribute name="msExchNtdsExportContainers" level="9" type="STRS" />
         <attribute name="msExchNtdsImportContainer" level="9" type="STR" />
-        <attribute name="numOfOpenRetries" level="9" type="INT" />
-        <attribute name="numOfTransferRetries" level="9" type="INT" />
         <attribute name="msExchOABANRProperties" level="9" type="INT" />
         <attribute name="msExchOABDefault" level="9" type="BOOL" />
         <attribute name="msExchOABDetailsProperties" level="9" type="INT" />
@@ -2888,12 +2952,7 @@
         <attribute name="msExchObjectCountQuota" level="9" type="STRS" />
         <attribute name="msExchObjectID" level="9" type="BIN" />
         <attribute name="msExchObjectsDeletedThisPeriod" level="9" type="INT" />
-        <attribute name="objViewContainers" level="9" type="STRS" />
-        <attribute name="offLineABContainers" level="9" type="STRS" />
-        <attribute name="offLineABSchedule" level="9" type="BIN" />
-        <attribute name="offLineABServer" level="9" type="STR" />
         <attribute name="msExchOffLineABServerSL" level="9" type="BIN" />
-        <attribute name="offLineABStyle" level="9" type="INT" />
         <attribute name="msExchOfflineAddressBookBL" level="9" type="STRS" />
         <attribute name="msExchOfflineAddressBookLink" level="9" type="STR" />
         <attribute name="msExchOfflineOrgIdHomeRealmRecord" level="9" type="STR" />
@@ -2916,8 +2975,6 @@
         <attribute name="msExchOnPremisesOrganizationGuid" level="9" type="BIN" />
         <attribute name="msExchOnPremisesOutboundConnectorBL" level="9" type="STRS" />
         <attribute name="msExchOnPremisesOutboundConnectorLink" level="9" type="STRS" />
-        <attribute name="oOFReplyToOriginator" level="9" type="BOOL" />
-        <attribute name="openRetryInterval" level="9" type="INT" />
         <attribute name="msExchOrganizationFlags" level="3" type="INT" />
         <attribute name="msExchOrganizationFlags2" level="3" type="INT" />
         <attribute name="msExchOrganizationsAddressBookRootsBL" level="9" type="STRS" />
@@ -2944,8 +3001,6 @@
         <attribute name="msExchOrigMDB" level="9" type="STR" />
         <attribute name="msExchOtherAuthenticationFlags" level="9" type="INT" />
         <attribute name="msExchOURoot" level="9" type="STR" />
-        <attribute name="outboundSites" level="9" type="STRS" />
-        <attribute name="outgoingMsgSizeLimit" level="9" type="INT" />
         <attribute name="msExchOverallAgeLimit" level="9" type="INT" />
         <attribute name="msExchOWAActionForUnknownFileAndMIMETypes" level="9" type="INT" />
         <attribute name="msExchOWAAllowedFileTypes" level="9" type="STRS" />
@@ -2992,7 +3047,6 @@
         <attribute name="msExchOWARemoteDocumentsBlockedServersBL" level="9" type="STRS" />
         <attribute name="msExchOWARemoteDocumentsInternalDomainSuffixList" level="9" type="STRS" />
         <attribute name="msExchOWARemoteDocumentsInternalDomainSuffixListBL" level="9" type="STRS" />
-        <attribute name="oWAServer" level="9" type="STR" />
         <attribute name="msExchOWASetPhotoURL" level="9" type="STR" />
         <attribute name="msExchOWASettings" level="9" type="INT" />
         <attribute name="msExchOWAThrottlingPolicyState" level="9" type="STR" />
@@ -3007,7 +3061,6 @@
         <attribute name="msExchOWAUserContextTimeout" level="9" type="INT" />
         <attribute name="msExchOWAVersion" level="9" type="INT" />
         <attribute name="msExchOWAVirtualDirectoryType" level="9" type="INT" />
-        <attribute name="ownerBL" level="9" type="STRS" />
         <attribute name="msExchOwningOrg" level="9" type="STR" />
         <attribute name="msExchOwningPFTree" level="9" type="STR" />
         <attribute name="msExchOwningPFTreeBL" level="9" type="STRS" />
@@ -3021,7 +3074,6 @@
         <attribute name="msExchPassiveInstanceSleepInterval" level="9" type="INT" />
         <attribute name="msExchPatchMDB" level="9" type="BOOL" />
         <attribute name="msExchPermittedAuthN" level="9" type="INT" />
-        <attribute name="pFContacts" level="9" type="STRS" />
         <attribute name="msExchPfCreation" level="3" type="STRS" />
         <attribute name="msExchPFDefaultAdminACL" level="3" type="SD" />
         <attribute name="msExchPFDSContainer" level="9" type="STR" />
@@ -3046,8 +3098,6 @@
         <attribute name="msExchPolicyTipMessageConfigMessage" level="9" type="STR" />
         <attribute name="msExchPollInterval" level="9" type="INT" />
         <attribute name="msExchPOP3Settings" level="9" type="INT" />
-        <attribute name="pOPCharacterSet" level="9" type="STR" />
-        <attribute name="pOPContentFormat" level="9" type="STR" />
         <attribute name="msExchPopImapBanner" level="3" type="STR" />
         <attribute name="msExchPopImapCalendarItemRetrievalOption" level="9" type="INT" />
         <attribute name="msExchPopImapCommandSize" level="9" type="INT" />
@@ -3065,11 +3115,9 @@
         <attribute name="msExchPopImapX509CertificateName" level="9" type="STR" />
         <attribute name="msExchPOPThrottlingPolicyState" level="9" type="STR" />
         <attribute name="msExchPOPThrottlingPolicyStateEx" level="9" type="STR" />
-        <attribute name="portNumber" level="3" type="INT" />
         <attribute name="msExchPowershellThrottlingPolicyState" level="9" type="STR" />
         <attribute name="msExchPowershellThrottlingPolicyStateEx" level="9" type="STR" />
         <attribute name="msExchPreferredBackfillSource" level="9" type="STR" />
-        <attribute name="preserveInternetContent" level="9" type="BOOL" />
         <attribute name="msExchPrevExportDLs" level="9" type="BOOL" />
         <attribute name="msExchPreviousAccountSid" level="9" type="SID" />
         <attribute name="msExchPreviousArchiveDatabase" level="9" type="STR" />
@@ -3080,26 +3128,18 @@
         <attribute name="msExchPreviousRecipientTypeDetails" level="9" type="INT64" />
         <attribute name="msExchPrivacyStatementURL" level="9" type="STR" />
         <attribute name="msExchPrivacyStatementURLEnabled" level="9" type="BOOL" />
-        <attribute name="pRMD" level="9" type="STR" />
         <attribute name="msExchProcessedSids" level="9" type="SID" />
         <attribute name="msExchProductID" level="3" type="STR" />
-        <attribute name="promoExpiration" level="9" type="DATE" />
         <attribute name="msExchPromptPublishingPoint" level="9" type="STR" />
-        <attribute name="protocolSettings" level="3" type="STRS" />
         <attribute name="msExchProvisioningFlags" level="9" type="INT" />
         <attribute name="msExchProvisioningPolicyScopeLinks" level="9" type="STRS" />
         <attribute name="msExchProvisioningPolicyTargetObjects" level="9" type="STRS" />
         <attribute name="msExchProvisioningPolicyType" level="9" type="INT" />
         <attribute name="msExchProvisioningTags" level="9" type="STRS" />
         <attribute name="msExchProxyCustomProxy" level="9" type="STRS" />
-        <attribute name="proxyGeneratorDLL" level="9" type="STR" />
         <attribute name="msExchProxyGenOptions" level="9" type="INT" />
         <attribute name="msExchProxyGenServer" level="9" type="BIN" />
         <attribute name="msExchProxyName" level="9" type="STR" />
-        <attribute name="pSelector" level="9" type="BIN" />
-        <attribute name="pSelectorInbound" level="9" type="BIN" />
-        <attribute name="publicDelegates" level="3" type="STRS" />
-        <attribute name="publicDelegatesBL" level="3" type="STRS" />
         <attribute name="msExchPublicFolderDeletedItemRetention" level="9" type="INT" />
         <attribute name="msExchPublicFolderEntryId" level="9" type="STR" />
         <attribute name="msExchPublicFolderMailbox" level="9" type="STR" />
@@ -3111,12 +3151,6 @@
         <attribute name="msExchQueryFilter" level="3" type="STR" />
         <attribute name="msExchQueryFilterMetadata" level="3" type="STRS" />
         <attribute name="msExchQueuingMDB" level="9" type="STR" />
-        <attribute name="quotaNotificationSchedule" level="9" type="BIN" />
-        <attribute name="quotaNotificationStyle" level="9" type="INT" />
-        <attribute name="rASCallbackNumber" level="9" type="STR" />
-        <attribute name="rASPhonebookEntryName" level="9" type="STR" />
-        <attribute name="rASPhoneNumber" level="9" type="STR" />
-        <attribute name="rASRemoteSRVRName" level="9" type="STR" />
         <attribute name="msExchRBACPolicyBL" level="3" type="STRS" />
         <attribute name="msExchRBACPolicyFlags" level="3" type="INT" />
         <attribute name="msExchRBACPolicyLink" level="3" type="STR" />
@@ -3143,7 +3177,6 @@
         <attribute name="msExchRecovery" level="9" type="BOOL" />
         <attribute name="msExchRecoveryPointObjectiveInterADSite" level="9" type="INT" />
         <attribute name="msExchRecoveryPointObjectiveIntraADSite" level="9" type="INT" />
-        <attribute name="referralList" level="9" type="STRS" />
         <attribute name="msExchRelationTags" level="9" type="STRS" />
         <attribute name="msExchRelocateTenantCompletionTargetVector" level="9" type="BIN" />
         <attribute name="msExchRelocateTenantFlags" level="9" type="INT" />
@@ -3155,27 +3188,15 @@
         <attribute name="msExchRelocateTenantStatus" level="9" type="INT" />
         <attribute name="msExchRelocateTenantTargetForest" level="9" type="STR" />
         <attribute name="msExchRelocateTenantTransitionCounter" level="9" type="INT" />
-        <attribute name="remoteBridgeHead" level="9" type="STR" />
-        <attribute name="remoteBridgeHeadAddress" level="9" type="STR" />
         <attribute name="msExchRemotePrivateISList" level="9" type="STR" />
         <attribute name="msExchRemoteRecipientType" level="2" type="INT64" />
         <attribute name="msExchRemoteServerList" level="9" type="STR" />
-        <attribute name="remoteSite" level="9" type="STR" />
         <attribute name="msExchReplayLag" level="9" type="INT" />
-        <attribute name="replicatedObjectVersion" level="9" type="INT" />
         <attribute name="msExchReplicateNow" level="9" type="BOOL" />
-        <attribute name="replicationMailMsgSize" level="9" type="INT" />
         <attribute name="msExchReplicationMsgSize" level="9" type="INT" />
         <attribute name="msExchReplicationSchedule" level="9" type="BIN" />
-        <attribute name="replicationSensitivity" level="9" type="INT" />
-        <attribute name="replicationSignature" level="9" type="BIN" />
-        <attribute name="replicationStagger" level="9" type="INT" />
         <attribute name="msExchReplicationStyle" level="9" type="INT" />
-        <attribute name="reportToOriginator" level="9" type="BOOL" />
-        <attribute name="reportToOwner" level="9" type="BOOL" />
-        <attribute name="reqSeq" level="9" type="INT" />
         <attribute name="msExchRequireAuthToSendTo" level="3" type="BOOL" />
-        <attribute name="requireSSL" level="9" type="BOOL" />
         <attribute name="msExchReseller" level="9" type="STR" />
         <attribute name="msExchResolveP2" level="9" type="INT" />
         <attribute name="msExchResourceAddressLists" level="9" type="STRS" />
@@ -3189,15 +3210,12 @@
         <attribute name="msExchResourceSearchProperties" level="9" type="STRS" />
         <attribute name="msExchResourceType" level="9" type="INT" />
         <attribute name="msExchResponsibleForSites" level="9" type="STRS" />
-        <attribute name="responsibleLocalDXA" level="9" type="STR" />
         <attribute name="msExchResponsibleMTAServer" level="9" type="STR" />
         <attribute name="msExchResponsibleMTAServerBL" level="9" type="STRS" />
         <attribute name="msExchRestore" level="9" type="BOOL" />
         <attribute name="msExchRetentionComment" level="9" type="STR" />
         <attribute name="msExchRetentionPolicyTag" level="9" type="STR" />
         <attribute name="msExchRetentionURL" level="9" type="STR" />
-        <attribute name="returnExactMsgSize" level="9" type="BOOL" />
-        <attribute name="ridServer" level="9" type="STR" />
         <attribute name="msExchRMSComputerAccountsBL" level="9" type="STRS" />
         <attribute name="msExchRMSComputerAccountsLink" level="9" type="STRS" />
         <attribute name="msExchRMSComputerAccountsLinkSL" level="9" type="BIN" />
@@ -3219,7 +3237,6 @@
         <attribute name="msExchRoleLocalizedNames" level="9" type="BIN" />
         <attribute name="msExchRoleRights" level="3" type="BIN" />
         <attribute name="msExchRoleType" level="3" type="INT" />
-        <attribute name="rootNewsgroupsFolderID" level="9" type="BIN" />
         <attribute name="msExchRoutingAcceptMessageType" level="9" type="INT" />
         <attribute name="msExchRoutingDisallowPriority" level="9" type="INT" />
         <attribute name="msExchRoutingDisplaySenderEnabled" level="9" type="BOOL" />
@@ -3227,17 +3244,12 @@
         <attribute name="msExchRoutingETRNDomains" level="9" type="STRS" />
         <attribute name="msExchRoutingGroupMembersBL" level="9" type="STRS" />
         <attribute name="msExchRoutingGroupMembersDN" level="9" type="STRS" />
-        <attribute name="routingList" level="3" type="STRS" />
         <attribute name="msExchRoutingMasterDN" level="9" type="STR" />
         <attribute name="msExchRoutingOversizedSchedule" level="9" type="BIN" />
         <attribute name="msExchRoutingOversizedStyle" level="9" type="INT" />
         <attribute name="msExchRoutingTriggeredSchedule" level="9" type="BIN" />
         <attribute name="msExchRoutingTriggeredStyle" level="9" type="INT" />
         <attribute name="msExchRpcHttpFlags" level="9" type="INT" />
-        <attribute name="rTSCheckpointSize" level="9" type="INT" />
-        <attribute name="rTSRecoveryTimeout" level="9" type="INT" />
-        <attribute name="rTSWindowSize" level="9" type="INT" />
-        <attribute name="runsOn" level="9" type="STRS" />
         <attribute name="msExchSafeRecipientsHash" level="9" type="BIN" />
         <attribute name="msExchSafeSendersHash" level="9" type="BIN" />
         <attribute name="msExchSaslLogonDomain" level="9" type="STR" />
@@ -3255,10 +3267,7 @@
         <attribute name="msExchSearchScope" level="9" type="INT" />
         <attribute name="msExchSecureBindings" level="3" type="STRS" />
         <attribute name="msExchSecurityPassword" level="9" type="BIN" />
-        <attribute name="securityPolicy" level="9" type="BIN" />
-        <attribute name="securityProtocol" level="9" type="BIN" />
         <attribute name="msExchSendAsAddresses" level="9" type="STRS" />
-        <attribute name="sendEMailMessage" level="9" type="BOOL" />
         <attribute name="msExchSendEncryptedPassword" level="9" type="BIN" />
         <attribute name="msExchSenderHintLargeAudienceThreshold" level="9" type="INT" />
         <attribute name="msExchSenderHintsEnabled" level="9" type="INT64" />
@@ -3289,7 +3298,6 @@
         <attribute name="msExchSenderReputationTelnetPorts" level="9" type="INT" />
         <attribute name="msExchSenderReputationTimeSliceInterval" level="9" type="INT" />
         <attribute name="msExchSenderReputationWingatePorts" level="9" type="INT" />
-        <attribute name="sendTNEF" level="9" type="BOOL" />
         <attribute name="msExchSendUserName" level="9" type="STR" />
         <attribute name="msExchServer1AlwaysCreateAs" level="9" type="INT" />
         <attribute name="msExchServer1AuthenticationCredentials" level="9" type="STR" />
@@ -3353,14 +3361,8 @@
         <attribute name="msExchServerRole" level="9" type="INT" />
         <attribute name="msExchServerSite" level="3" type="STR" />
         <attribute name="msExchServerSiteBL" level="9" type="STRS" />
-        <attribute name="serviceActionFirst" level="9" type="INT" />
-        <attribute name="serviceActionOther" level="9" type="INT" />
-        <attribute name="serviceActionSecond" level="9" type="INT" />
         <attribute name="msExchServiceEndPointURL" level="9" type="STR" />
         <attribute name="msExchServicePlan" level="9" type="STR" />
-        <attribute name="serviceRestartDelay" level="9" type="INT" />
-        <attribute name="serviceRestartMessage" level="9" type="STR" />
-        <attribute name="sessionDisconnectTimer" level="9" type="INT" />
         <attribute name="msExchSetupStatus" level="9" type="INT" />
         <attribute name="msExchSetupTime" level="9" type="DATE" />
         <attribute name="msExchShadowAssistantName" level="9" type="STR" />
@@ -3399,29 +3401,18 @@
         <attribute name="msExchSharedConfigLink" level="9" type="STR" />
         <attribute name="msExchSharedConfigServicePlanTag" level="9" type="STR" />
         <attribute name="msExchSharedIdentityServerBoxRAC" level="9" type="STR" />
-        <attribute name="msExchFedAdminKey" level="9" type="STR" />
         <attribute name="msExchSharingAnonymousIdentities" level="9" type="STRS" />
         <attribute name="msExchSharingDefaultPolicyLink" level="9" type="STR" />
-        <attribute name="msExchFedOrgNextCertificate" level="9" type="BIN" />
-        <attribute name="msExchFedOrgNextPrivCertificate" level="9" type="BIN" />
         <attribute name="msExchSharingPartnerIdentities" level="9" type="STRS" />
         <attribute name="msExchSharingPolicyDomains" level="9" type="STRS" />
         <attribute name="msExchSharingPolicyIsEnabled" level="9" type="BOOL" />
         <attribute name="msExchSharingPolicyLink" level="9" type="STR" />
-        <attribute name="msExchFedProvisioningProvider" level="9" type="STR" />
         <attribute name="msExchSharingRelationshipForExternalOrganizationEmail" level="9" type="STR" />
         <attribute name="msExchSignupAddresses" level="9" type="STRS" />
         <attribute name="msExchSignupAddressesEnabled" level="9" type="BOOL" />
         <attribute name="msExchSIPAccessService" level="9" type="STR" />
         <attribute name="msExchSIPSBCService" level="9" type="STR" />
-        <attribute name="siteFolderGUID" level="9" type="BIN" />
-        <attribute name="siteFolderServer" level="9" type="STR" />
-        <attribute name="siteProxySpace" level="9" type="STRS" />
         <attribute name="msExchSLVFile" level="9" type="STR" />
-        <attribute name="sMIMEAlgListNA" level="9" type="STRS" />
-        <attribute name="sMIMEAlgListOther" level="9" type="STRS" />
-        <attribute name="sMIMEAlgSelectedNA" level="9" type="STR" />
-        <attribute name="sMIMEAlgSelectedOther" level="9" type="STR" />
         <attribute name="msExchSmtpAuthorizedTRNAccounts" level="9" type="STRS" />
         <attribute name="msExchSmtpBadMailDirectory" level="9" type="STR" />
         <attribute name="msExchSmtpConnectionRulesPriority" level="9" type="BIN" />
@@ -3467,7 +3458,7 @@
         <attribute name="msExchSmtpMaxRecipients" level="9" type="INT" />
         <attribute name="msExchSmtpMaxSessionSize" level="9" type="INT" />
         <attribute name="msExchSmtpOutboundSecurityFlag" level="3" type="INT" />
-        <attribute name="msExchSmtpOutboundSecurityPassword" level="10" type="STR" />
+        <attribute name="msExchSmtpOutboundSecurityPassword" level="9" type="STR" />
         <attribute name="msExchSmtpOutboundSecurityUserName" level="3" type="STR" />
         <attribute name="msExchSmtpOutgoingConnectionTimeout" level="9" type="INT" />
         <attribute name="msExchSmtpOutgoingPort" level="9" type="INT" />
@@ -3541,7 +3532,6 @@
         <attribute name="msExchSmtpTRNSmartHost" level="9" type="STR" />
         <attribute name="msExchSourceBHAddress" level="9" type="STR" />
         <attribute name="msExchSourceBridgeheadServersDN" level="3" type="STRS" />
-        <attribute name="spaceLastComputed" level="9" type="DATE" />
         <attribute name="msExchSpamAddHeader" level="9" type="STR" />
         <attribute name="msExchSpamAllowedIPRanges" level="9" type="STRS" />
         <attribute name="msExchSpamAsfSettings" level="9" type="BIN" />
@@ -3557,13 +3547,10 @@
         <attribute name="msExchSpamOutboundSpamCc" level="9" type="STRS" />
         <attribute name="msExchSpamQuarantineRetention" level="9" type="INT" />
         <attribute name="msExchSpamRedirectAddress" level="9" type="STRS" />
-        <attribute name="sSelector" level="9" type="BIN" />
-        <attribute name="sSelectorInbound" level="9" type="BIN" />
         <attribute name="msExchStandbyCopyMachines" level="9" type="STRS" />
         <attribute name="msExchStartedMailboxServers" level="9" type="STRS" />
         <attribute name="msExchStoppedMailboxServers" level="9" type="STRS" />
         <attribute name="msExchStsRefreshTokensValidFrom" level="9" type="DATE" />
-        <attribute name="submissionContLength" level="9" type="INT" />
         <attribute name="msExchSubmitRelaySD" level="9" type="SD" />
         <attribute name="msExchSupervisionDLBL" level="9" type="STRS" />
         <attribute name="msExchSupervisionDLLink" level="9" type="STRS" />
@@ -3572,12 +3559,8 @@
         <attribute name="msExchSupervisionOneOffLink" level="9" type="STRS" />
         <attribute name="msExchSupervisionUserBL" level="9" type="STRS" />
         <attribute name="msExchSupervisionUserLink" level="9" type="STRS" />
-        <attribute name="supportedAlgorithms" level="9" type="BIN" />
         <attribute name="msExchSupportedSharedConfigBL" level="9" type="STRS" />
         <attribute name="msExchSupportedSharedConfigLink" level="9" type="STRS" />
-        <attribute name="supportingStack" level="9" type="STRS" />
-        <attribute name="supportingStackBL" level="9" type="STRS" />
-        <attribute name="supportSMIMESignatures" level="9" type="BOOL" />
         <attribute name="msExchSyncAccountsFlags" level="9" type="INT" />
         <attribute name="msExchSyncAccountsMax" level="9" type="INT" />
         <attribute name="msExchSyncAccountsPoisonAccountThreshold" level="9" type="INT" />
@@ -3613,9 +3596,7 @@
         <attribute name="msExchSyncServiceInstanceNewTenantMinVersion" level="9" type="INT" />
         <attribute name="msExchSystemAddressList" level="9" type="BOOL" />
         <attribute name="msExchSystemMessageCustomizations" level="9" type="STRS" />
-        <attribute name="targetAddress" level="9" type="STR" />
         <attribute name="msExchTargetBridgeheadServersDN" level="9" type="STRS" />
-        <attribute name="targetMTAs" level="9" type="STRS" />
         <attribute name="msExchTargetServerAdmins" level="9" type="BIN" />
         <attribute name="msExchTargetServerPartnerAdmins" level="9" type="BIN" />
         <attribute name="msExchTargetServerPartnerViewOnlyAdmins" level="9" type="BIN" />
@@ -3626,9 +3607,6 @@
         <attribute name="msExchTeamMailboxSharePointLinkedBy" level="9" type="STR" />
         <attribute name="msExchTeamMailboxSharePointUrl" level="9" type="STR" />
         <attribute name="msExchTeamMailboxShowInClientList" level="9" type="STRS" />
-        <attribute name="telephoneAssistant" level="9" type="STR" />
-        <attribute name="personalPager" level="9" type="STR" />
-        <attribute name="tempAssocThreshold" level="9" type="INT" />
         <attribute name="msExchTemplateRDNs" level="9" type="STRS" />
         <attribute name="msExchTenantCountry" level="9" type="STR" />
         <attribute name="msExchTenantPerimeterSettingsFlags" level="9" type="INT" />
@@ -3659,12 +3637,6 @@
         <attribute name="msExchTPDSLCCertificateChain" level="9" type="STR" />
         <attribute name="msExchTPDTemplates" level="9" type="STRS" />
         <attribute name="msExchTrackDuplicates" level="9" type="INT" />
-        <attribute name="trackingLogPathName" level="9" type="STR" />
-        <attribute name="transferRetryInterval" level="9" type="INT" />
-        <attribute name="transferTimeoutNonUrgent" level="9" type="INT" />
-        <attribute name="transferTimeoutNormal" level="9" type="INT" />
-        <attribute name="transferTimeoutUrgent" level="9" type="INT" />
-        <attribute name="translationTableUsed" level="9" type="INT" />
         <attribute name="msExchTransportConnectivityLogDirectorySize" level="9" type="INT64" />
         <attribute name="msExchTransportConnectivityLogFileSize" level="9" type="INT64" />
         <attribute name="msExchTransportConnectivityLogPath" level="9" type="STR" />
@@ -3675,7 +3647,6 @@
         <attribute name="msExchTransportDropDirectoryName" level="9" type="STR" />
         <attribute name="msExchTransportDropDirectoryQuota" level="9" type="INT" />
         <attribute name="msExchTransportDumpsterHoldTime" level="9" type="INT" />
-        <attribute name="transportExpeditedData" level="9" type="BOOL" />
         <attribute name="msExchTransportExternalDefaultLanguage" level="9" type="STR" />
         <attribute name="msExchTransportExternalDNSAdapterGuid" level="9" type="BIN" />
         <attribute name="msExchTransportExternalDNSProtocolOption" level="9" type="INT" />
@@ -3768,14 +3739,10 @@
         <attribute name="msExchTransportTotalQueueMessageDehydrationThreshold" level="9" type="INT" />
         <attribute name="msExchTransportTransientFailureRetryCount" level="9" type="INT" />
         <attribute name="msExchTransportTransientFailureRetryInterval" level="9" type="INT" />
-        <attribute name="transRetryMins" level="9" type="INT" />
-        <attribute name="transTimeoutMins" level="9" type="INT" />
         <attribute name="msExchTrkLogCleaningInterval" level="9" type="INT" />
         <attribute name="msExchTruncationLag" level="9" type="INT" />
         <attribute name="msExchTrustedDomainBL" level="9" type="STRS" />
         <attribute name="msExchTrustedDomainLink" level="9" type="STR" />
-        <attribute name="trustLevel" level="9" type="INT" />
-        <attribute name="tSelector" level="9" type="BIN" />
         <attribute name="msExchTUIPassword" level="9" type="BIN" />
         <attribute name="msExchTUISpeed" level="9" type="INT" />
         <attribute name="msExchTUIVolume" level="9" type="INT" />
@@ -3783,9 +3750,6 @@
         <attribute name="msExchTurfListAction" level="9" type="STR" />
         <attribute name="msExchTurfListNames" level="9" type="STRS" />
         <attribute name="msExchTurfListOptions" level="9" type="INT" />
-        <attribute name="turnRequestThreshold" level="9" type="INT" />
-        <attribute name="twoWayAlternateFacility" level="9" type="BOOL" />
-        <attribute name="type" level="9" type="STR" />
         <attribute name="msExchUceBlockThreshold" level="9" type="STR" />
         <attribute name="msExchUceEnabled" level="9" type="INT" />
         <attribute name="msExchUceStoreActionThreshold" level="9" type="INT" />
@@ -3942,12 +3906,9 @@
         <attribute name="msExchUMWeekStartDay" level="9" type="INT" />
         <attribute name="msExchUMWelcomeGreetingEnabled" level="9" type="BOOL" />
         <attribute name="msExchUMWelcomeGreetingFile" level="9" type="STR" />
-        <attribute name="unauthOrig" level="3" type="BIN" />
-        <attribute name="unauthOrigBL" level="3" type="STRS" />
         <attribute name="msExchUNCPassword" level="9" type="STR" />
         <attribute name="msExchUNCUsername" level="9" type="STR" />
         <attribute name="msExchUnifiedMailbox" level="9" type="BIN" />
-        <attribute name="unmergedAtts" level="9" type="BIN" />
         <attribute name="msExchUnmergedAttsPt" level="9" type="BIN" />
         <attribute name="msExchUrgentCritical" level="9" type="INT" />
         <attribute name="msExchUrgentOverloaded" level="9" type="INT" />
@@ -3955,7 +3916,6 @@
         <attribute name="msExchUsageLocation" level="9" type="STR" />
         <attribute name="msExchUseExcludedMailboxDatabases" level="9" type="BOOL" />
         <attribute name="msExchUseIncludedMailboxDatabases" level="9" type="BOOL" />
-        <attribute name="usenetSiteName" level="9" type="STR" />
         <attribute name="msExchUseOAB" level="9" type="STR" />
         <attribute name="msExchUseOABBL" level="9" type="STRS" />
         <attribute name="msExchUserAccountControl" level="3" type="INT" />
@@ -3964,7 +3924,6 @@
         <attribute name="msExchUserDisplayName" level="9" type="STR" />
         <attribute name="msExchUserHoldPolicies" level="9" type="STRS" />
         <attribute name="msExchUserLink" level="3" type="STR" />
-        <attribute name="useSiteValues" level="9" type="BOOL" />
         <attribute name="msExchVersion" level="3" type="INT64" />
         <attribute name="msExchVirtualDirectoryFlags" level="9" type="INT" />
         <attribute name="msExchVisibilityMask" level="9" type="INT" />
@@ -3987,25 +3946,11 @@
         <attribute name="msExchWorkloadManagementPolicyBL" level="9" type="STRS" />
         <attribute name="msExchWorkloadManagementPolicyLink" level="9" type="STR" />
         <attribute name="msExchWorkloadType" level="9" type="INT" />
-        <attribute name="x25CallUserDataIncoming" level="9" type="BIN" />
-        <attribute name="x25CallUserDataOutgoing" level="9" type="BIN" />
-        <attribute name="x25FacilitiesDataIncoming" level="9" type="BIN" />
-        <attribute name="x25FacilitiesDataOutgoing" level="9" type="BIN" />
-        <attribute name="x25LeasedLinePort" level="9" type="BIN" />
-        <attribute name="x25LeasedOrSwitched" level="9" type="BOOL" />
-        <attribute name="x25RemoteMTAPhone" level="9" type="STR" />
-        <attribute name="x400AttachmentType" level="9" type="BIN" />
-        <attribute name="x400SelectorSyntax" level="9" type="INT" />
-        <attribute name="dnQualifier" level="9" type="STR" />
-        <attribute name="x500RDN" level="9" type="STR" />
-        <attribute name="xMITTimeoutNonUrgent" level="9" type="INT" />
-        <attribute name="xMITTimeoutNormal" level="9" type="INT" />
-        <attribute name="xMITTimeoutUrgent" level="9" type="INT" />
         <attribute name="msFRS-Hub-Member" level="9" type="STR" />
         <attribute name="msFRS-Topology-Pref" level="9" type="STR" />
-        <attribute name="msFVE-KeyPackage" level="10" type="BIN" />
+        <attribute name="msFVE-KeyPackage" level="9" type="BIN" flags="confidential" />
         <attribute name="msFVE-RecoveryGuid" level="9" type="BIN" />
-        <attribute name="msFVE-RecoveryPassword" level="10" type="STR" />
+        <attribute name="msFVE-RecoveryPassword" level="9" type="STR" flags="confidential" />
         <attribute name="msFVE-VolumeGuid" level="9" type="BIN" />
         <attribute name="msieee80211-Data" level="9" type="BIN" />
         <attribute name="msieee80211-DataType" level="9" type="INT" />
@@ -4021,19 +3966,20 @@
         <attribute name="msiScriptName" level="3" type="STR" />
         <attribute name="msiScriptPath" level="3" type="STR" />
         <attribute name="msiScriptSize" level="3" type="INT" />
-        <attribute name="msKds-CreateTime" level="9" type="INT64" />
-        <attribute name="msKds-DomainID" level="9" type="STR" />
-        <attribute name="msKds-KDFAlgorithmID" level="9" type="STR" />
-        <attribute name="msKds-KDFParam" level="9" type="BIN" />
-        <attribute name="msKds-PrivateKeyLength" level="9" type="INT" />
-        <attribute name="msKds-PublicKeyLength" level="9" type="INT" />
-        <attribute name="msKds-RootKeyData" level="9" type="BIN" />
-        <attribute name="msKds-SecretAgreementAlgorithmID" level="9" type="STR" />
-        <attribute name="msKds-SecretAgreementParam" level="9" type="BIN" />
-        <attribute name="msKds-UseStartTime" level="9" type="INT64" />
-        <attribute name="msKds-Version" level="9" type="INT" />
-        <attribute name="ms-Mcs-AdmPwd" level="10" type="STR" />
-        <attribute name="ms-Mcs-AdmPwdExpirationTime" level="4" type="INT64" />
+        <attribute name="msKds-CreateTime" level="9" type="INT64" flags="confidential" limit="99999" />
+        <attribute name="msKds-DomainID" level="9" type="STR" flags="confidential" limit="99999" />
+        <attribute name="msKds-KDFAlgorithmID" level="9" type="STR" flags="confidential" limit="99999" />
+        <attribute name="msKds-KDFParam" level="9" type="BIN" flags="confidential" />
+        <attribute name="msKds-PrivateKeyLength" level="9" type="INT" flags="confidential" limit="99999" />
+        <attribute name="msKds-PublicKeyLength" level="9" type="INT" flags="confidential" limit="99999" />
+        <attribute name="msKds-RootKeyData" level="9" type="BIN" flags="confidential" />
+        <attribute name="msKds-SecretAgreementAlgorithmID" level="9" type="STR" flags="confidential" limit="99999" />
+        <attribute name="msKds-SecretAgreementParam" level="9" type="BIN" flags="confidential" />
+        <attribute name="msKds-UseStartTime" level="9" type="INT64" flags="confidential" limit="99999" />
+        <attribute name="msKds-Version" level="9" type="INT" flags="confidential" limit="99999" />
+        <attribute name="MSMQ-MulticastAddress" level="9" type="STR" />
+        <attribute name="msMQ-Recipient-FormatName" level="9" type="STR" />
+        <attribute name="MSMQ-SecuredSource" level="9" type="BOOL" />
         <attribute name="mSMQAuthenticate" level="9" type="BOOL" />
         <attribute name="mSMQBasePriority" level="9" type="INT" />
         <attribute name="mSMQComputerType" level="9" type="STR" />
@@ -4057,7 +4003,6 @@
         <attribute name="mSMQLabelEx" level="9" type="STR" />
         <attribute name="mSMQLongLived" level="9" type="INT" />
         <attribute name="mSMQMigrated" level="9" type="BOOL" />
-        <attribute name="MSMQ-MulticastAddress" level="9" type="STR" />
         <attribute name="mSMQNameStyle" level="9" type="BOOL" />
         <attribute name="mSMQNt4Flags" level="9" type="INT" />
         <attribute name="mSMQNt4Stub" level="9" type="INT" />
@@ -4072,10 +4017,8 @@
         <attribute name="mSMQQueueQuota" level="9" type="INT" />
         <attribute name="mSMQQueueType" level="9" type="BIN" />
         <attribute name="mSMQQuota" level="9" type="INT" />
-        <attribute name="msMQ-Recipient-FormatName" level="9" type="STR" />
         <attribute name="mSMQRoutingService" level="9" type="BOOL" />
         <attribute name="mSMQRoutingServices" level="9" type="BOOL" />
-        <attribute name="MSMQ-SecuredSource" level="9" type="BOOL" />
         <attribute name="mSMQServices" level="9" type="INT" />
         <attribute name="mSMQServiceType" level="9" type="INT" />
         <attribute name="mSMQSignCertificates" level="9" type="BIN" />
@@ -4093,12 +4036,6 @@
         <attribute name="mSMQTransactional" level="9" type="BOOL" />
         <attribute name="mSMQUserSid" level="9" type="BIN" />
         <attribute name="mSMQVersion" level="9" type="INT" />
-        <attribute name="ms-net-ieee-80211-GP-PolicyData" level="9" type="STR" />
-        <attribute name="ms-net-ieee-80211-GP-PolicyGUID" level="9" type="STR" />
-        <attribute name="ms-net-ieee-80211-GP-PolicyReserved" level="9" type="BIN" />
-        <attribute name="ms-net-ieee-8023-GP-PolicyData" level="9" type="STR" />
-        <attribute name="ms-net-ieee-8023-GP-PolicyGUID" level="9" type="STR" />
-        <attribute name="ms-net-ieee-8023-GP-PolicyReserved" level="9" type="BIN" />
         <attribute name="msNPAllowDialin" level="9" type="BOOL" />
         <attribute name="msNPCalledStationID" level="9" type="STRS" />
         <attribute name="msNPCallingStationID" level="9" type="STRS" />
@@ -4108,38 +4045,38 @@
         <attribute name="msOrg-Leaders" level="9" type="STRS" />
         <attribute name="msOrg-LeadersBL" level="9" type="STRS" />
         <attribute name="msOrg-OtherDisplayNames" level="9" type="STRS" />
-        <attribute name="msPKIAccountCredentials" level="4" type="BIN" />
+        <attribute name="msPKI-Cert-Template-OID" level="4" type="STR" />
         <attribute name="msPKI-Certificate-Application-Policy" level="4" type="STRS" />
         <attribute name="msPKI-Certificate-Name-Flag" level="4" type="INT" />
         <attribute name="msPKI-Certificate-Policy" level="4" type="STRS" />
-        <attribute name="msPKI-Cert-Template-OID" level="4" type="STR" />
-        <attribute name="msPKI-CredentialRoamingTokens" level="4" type="BIN" />
-        <attribute name="msPKIDPAPIMasterKeys" level="4" type="BIN" />
+        <attribute name="msPKI-CredentialRoamingTokens" level="4" type="BIN" flags="confidential" />
         <attribute name="msPKI-Enrollment-Flag" level="4" type="INT" />
         <attribute name="msPKI-Enrollment-Servers" level="4" type="STRS" />
         <attribute name="msPKI-Minimal-Key-Size" level="4" type="INT" />
         <attribute name="msPKI-OID-Attribute" level="4" type="INT" />
         <attribute name="msPKI-OID-CPS" level="4" type="STRS" />
-        <attribute name="msPKI-OIDLocalizedName" level="4" type="STRS" />
         <attribute name="msPKI-OID-User-Notice" level="4" type="STRS" />
+        <attribute name="msPKI-OIDLocalizedName" level="4" type="STRS" />
         <attribute name="msPKI-Private-Key-Flag" level="4" type="INT" />
         <attribute name="msPKI-RA-Application-Policies" level="4" type="STRS" />
         <attribute name="msPKI-RA-Policies" level="4" type="STRS" />
         <attribute name="msPKI-RA-Signature" level="4" type="INT" />
-        <attribute name="msPKIRoamingTimeStamp" level="4" type="BIN" />
         <attribute name="msPKI-Site-Name" level="4" type="STR" />
         <attribute name="msPKI-Supersede-Templates" level="4" type="STRS" />
         <attribute name="msPKI-Template-Minor-Revision" level="4" type="INT" />
         <attribute name="msPKI-Template-Schema-Version" level="4" type="INT" />
-        <attribute name="msRADIUSCallbackNumber" level="9" type="STR" />
+        <attribute name="msPKIAccountCredentials" level="4" type="BIN" flags="confidential" limit="127" />
+        <attribute name="msPKIDPAPIMasterKeys" level="4" type="BIN" flags="confidential" />
+        <attribute name="msPKIRoamingTimeStamp" level="4" type="BIN" flags="confidential" limit="99999" />
         <attribute name="msRADIUS-FramedInterfaceId" level="9" type="STR" />
-        <attribute name="msRADIUSFramedIPAddress" level="9" type="INT" />
         <attribute name="msRADIUS-FramedIpv6Prefix" level="9" type="STR" />
         <attribute name="msRADIUS-FramedIpv6Route" level="9" type="STRS" />
-        <attribute name="msRADIUSFramedRoute" level="9" type="STRS" />
         <attribute name="msRADIUS-SavedFramedInterfaceId" level="9" type="STR" />
         <attribute name="msRADIUS-SavedFramedIpv6Prefix" level="9" type="STR" />
         <attribute name="msRADIUS-SavedFramedIpv6Route" level="9" type="STRS" />
+        <attribute name="msRADIUSCallbackNumber" level="9" type="STR" />
+        <attribute name="msRADIUSFramedIPAddress" level="9" type="INT" />
+        <attribute name="msRADIUSFramedRoute" level="9" type="STRS" />
         <attribute name="msRADIUSServiceType" level="9" type="INT" />
         <attribute name="msRASSavedCallbackNumber" level="9" type="STR" />
         <attribute name="msRASSavedFramedIPAddress" level="9" type="INT" />
@@ -4287,57 +4224,12 @@
         <attribute name="msSPP-KMSIds" level="9" type="BIN" />
         <attribute name="msSPP-OnlineLicense" level="9" type="BIN" />
         <attribute name="msSPP-PhoneLicense" level="9" type="BIN" />
-        <attribute name="mS-SQL-Alias" level="9" type="STR" />
-        <attribute name="mS-SQL-AllowAnonymousSubscription" level="9" type="BOOL" />
-        <attribute name="mS-SQL-AllowImmediateUpdatingSubscription" level="9" type="BOOL" />
-        <attribute name="mS-SQL-AllowKnownPullSubscription" level="9" type="BOOL" />
-        <attribute name="mS-SQL-AllowQueuedUpdatingSubscription" level="9" type="BOOL" />
-        <attribute name="mS-SQL-AllowSnapshotFilesFTPDownloading" level="9" type="BOOL" />
-        <attribute name="mS-SQL-AppleTalk" level="9" type="STR" />
-        <attribute name="mS-SQL-Applications" level="9" type="STRS" />
-        <attribute name="mS-SQL-Build" level="9" type="INT" />
-        <attribute name="mS-SQL-CharacterSet" level="9" type="INT" />
-        <attribute name="mS-SQL-Clustered" level="9" type="BOOL" />
-        <attribute name="mS-SQL-ConnectionURL" level="9" type="STR" />
-        <attribute name="mS-SQL-Contact" level="9" type="STR" />
-        <attribute name="mS-SQL-CreationDate" level="9" type="STR" />
-        <attribute name="mS-SQL-Database" level="9" type="STR" />
-        <attribute name="mS-SQL-Description" level="9" type="STR" />
-        <attribute name="mS-SQL-GPSHeight" level="9" type="STR" />
-        <attribute name="mS-SQL-GPSLatitude" level="9" type="STR" />
-        <attribute name="mS-SQL-GPSLongitude" level="9" type="STR" />
-        <attribute name="mS-SQL-InformationDirectory" level="9" type="BOOL" />
-        <attribute name="mS-SQL-InformationURL" level="9" type="STR" />
-        <attribute name="mS-SQL-Keywords" level="9" type="STRS" />
-        <attribute name="mS-SQL-Language" level="9" type="STR" />
-        <attribute name="mS-SQL-LastBackupDate" level="9" type="STR" />
-        <attribute name="mS-SQL-LastDiagnosticDate" level="9" type="STR" />
-        <attribute name="mS-SQL-LastUpdatedDate" level="9" type="STR" />
-        <attribute name="mS-SQL-Location" level="9" type="STR" />
-        <attribute name="mS-SQL-Memory" level="9" type="INT64" />
-        <attribute name="mS-SQL-MultiProtocol" level="9" type="STR" />
-        <attribute name="mS-SQL-Name" level="9" type="STR" />
-        <attribute name="mS-SQL-NamedPipe" level="9" type="STR" />
-        <attribute name="mS-SQL-PublicationURL" level="9" type="STR" />
-        <attribute name="mS-SQL-Publisher" level="9" type="STR" />
-        <attribute name="mS-SQL-RegisteredOwner" level="9" type="STR" />
-        <attribute name="mS-SQL-ServiceAccount" level="9" type="STR" />
-        <attribute name="mS-SQL-Size" level="9" type="INT64" />
-        <attribute name="mS-SQL-SortOrder" level="9" type="STR" />
-        <attribute name="mS-SQL-SPX" level="9" type="STR" />
-        <attribute name="mS-SQL-Status" level="9" type="INT64" />
-        <attribute name="mS-SQL-TCPIP" level="9" type="STR" />
-        <attribute name="mS-SQL-ThirdParty" level="9" type="BOOL" />
-        <attribute name="mS-SQL-Type" level="9" type="STR" />
-        <attribute name="mS-SQL-UnicodeSortOrder" level="9" type="INT" />
-        <attribute name="mS-SQL-Version" level="9" type="STR" />
-        <attribute name="mS-SQL-Vines" level="9" type="STR" />
         <attribute name="msTAPI-ConferenceBlob" level="9" type="BIN" />
         <attribute name="msTAPI-IpAddress" level="9" type="STRS" />
         <attribute name="msTAPI-ProtocolId" level="9" type="STR" />
         <attribute name="msTAPI-uid" level="9" type="STR" />
-        <attribute name="msTPM-OwnerInformation" level="9" type="STR" />
-        <attribute name="msTPM-OwnerInformationTemp" level="9" type="STR" />
+        <attribute name="msTPM-OwnerInformation" level="9" type="STR" flags="confidential" />
+        <attribute name="msTPM-OwnerInformationTemp" level="9" type="STR" flags="confidential" />
         <attribute name="msTPM-SrkPubThumbprint" level="9" type="BIN" />
         <attribute name="msTPM-TpmInformationForComputer" level="9" type="STR" />
         <attribute name="msTPM-TpmInformationForComputerBL" level="9" type="STRS" />
@@ -4417,7 +4309,12 @@
         <attribute name="msWMI-TargetObject" level="9" type="BIN" />
         <attribute name="msWMI-TargetPath" level="9" type="STR" />
         <attribute name="msWMI-TargetType" level="9" type="STR" />
+        <attribute name="mTALocalCred" level="9" type="STR" />
+        <attribute name="mTALocalDesig" level="9" type="STR" />
         <attribute name="mustContain" level="2" type="STRS" />
+        <attribute name="nAddress" level="9" type="BIN" />
+        <attribute name="nAddressType" level="9" type="INT" />
+        <attribute name="name" level="1" type="STR" />
         <attribute name="nameServiceFlags" level="9" type="INT" />
         <attribute name="nCName" level="1" type="STR" />
         <attribute name="nETBIOSName" level="1" type="STR" />
@@ -4448,12 +4345,15 @@
         <attribute name="nisNetgroupTriple" level="9" type="STRS" />
         <attribute name="nonSecurityMember" level="3" type="STRS" />
         <attribute name="nonSecurityMemberBL" level="1" type="STRS" />
+        <attribute name="notes" level="9" type="STR" />
         <attribute name="notificationList" level="2" type="STR" />
         <attribute name="nTGroupMembers" level="1" type="BIN" />
         <attribute name="nTMixedDomain" level="1" type="INT" />
         <attribute name="ntPwdHistory" level="9" type="BIN" />
         <attribute name="nTSecurityDescriptor" level="1" type="SD" />
-        <attribute name="distinguishedName" level="9" type="STR" />
+        <attribute name="numOfOpenRetries" level="9" type="INT" />
+        <attribute name="numOfTransferRetries" level="9" type="INT" />
+        <attribute name="o" level="9" type="STRS" />
         <attribute name="objectCategory" level="1" type="STR" />
         <attribute name="objectClass" level="1" type="STRS" />
         <attribute name="objectClassCategory" level="9" type="INT" />
@@ -4462,12 +4362,19 @@
         <attribute name="objectGUID" level="1" type="GUID" />
         <attribute name="objectSid" level="1" type="SID" />
         <attribute name="objectVersion" level="2" type="INT" />
+        <attribute name="objViewContainers" level="9" type="STRS" />
         <attribute name="oEMInformation" level="2" type="STR" />
+        <attribute name="offLineABContainers" level="9" type="STRS" />
+        <attribute name="offLineABSchedule" level="9" type="BIN" />
+        <attribute name="offLineABServer" level="9" type="STR" />
+        <attribute name="offLineABStyle" level="9" type="INT" />
         <attribute name="oMObjectClass" level="9" type="BIN" />
         <attribute name="oMSyntax" level="9" type="INT" />
         <attribute name="oMTGuid" level="9" type="BIN" />
         <attribute name="oMTIndxGuid" level="9" type="BIN" />
         <attribute name="oncRpcNumber" level="9" type="INT" />
+        <attribute name="oOFReplyToOriginator" level="9" type="BOOL" />
+        <attribute name="openRetryInterval" level="9" type="INT" />
         <attribute name="operatingSystem" level="1" type="STR" />
         <attribute name="operatingSystemHotfix" level="1" type="STR" />
         <attribute name="operatingSystemServicePack" level="1" type="STR" />
@@ -4477,18 +4384,27 @@
         <attribute name="options" level="1" type="INT" />
         <attribute name="optionsLocation" level="9" type="STRS" />
         <attribute name="organizationalStatus" level="9" type="STRS" />
-        <attribute name="ou" level="1" type="STRS" />
-        <attribute name="o" level="9" type="STRS" />
         <attribute name="originalDisplayTable" level="9" type="BIN" />
         <attribute name="originalDisplayTableMSDOS" level="9" type="BIN" />
+        <attribute name="otherFacsimileTelephoneNumber" level="9" type="STRS" />
+        <attribute name="otherHomePhone" level="9" type="STRS" />
+        <attribute name="otherIpPhone" level="9" type="STRS" />
         <attribute name="otherLoginWorkstations" level="9" type="STRS" />
         <attribute name="otherMailbox" level="9" type="STRS" />
-        <attribute name="middleName" level="9" type="STR" />
+        <attribute name="otherMobile" level="9" type="STRS" />
+        <attribute name="otherPager" level="9" type="STRS" />
+        <attribute name="otherTelephone" level="9" type="STRS" />
         <attribute name="otherWellKnownObjects" level="9" type="BIN" />
+        <attribute name="ou" level="1" type="STRS" />
+        <attribute name="outboundSites" level="9" type="STRS" />
+        <attribute name="outgoingMsgSizeLimit" level="9" type="INT" />
+        <attribute name="oWAServer" level="9" type="STR" />
         <attribute name="owner" level="9" type="STR" />
+        <attribute name="ownerBL" level="9" type="STRS" />
         <attribute name="packageFlags" level="3" type="INT" />
         <attribute name="packageName" level="3" type="STR" />
         <attribute name="packageType" level="3" type="INT" />
+        <attribute name="pager" level="9" type="STR" />
         <attribute name="parentCA" level="9" type="STR" />
         <attribute name="parentCACertificateChain" level="9" type="BIN" />
         <attribute name="parentGUID" level="1" type="GUID" />
@@ -4500,22 +4416,12 @@
         <attribute name="pendingParentCA" level="9" type="STRS" />
         <attribute name="perMsgDialogDisplayTable" level="9" type="BIN" />
         <attribute name="perRecipDialogDisplayTable" level="9" type="BIN" />
+        <attribute name="personalPager" level="9" type="STR" />
         <attribute name="personalTitle" level="9" type="STR" />
-        <attribute name="otherFacsimileTelephoneNumber" level="9" type="STRS" />
-        <attribute name="otherHomePhone" level="9" type="STRS" />
-        <attribute name="homePhone" level="9" type="STR" />
-        <attribute name="otherIpPhone" level="9" type="STRS" />
-        <attribute name="ipPhone" level="9" type="STR" />
-        <attribute name="primaryInternationalISDNNumber" level="9" type="STR" />
-        <attribute name="otherMobile" level="9" type="STRS" />
-        <attribute name="mobile" level="9" type="STR" />
-        <attribute name="otherTelephone" level="9" type="STRS" />
-        <attribute name="otherPager" level="9" type="STRS" />
-        <attribute name="pager" level="9" type="STR" />
+        <attribute name="pFContacts" level="9" type="STRS" />
         <attribute name="photo" level="9" type="BIN" />
         <attribute name="physicalDeliveryOfficeName" level="9" type="STR" />
         <attribute name="physicalLocationObject" level="1" type="STR" />
-        <attribute name="thumbnailPhoto" level="9" type="BIN" />
         <attribute name="pKICriticalExtensions" level="4" type="STRS" />
         <attribute name="pKIDefaultCSPs" level="4" type="STRS" />
         <attribute name="pKIDefaultKeySpec" level="4" type="INT" />
@@ -4528,7 +4434,10 @@
         <attribute name="pKT" level="2" type="BIN" />
         <attribute name="pKTGuid" level="2" type="GUID" />
         <attribute name="policyReplicationFlags" level="9" type="INT" />
+        <attribute name="pOPCharacterSet" level="9" type="STR" />
+        <attribute name="pOPContentFormat" level="9" type="STR" />
         <attribute name="portName" level="9" type="STRS" />
+        <attribute name="portNumber" level="3" type="INT" />
         <attribute name="possibleInferiors" level="4" type="STRS" />
         <attribute name="possSuperiors" level="4" type="STRS" />
         <attribute name="postalAddress" level="9" type="STRS" />
@@ -4539,10 +4448,13 @@
         <attribute name="preferredOU" level="9" type="STR" />
         <attribute name="prefixMap" level="9" type="BIN" />
         <attribute name="presentationAddress" level="9" type="STR" />
+        <attribute name="preserveInternetContent" level="9" type="BOOL" />
         <attribute name="previousCACertificates" level="9" type="BIN" />
         <attribute name="previousParentCA" level="9" type="STRS" />
         <attribute name="primaryGroupID" level="1" type="INT" />
         <attribute name="primaryGroupToken" level="1" type="INT" />
+        <attribute name="primaryInternationalISDNNumber" level="9" type="STR" />
+        <attribute name="primaryTelexNumber" level="9" type="STR" />
         <attribute name="printAttributes" level="9" type="INT" />
         <attribute name="printBinNames" level="9" type="STRS" />
         <attribute name="printCollate" level="9" type="BOOL" />
@@ -4585,12 +4497,20 @@
         <attribute name="privilegeDisplayName" level="9" type="STR" />
         <attribute name="privilegeHolder" level="9" type="STRS" />
         <attribute name="privilegeValue" level="9" type="INT64" />
+        <attribute name="pRMD" level="9" type="STR" />
         <attribute name="productCode" level="3" type="BIN" />
         <attribute name="profilePath" level="9" type="STR" />
+        <attribute name="promoExpiration" level="9" type="DATE" />
+        <attribute name="protocolSettings" level="3" type="STRS" />
         <attribute name="proxiedObjectName" level="9" type="BIN" />
         <attribute name="proxyAddresses" level="3" type="STRS" />
         <attribute name="proxyGenerationEnabled" level="9" type="BOOL" />
+        <attribute name="proxyGeneratorDLL" level="9" type="STR" />
         <attribute name="proxyLifetime" level="9" type="INT64" />
+        <attribute name="pSelector" level="9" type="BIN" />
+        <attribute name="pSelectorInbound" level="9" type="BIN" />
+        <attribute name="publicDelegates" level="3" type="STRS" />
+        <attribute name="publicDelegatesBL" level="3" type="STRS" />
         <attribute name="publicKeyPolicy" level="9" type="BIN" />
         <attribute name="purportedSearch" level="3" type="STR" />
         <attribute name="pwdHistoryLength" level="1" type="INT" />
@@ -4601,25 +4521,44 @@
         <attribute name="queryPoint" level="9" type="STR" />
         <attribute name="queryPolicyBL" level="9" type="STRS" />
         <attribute name="queryPolicyObject" level="1" type="STR" />
+        <attribute name="quotaNotificationSchedule" level="9" type="BIN" />
+        <attribute name="quotaNotificationStyle" level="9" type="INT" />
         <attribute name="rangeLower" level="2" type="INT" />
         <attribute name="rangeUpper" level="2" type="INT" />
-        <attribute name="name" level="1" type="STR" />
+        <attribute name="rASCallbackNumber" level="9" type="STR" />
+        <attribute name="rASPhonebookEntryName" level="9" type="STR" />
+        <attribute name="rASPhoneNumber" level="9" type="STR" />
+        <attribute name="rASRemoteSRVRName" level="9" type="STR" />
         <attribute name="rDNAttID" level="9" type="STR" />
+        <attribute name="referralList" level="9" type="STRS" />
         <attribute name="registeredAddress" level="9" type="BIN" />
+        <attribute name="remoteBridgeHead" level="9" type="STR" />
+        <attribute name="remoteBridgeHeadAddress" level="9" type="STR" />
         <attribute name="remoteServerName" level="2" type="STRS" />
+        <attribute name="remoteSite" level="9" type="STR" />
         <attribute name="remoteSource" level="9" type="STR" />
         <attribute name="remoteSourceType" level="9" type="INT" />
         <attribute name="remoteStorageGUID" level="9" type="STR" />
         <attribute name="replicaSource" level="2" type="STR" />
+        <attribute name="replicatedObjectVersion" level="9" type="INT" />
+        <attribute name="replicationMailMsgSize" level="9" type="INT" />
+        <attribute name="replicationSensitivity" level="9" type="INT" />
+        <attribute name="replicationSignature" level="9" type="BIN" />
+        <attribute name="replicationStagger" level="9" type="INT" />
         <attribute name="replInterval" level="2" type="INT" />
         <attribute name="replPropertyMetaData" level="9" type="BIN" />
         <attribute name="replTopologyStayOfExecution" level="3" type="INT" />
         <attribute name="replUpToDateVector" level="9" type="BIN" />
-        <attribute name="directReports" level="9" type="STRS" />
+        <attribute name="reportToOriginator" level="9" type="BOOL" />
+        <attribute name="reportToOwner" level="9" type="BOOL" />
         <attribute name="repsFrom" level="1" type="BIN" />
         <attribute name="repsTo" level="1" type="BIN" />
+        <attribute name="reqSeq" level="9" type="INT" />
         <attribute name="requiredCategories" level="9" type="BIN" />
+        <attribute name="requireSSL" level="9" type="BOOL" />
+        <attribute name="responsibleLocalDXA" level="9" type="STR" />
         <attribute name="retiredReplDSASignatures" level="2" type="BIN" />
+        <attribute name="returnExactMsgSize" level="9" type="BOOL" />
         <attribute name="revision" level="2" type="INT" />
         <attribute name="rid" level="2" type="INT" />
         <attribute name="rIDAllocationPool" level="9" type="INT64" />
@@ -4627,12 +4566,15 @@
         <attribute name="rIDManagerReference" level="3" type="STR" />
         <attribute name="rIDNextRID" level="9" type="INT" />
         <attribute name="rIDPreviousAllocationPool" level="9" type="INT64" />
+        <attribute name="ridServer" level="9" type="STR" />
         <attribute name="rIDSetReferences" level="9" type="STRS" />
         <attribute name="rIDUsedPool" level="9" type="INT64" />
         <attribute name="rightsGuid" level="1" type="STR" />
         <attribute name="roleOccupant" level="9" type="STRS" />
         <attribute name="roomNumber" level="9" type="STRS" />
+        <attribute name="rootNewsgroupsFolderID" level="9" type="BIN" />
         <attribute name="rootTrust" level="1" type="STRS" />
+        <attribute name="routingList" level="3" type="STRS" />
         <attribute name="rpcNsAnnotation" level="9" type="STR" />
         <attribute name="rpcNsBindings" level="9" type="STRS" />
         <attribute name="rpcNsCodeset" level="9" type="STRS" />
@@ -4643,6 +4585,10 @@
         <attribute name="rpcNsPriority" level="9" type="INT" />
         <attribute name="rpcNsProfileEntry" level="9" type="STR" />
         <attribute name="rpcNsTransferSyntax" level="9" type="STR" />
+        <attribute name="rTSCheckpointSize" level="9" type="INT" />
+        <attribute name="rTSRecoveryTimeout" level="9" type="INT" />
+        <attribute name="rTSWindowSize" level="9" type="INT" />
+        <attribute name="runsOn" level="9" type="STRS" />
         <attribute name="sAMAccountName" level="1" type="STR" />
         <attribute name="sAMAccountType" level="1" type="INT" />
         <attribute name="samDomainUpdates" level="9" type="BIN" />
@@ -4659,7 +4605,11 @@
         <attribute name="searchGuide" level="9" type="BIN" />
         <attribute name="secretary" level="9" type="STRS" />
         <attribute name="securityIdentifier" level="1" type="SID" />
+        <attribute name="securityPolicy" level="9" type="BIN" />
+        <attribute name="securityProtocol" level="9" type="BIN" />
         <attribute name="seeAlso" level="9" type="STRS" />
+        <attribute name="sendEMailMessage" level="9" type="BOOL" />
+        <attribute name="sendTNEF" level="9" type="BOOL" />
         <attribute name="seqNotification" level="9" type="INT" />
         <attribute name="serialNumber" level="1" type="STRS" />
         <attribute name="serverName" level="9" type="STR" />
@@ -4667,6 +4617,9 @@
         <attribute name="serverReferenceBL" level="1" type="STRS" />
         <attribute name="serverRole" level="1" type="INT" />
         <attribute name="serverState" level="1" type="INT" />
+        <attribute name="serviceActionFirst" level="9" type="INT" />
+        <attribute name="serviceActionOther" level="9" type="INT" />
+        <attribute name="serviceActionSecond" level="9" type="INT" />
         <attribute name="serviceBindingInformation" level="3" type="STRS" />
         <attribute name="serviceClassID" level="9" type="BIN" />
         <attribute name="serviceClassInfo" level="9" type="BIN" />
@@ -4675,6 +4628,9 @@
         <attribute name="serviceDNSNameType" level="3" type="STR" />
         <attribute name="serviceInstanceVersion" level="9" type="BIN" />
         <attribute name="servicePrincipalName" level="1" type="STRS" />
+        <attribute name="serviceRestartDelay" level="9" type="INT" />
+        <attribute name="serviceRestartMessage" level="9" type="STR" />
+        <attribute name="sessionDisconnectTimer" level="9" type="INT" />
         <attribute name="setupCommand" level="3" type="STR" />
         <attribute name="shadowExpire" level="9" type="INT" />
         <attribute name="shadowFlag" level="9" type="INT" />
@@ -4690,26 +4646,41 @@
         <attribute name="showInAdvancedViewOnly" level="9" type="BOOL" />
         <attribute name="sIDHistory" level="1" type="SID" />
         <attribute name="signatureAlgorithms" level="4" type="STR" />
+        <attribute name="siteFolderGUID" level="9" type="BIN" />
+        <attribute name="siteFolderServer" level="9" type="STR" />
         <attribute name="siteGUID" level="9" type="BIN" />
         <attribute name="siteLinkList" level="9" type="STRS" />
         <attribute name="siteList" level="1" type="STRS" />
         <attribute name="siteObject" level="1" type="STR" />
         <attribute name="siteObjectBL" level="1" type="STRS" />
+        <attribute name="siteProxySpace" level="9" type="STRS" />
         <attribute name="siteServer" level="9" type="STRS" />
-        <attribute name="mailAddress" level="9" type="STR" />
+        <attribute name="sMIMEAlgListNA" level="9" type="STRS" />
+        <attribute name="sMIMEAlgListOther" level="9" type="STRS" />
+        <attribute name="sMIMEAlgSelectedNA" level="9" type="STR" />
+        <attribute name="sMIMEAlgSelectedOther" level="9" type="STR" />
+        <attribute name="sn" level="2" type="STR" />
+        <attribute name="spaceLastComputed" level="9" type="DATE" />
         <attribute name="sPNMappings" level="1" type="STRS" />
+        <attribute name="sSelector" level="9" type="BIN" />
+        <attribute name="sSelectorInbound" level="9" type="BIN" />
         <attribute name="st" level="9" type="STR" />
         <attribute name="street" level="9" type="STR" />
+        <attribute name="streetAddress" level="9" type="STR" />
         <attribute name="structuralObjectClass" level="9" type="STRS" />
         <attribute name="subClassOf" level="4" type="STR" />
+        <attribute name="submissionContLength" level="9" type="INT" />
         <attribute name="subRefs" level="9" type="STRS" />
         <attribute name="subSchemaSubEntry" level="9" type="STRS" />
         <attribute name="superiorDNSRoot" level="1" type="STR" />
         <attribute name="superScopeDescription" level="9" type="STRS" />
         <attribute name="superScopes" level="9" type="STRS" />
         <attribute name="supplementalCredentials" level="9" type="BIN" />
+        <attribute name="supportedAlgorithms" level="9" type="BIN" />
         <attribute name="supportedApplicationContext" level="9" type="BIN" />
-        <attribute name="sn" level="2" type="STR" />
+        <attribute name="supportingStack" level="9" type="STRS" />
+        <attribute name="supportingStackBL" level="9" type="STRS" />
+        <attribute name="supportSMIMESignatures" level="9" type="BOOL" />
         <attribute name="syncAttributes" level="9" type="INT" />
         <attribute name="syncMembership" level="9" type="STRS" />
         <attribute name="syncWithObject" level="9" type="STR" />
@@ -4720,15 +4691,19 @@
         <attribute name="systemMustContain" level="2" type="STRS" />
         <attribute name="systemOnly" level="2" type="BOOL" />
         <attribute name="systemPossSuperiors" level="4" type="STRS" />
+        <attribute name="targetAddress" level="9" type="STR" />
+        <attribute name="targetMTAs" level="9" type="STRS" />
+        <attribute name="telephoneAssistant" level="9" type="STR" />
         <attribute name="telephoneNumber" level="9" type="STR" />
         <attribute name="teletexTerminalIdentifier" level="9" type="BIN" />
         <attribute name="telexNumber" level="9" type="BIN" />
-        <attribute name="primaryTelexNumber" level="9" type="STR" />
+        <attribute name="tempAssocThreshold" level="9" type="INT" />
         <attribute name="templateRoots" level="9" type="STRS" />
         <attribute name="templateRoots2" level="9" type="STRS" />
         <attribute name="terminalServer" level="9" type="BIN" />
-        <attribute name="co" level="9" type="STR" />
         <attribute name="textEncodedORAddress" level="9" type="STR" />
+        <attribute name="thumbnailLogo" level="9" type="BIN" />
+        <attribute name="thumbnailPhoto" level="9" type="BIN" />
         <attribute name="timeRefresh" level="9" type="INT64" />
         <attribute name="timeVolChange" level="9" type="INT64" />
         <attribute name="title" level="9" type="STR" />
@@ -4736,36 +4711,55 @@
         <attribute name="tokenGroupsGlobalAndUniversal" level="9" type="SID" />
         <attribute name="tokenGroupsNoGCAcceptable" level="9" type="SID" />
         <attribute name="tombstoneLifetime" level="1" type="INT" />
+        <attribute name="trackingLogPathName" level="9" type="STR" />
+        <attribute name="transferRetryInterval" level="9" type="INT" />
+        <attribute name="transferTimeoutNonUrgent" level="9" type="INT" />
+        <attribute name="transferTimeoutNormal" level="9" type="INT" />
+        <attribute name="transferTimeoutUrgent" level="9" type="INT" />
+        <attribute name="translationTableUsed" level="9" type="INT" />
         <attribute name="transportAddressAttribute" level="9" type="STR" />
         <attribute name="transportDLLName" level="9" type="STR" />
+        <attribute name="transportExpeditedData" level="9" type="BOOL" />
         <attribute name="transportType" level="2" type="STR" />
+        <attribute name="transRetryMins" level="9" type="INT" />
+        <attribute name="transTimeoutMins" level="9" type="INT" />
         <attribute name="treatAsLeaf" level="9" type="BOOL" />
         <attribute name="treeName" level="2" type="STR" />
         <attribute name="trustAttributes" level="1" type="INT" filter="trustAttributes" />
         <attribute name="trustAuthIncoming" level="9" type="BIN" />
         <attribute name="trustAuthOutgoing" level="9" type="BIN" />
         <attribute name="trustDirection" level="1" type="INT" filter="trustDirection" />
+        <attribute name="trustLevel" level="9" type="INT" />
         <attribute name="trustParent" level="1" type="STR" />
         <attribute name="trustPartner" level="1" type="STR" />
         <attribute name="trustPosixOffset" level="1" type="INT" />
         <attribute name="trustType" level="1" type="INT" filter="trustType" />
+        <attribute name="tSelector" level="9" type="BIN" />
+        <attribute name="turnRequestThreshold" level="9" type="INT" />
+        <attribute name="twoWayAlternateFacility" level="9" type="BOOL" />
+        <attribute name="type" level="9" type="STR" />
         <attribute name="uASCompat" level="1" type="INT" />
         <attribute name="uid" level="2" type="STRS" />
         <attribute name="uidNumber" level="2" type="INT" />
+        <attribute name="unauthOrig" level="3" type="BIN" />
+        <attribute name="unauthOrigBL" level="3" type="STRS" />
         <attribute name="uNCName" level="9" type="STR" />
         <attribute name="unicodePwd" level="9" type="BIN" />
         <attribute name="uniqueIdentifier" level="9" type="STRS" />
         <attribute name="uniqueMember" level="9" type="STRS" />
         <attribute name="unixHomeDirectory" level="9" type="STR" />
-        <attribute name="unixUserPassword" level="2" type="BIN" />
+        <attribute name="unixUserPassword" level="2" type="BIN" flags="confidential" />
+        <attribute name="unmergedAtts" level="9" type="BIN" />
         <attribute name="unstructuredAddress" level="9" type="STRS" />
         <attribute name="unstructuredName" level="9" type="STRS" />
         <attribute name="upgradeProductCode" level="3" type="BIN" />
         <attribute name="uPNSuffixes" level="1" type="STRS" />
+        <attribute name="url" level="9" type="STRS" />
+        <attribute name="usenetSiteName" level="9" type="STR" />
         <attribute name="userAccountControl" level="1" type="INT" filter="userAccountControl" />
         <attribute name="userCert" level="2" type="BIN" />
+        <attribute name="userCertificate" level="2" type="BIN" />
         <attribute name="userClass" level="9" type="STRS" />
-        <attribute name="comment" level="1" type="STR" />
         <attribute name="userParameters" level="2" type="STR" />
         <attribute name="userPassword" level="2" type="BIN" />
         <attribute name="userPKCS12" level="9" type="BIN" />
@@ -4774,6 +4768,7 @@
         <attribute name="userSharedFolderOther" level="9" type="STRS" />
         <attribute name="userSMIMECertificate" level="2" type="BIN" />
         <attribute name="userWorkstations" level="3" type="STR" />
+        <attribute name="useSiteValues" level="9" type="BOOL" />
         <attribute name="uSNChanged" level="2" type="INT64" />
         <attribute name="uSNCreated" level="2" type="INT64" />
         <attribute name="uSNDSALastObjRemoved" level="9" type="INT64" />
@@ -4794,10 +4789,21 @@
         <attribute name="whenCreated" level="1" type="DATE" />
         <attribute name="winsockAddresses" level="9" type="BIN" />
         <attribute name="wWWHomePage" level="9" type="STR" />
-        <attribute name="url" level="9" type="STRS" />
         <attribute name="x121Address" level="9" type="STRS" />
+        <attribute name="x25CallUserDataIncoming" level="9" type="BIN" />
+        <attribute name="x25CallUserDataOutgoing" level="9" type="BIN" />
+        <attribute name="x25FacilitiesDataIncoming" level="9" type="BIN" />
+        <attribute name="x25FacilitiesDataOutgoing" level="9" type="BIN" />
+        <attribute name="x25LeasedLinePort" level="9" type="BIN" />
+        <attribute name="x25LeasedOrSwitched" level="9" type="BOOL" />
+        <attribute name="x25RemoteMTAPhone" level="9" type="STR" />
+        <attribute name="x400AttachmentType" level="9" type="BIN" />
+        <attribute name="x400SelectorSyntax" level="9" type="INT" />
+        <attribute name="x500RDN" level="9" type="STR" />
         <attribute name="x500uniqueIdentifier" level="9" type="BIN" />
-        <attribute name="userCertificate" level="2" type="BIN" />
+        <attribute name="xMITTimeoutNonUrgent" level="9" type="INT" />
+        <attribute name="xMITTimeoutNormal" level="9" type="INT" />
+        <attribute name="xMITTimeoutUrgent" level="9" type="INT" />
     </attributes>
     <classes>
         <class name="account">
@@ -5112,6 +5118,12 @@
             <attribute name="nisMapName" />
             <attribute name="msSFU30NisDomain" />
             <attribute name="msSFU30Aliases" />
+            <attribute name="msLAPS-EncryptedDSRMPassword" />
+            <attribute name="msLAPS-EncryptedDSRMPasswordHistory" />
+            <attribute name="msLAPS-EncryptedPassword" />
+            <attribute name="msLAPS-EncryptedPasswordHistory" />
+            <attribute name="msLAPS-Password" />
+            <attribute name="msLAPS-PasswordExpirationTime" />
         </class>
         <class name="configuration">
             <attribute name="cn" />
