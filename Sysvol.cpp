@@ -526,7 +526,7 @@ pProcessSysvolFile (
       DWORD dwIdx = 0;
       DWORD dwOutSize;
       LPWSTR szNewFilePath;
-      LPWSTR szGuid;
+      LPWSTR szGuidPosition;
       LPWSTR szShortFileName;
       LARGE_INTEGER largeInt;
       BOOL bCopyFile = FALSE;
@@ -551,7 +551,7 @@ pProcessSysvolFile (
          }
       }
 
-      pSysvolCrackName(szFileName, (LPWSTR)szDomainName, &szNewFilePath, &szGuid, &szShortFileName);
+      pSysvolCrackName(szFileName, (LPWSTR)szDomainName, &szNewFilePath, &szGuidPosition, &szShortFileName);
 
       //
       // Write sysvol.tsv
@@ -567,7 +567,7 @@ pProcessSysvolFile (
       BufferWriteTab(pBuffer);
 
       // Column 'guid'
-      _CallWriteAndGetMax(BufferWrite(pBuffer, szGuid), g_dwSysvolMaxLength[dwIdx]);
+      _CallWriteAndGetMax(BufferWriteStringWithLimit(pBuffer, szGuidPosition, GUID_STR_SIZE), g_dwSysvolMaxLength[dwIdx]);
       ++dwIdx;
       BufferWriteTab(pBuffer);
 
@@ -673,7 +673,7 @@ pProcessSysvolFile (
             WCHAR szOutPath[MAX_PATH];
             BUFFER_DATA Buffer;
 
-            if (szGuid != NULL)
+            if (szGuidPosition != NULL)
             {
                if (pGlobalConfig->bOutputFiles == TRUE)
                {
@@ -683,7 +683,7 @@ pProcessSysvolFile (
                   bResult = FormatNameAndCreateDirectory(
                      szOutPath, MAX_PATH,
                      L"%s\\%s\\%.*s",
-                     pGlobalConfig->szFileSysvolOutDirectory, szDomainName, GUID_STR_SIZE, szGuid
+                     pGlobalConfig->szFileSysvolOutDirectory, szDomainName, GUID_STR_SIZE, szGuidPosition
                   );
                   if (bResult == FALSE)
                      return FALSE;
@@ -691,11 +691,11 @@ pProcessSysvolFile (
 
                if (szShortFileName != NULL)
                {
-                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%.*s\\%llu_%s", szDomainName, GUID_STR_SIZE, szGuid, hArchiveName, szShortFileName);
+                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%.*s\\%llu_%s", szDomainName, GUID_STR_SIZE, szGuidPosition, hArchiveName, szShortFileName);
                }
                else
                {
-                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%.*s\\%llu", szDomainName, GUID_STR_SIZE, szGuid, hArchiveName);
+                  swprintf_s(szOutPath, MAX_PATH, L"%s\\%.*s\\%llu", szDomainName, GUID_STR_SIZE, szGuidPosition, hArchiveName);
                }
             }
             else
