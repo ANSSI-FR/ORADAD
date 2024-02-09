@@ -184,7 +184,7 @@ WriteTextFile (
 }
 
 LPSTR
-LPWSTRtoLPSTR (
+LPWSTRtoUTF8 (
    _In_opt_z_ LPCWSTR szToConvert
 )
 {
@@ -195,7 +195,7 @@ LPWSTRtoLPSTR (
       return NULL;
 
    iSize = WideCharToMultiByte(
-      CP_ACP,
+      CP_UTF8,
       0,
       szToConvert,
       -1,
@@ -212,7 +212,7 @@ LPWSTRtoLPSTR (
       goto Fail;
 
    iSize = WideCharToMultiByte(
-      CP_ACP,
+      CP_UTF8,
       0,
       szToConvert,
       -1,
@@ -231,7 +231,7 @@ LPWSTRtoLPSTR (
 Fail:
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
-      "[!] %sLPWSTRtoLPSTR(%S) failed%s.",
+      "[!] %sLPWSTRtoUTF8(%S) failed%s.",
       COLOR_RED, szToConvert, COLOR_RESET
    );
 

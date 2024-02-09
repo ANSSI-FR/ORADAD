@@ -129,7 +129,7 @@ XmlReadConfigFile (
       hr = pXmlParseError->get_reason(&strError);
 
       RemoveSpecialChars(strError);
-      szError = LPWSTRtoLPSTR(strError);
+      szError = LPWSTRtoUTF8(strError);
 
       if (szError != NULL)
       {
@@ -403,7 +403,7 @@ XmlReadSchemaFile (
       hr = pXmlParseError->get_reason(&strError);
 
       RemoveSpecialChars(strError);
-      szError = LPWSTRtoLPSTR(strError);
+      szError = LPWSTRtoUTF8(strError);
 
       if (szError != NULL)
       {

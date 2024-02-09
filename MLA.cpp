@@ -136,7 +136,7 @@ MlaInit (
    {
       LPSTR szAdditionalMlaKeysA;
 
-      szAdditionalMlaKeysA = LPWSTRtoLPSTR(g_GlobalConfig.szAdditionalMlaKeys);
+      szAdditionalMlaKeysA = LPWSTRtoUTF8(g_GlobalConfig.szAdditionalMlaKeys);
       if (szAdditionalMlaKeysA == NULL)
       {
          return FALSE;
@@ -214,7 +214,7 @@ MlaAddFile (
 #endif
    LPSTR szFilenameA;
 
-   szFilenameA = LPWSTRtoLPSTR(szFilePath);
+   szFilenameA = LPWSTRtoUTF8(szFilePath);
    if (szFilenameA == NULL)
    {
       *phMlaFile = NULL;

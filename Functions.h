@@ -108,7 +108,7 @@ WriteTextFile(
 );
 
 LPSTR
-LPWSTRtoLPSTR(
+LPWSTRtoUTF8(
    _In_opt_z_ LPCWSTR szToConvert
 );
 

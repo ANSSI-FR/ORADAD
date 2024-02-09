@@ -41,7 +41,6 @@
    <confidential>0</confidential>
    <process_sysvol>1</process_sysvol>                  <!-- Process domains sysvol -->
    <sysvol_filter>*\GPT.INI;*\GPE.INI;*\comment.cmtx;*\Registry.pol;*\GptTmpl.inf;*\audit.csv;*\scripts.ini;*\psscripts.ini;*\*.aas;*\ScheduledTasks.xml;*\Groups.xml;*\Registry.xml;*\InternetSettings.xml;*\Shortcuts.xml;*\Devices.xml;*\EnvironmentVariables.xml;*\FolderOptions.xml;*\Services.xml;*\*.cmd;*\*.bat;*\*.vbs;*\*.vbe;*\*.ps1;*\*.reg</sysvol_filter>  <!-- Files to collect from sysvol -->
-   <writeHeader>0</writeHeader>
    <sleepTime>0</sleepTime>
 
    <outputFiles>0</outputFiles>                        <!-- Enable output cleartext files -->
