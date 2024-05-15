@@ -331,17 +331,18 @@ MetadataCreateFile (
    GetFileVersion(szMetadata, MAX_METADATA_VALUE);
    MetadataWriteFile(pGlobalConfig, L"oradad_version", szMetadata);
 
+   // Token and computer info
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->TokenType);
+   MetadataWriteFile(pGlobalConfig, L"token_type", szMetadata);
+
    bResult = GetComputerNameEx(ComputerNameDnsFullyQualified, szMetadata, &dwComputerNameSize);
    if (bResult == TRUE)
       MetadataWriteFile(pGlobalConfig, L"computer_name", szMetadata);
 
-   // Token and computer info
-   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->TokenType);
-   MetadataWriteFile(pGlobalConfig, L"token_type", szMetadata);
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d (%d.%d)", pGlobalConfig->osvi.wProductType, pGlobalConfig->osvi.dwMajorVersion, pGlobalConfig->osvi.dwMinorVersion);
    MetadataWriteFile(pGlobalConfig, L"product_type", szMetadata);
 
-   // Parameters from config
+   // Parameters from config file
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwLevel);
    MetadataWriteFile(pGlobalConfig, L"oradad|config|level", szMetadata);
 
@@ -359,6 +360,15 @@ MetadataCreateFile (
 
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bWriteHeader);
    MetadataWriteFile(pGlobalConfig, L"oradad|config|writeHeader", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->bProcessSysvol);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|processSysvol", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s", pGlobalConfig->szSysvolFilter);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|sysvolFilter", szMetadata);
+
+   swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwConfidential);
+   MetadataWriteFile(pGlobalConfig, L"oradad|config|confidential", szMetadata);
 
    for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
    {
