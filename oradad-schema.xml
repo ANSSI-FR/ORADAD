@@ -11182,7 +11182,7 @@
             <attribute name="pwdHistoryLength" />
             <attribute name="oEMInformation" />
             <attribute name="objectSid" />
-            <attribute name="nTSecurityDescriptor" />
+            <!--<attribute name="nTSecurityDescriptor" />      Already in top class -->
             <attribute name="nextRid" />
             <attribute name="modifiedCountAtLastProm" />
             <attribute name="modifiedCount" />
@@ -11216,7 +11216,7 @@
             <attribute name="securityIdentifier" />
             <attribute name="sAMAccountType" />
             <attribute name="rid" />
-            <attribute name="nTSecurityDescriptor" />
+            <!--<attribute name="nTSecurityDescriptor" />      Already in top class -->
             <attribute name="msDS-KeyVersionNumber" />
             <attribute name="altSecurityIdentities" />
             <attribute name="accountNameHistory" />
