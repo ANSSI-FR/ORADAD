@@ -845,7 +845,7 @@ pAddClassToRequest (
          hr = pXmlSubNode->get_attributes(&pXmlNodeAttributeAttributes);
          hr = pXmlNodeAttributeAttributes->getNamedItem((BSTR)L"name", &pXmlNodeAttributeName);
          hr = pXmlNodeAttributeName->get_text(&szName);
-         szAttributes[i] = (LPWSTR)szName;
+         szAttributes[dwAttributesCount] = (LPWSTR)szName;
          dwAttributesCount++;
 
          _SafeCOMRelease(pXmlNodeAttributeName);
