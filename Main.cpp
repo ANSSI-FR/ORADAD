@@ -14,6 +14,7 @@
 #pragma comment(lib, "crypt32.lib")
 #pragma comment(lib, "shlwapi.lib")
 #pragma comment(lib, "bcrypt.lib")           // Required by the Rust runtime
+#pragma comment(lib, "ntdll.lib")            // Required by the Rust runtime
 
 HANDLE g_hHeap = NULL;
 HANDLE g_hStdOut;
