@@ -464,7 +464,7 @@
         <request>
             <name>dnsZone</name>
             <description>All DNS zones from DNS partitions</description>
-            <base>domainDNS,forestDNS</base>
+            <base>domain,domainDNS,forestDNS</base>
             <scope>subtree</scope>
             <filter>(objectClass=dnsZone)</filter>
             <classes>dnsZone</classes>
@@ -472,7 +472,7 @@
         <request>
             <name>dnsNode</name>
             <description>All DNS entries from DNS partitions</description>
-            <base>domainDNS,forestDNS</base>
+            <base>domain,domainDNS,forestDNS</base>
             <scope>subtree</scope>
             <filter>(objectClass=dnsNode)</filter>
             <classes>dnsNode</classes>
