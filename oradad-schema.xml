@@ -389,6 +389,14 @@
             <classes>nTDSDSA,applicationSettings</classes>
         </request>
         <request>
+            <name>msDNS-ServerSettings</name>
+            <description>All msDNS-ServerSettings from configuration</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDNS-ServerSettings)</filter>
+            <classes>msDNS-ServerSettings</classes>
+        </request>
+        <request>
             <name>nTDSConnection</name>
             <description>All nTDSConnection from configuration</description>
             <base>configuration</base>
