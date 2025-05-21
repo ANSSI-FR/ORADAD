@@ -39,6 +39,7 @@
         </request>
         <!-- Domain -->
         <request>
+            <!-- This query must return only 1 record. ADP will fail otherwise -->
             <name>root</name>
             <description>Root from domain</description>
             <base>domain</base>

@@ -232,6 +232,7 @@ LdapProcessRequest (
    _In_ BOOL bIsRootDSE
 )
 {
+   BOOL bReturn = TRUE;
    BOOL bResult;
    BOOL bBufferOpen = FALSE;
    WCHAR szRelativePath[MAX_PATH];
@@ -1291,6 +1292,23 @@ LdapProcessRequest (
          dwObjectCount,
          dwObjectCount > 1 ? "s" : ""
       );
+
+      //
+      // Special case for the `root` query: this query must return exactly 1 result
+      //
+      if (wcscmp(pRequest->szName, L"root") == 0)
+      {
+         if (dwObjectCount != 1)
+         {
+            Log(
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+               "   [!] %sQuery `root` failed%s. This query must return 1 record but %d was returned.",
+               COLOR_RED, COLOR_RESET,
+               dwObjectCount
+            );
+            bReturn = FALSE;
+         }
+      }
    }
 
    if (bWriteTableInfo == TRUE)
@@ -1300,7 +1318,7 @@ LdapProcessRequest (
 
    _SafeHeapRelease(pAttributes);
 
-   return TRUE;
+   return bReturn;
 }
 
 //

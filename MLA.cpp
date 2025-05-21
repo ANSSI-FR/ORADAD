@@ -16,7 +16,7 @@
 #define MLA_RELEASE ""
 #endif
 #pragma comment(lib, "mla\\libmla-windows-" MLA_ARCH MLA_RELEASE "\\mla.lib")
-#pragma comment(lib, "bcrypt.lib")
+//#pragma comment(lib, "bcrypt.lib")
 
 // Compression level 5 found to be most efficient for ORADAD's CSV files and execution time constraints
 //const uint32_t ulGlobalCompressionLevel = 5;
