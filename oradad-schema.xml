@@ -96,6 +96,14 @@
             <classes>person,organizationalPerson,user,computer,msDS-GroupManagedServiceAccount</classes>
         </request>
         <request>
+            <name>dmsa</name>
+            <description>All dMSA from domain</description>
+            <base>domain</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msDS-DelegatedManagedServiceAccount)</filter>
+            <classes>person,organizationalPerson,user,computer,msDS-DelegatedManagedServiceAccount</classes>
+        </request>
+        <request>
             <name>group</name>
             <description>All groups from domain and configuration</description>
             <base>domain,configuration</base>
@@ -1403,12 +1411,6 @@
         <attribute name="mS-DS-ReplicatesNCReason" level="2" type="BIN" />
         <attribute name="ms-Mcs-AdmPwd" level="9" type="STR" flags="confidential" />
         <attribute name="ms-Mcs-AdmPwdExpirationTime" level="4" type="INT64" />
-        <attribute name="msLAPS-EncryptedDSRMPassword" level="4" type="BIN" flags="confidential" />
-        <attribute name="msLAPS-EncryptedDSRMPasswordHistory" level="4" type="BIN" flags="confidential" />
-        <attribute name="msLAPS-EncryptedPassword" level="4" type="BIN" flags="confidential" />
-        <attribute name="msLAPS-EncryptedPasswordHistory" level="4" type="BIN" flags="confidential" />
-        <attribute name="msLAPS-Password" level="4" type="STR" flags="confidential"/>
-        <attribute name="msLAPS-PasswordExpirationTime" level="4" type="INT64" filter="Filetime" />
         <attribute name="ms-net-ieee-80211-GP-PolicyData" level="9" type="STR" />
         <attribute name="ms-net-ieee-80211-GP-PolicyGUID" level="9" type="STR" />
         <attribute name="ms-net-ieee-80211-GP-PolicyReserved" level="9" type="BIN" />
@@ -1638,6 +1640,7 @@
         <attribute name="msDS-CustomKeyInformation" level="9" type="BIN" />
         <attribute name="msDS-DateTime" level="9" type="DATE" />
         <attribute name="msDS-DefaultQuota" level="9" type="INT" />
+        <attribute name="msDS-DelegatedMSAState" level="3" type="INT" />
         <attribute name="msDS-DeletedObjectLifetime" level="1" type="INT" />
         <attribute name="msDS-DeviceDN" level="9" type="STR" />
         <attribute name="msDS-DeviceID" level="9" type="BIN" />
@@ -1711,6 +1714,8 @@
         <attribute name="msDS-LockoutObservationWindow" level="1" type="INT64" filter="NegFiletime" />
         <attribute name="msDS-LockoutThreshold" level="1" type="INT" />
         <attribute name="msDS-LogonTimeSyncInterval" level="2" type="INT" />
+        <attribute name="msDS-ManagedAccountPrecededByLink" level="3" type="STR" />
+        <attribute name="msDS-ManagedAccountPrecededByLinkBL" level="3" type="STR" />
         <attribute name="msDS-ManagedPassword" level="9" type="BIN" />
         <attribute name="msDS-ManagedPasswordId" level="1" type="BIN" />
         <attribute name="msDS-ManagedPasswordInterval" level="3" type="INT" />
@@ -1810,6 +1815,9 @@
         <attribute name="msDS-SourceObjectDN" level="3" type="STR" />
         <attribute name="msDS-SPNSuffixes" level="1" type="STRS" />
         <attribute name="msDS-StrongNTLMPolicy" level="1" type="INT" />
+        <attribute name="msDS-SupersededManagedAccountLink" level="3" type="STR" />
+        <attribute name="msDS-SupersededManagedAccountLinkBL" level="3" type="STR" />
+        <attribute name="msDS-SupersededServiceAccountState" level="3" type="INT" />
         <attribute name="msDS-SupportedEncryptionTypes" level="1" type="INT" filter="supportedEncryptionTypes" />
         <attribute name="msDS-SyncServerUrl" level="9" type="STRS" />
         <attribute name="msDS-TasksForAzRole" level="9" type="STRS" />
@@ -3986,6 +3994,12 @@
         <attribute name="msKds-SecretAgreementParam" level="9" type="BIN" flags="confidential" />
         <attribute name="msKds-UseStartTime" level="9" type="INT64" flags="confidential" limit="99999" />
         <attribute name="msKds-Version" level="9" type="INT" flags="confidential" limit="99999" />
+        <attribute name="msLAPS-EncryptedDSRMPassword" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-EncryptedDSRMPasswordHistory" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-EncryptedPassword" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-EncryptedPasswordHistory" level="4" type="BIN" flags="confidential" />
+        <attribute name="msLAPS-Password" level="4" type="STR" flags="confidential"/>
+        <attribute name="msLAPS-PasswordExpirationTime" level="4" type="INT64" filter="Filetime" />
         <attribute name="MSMQ-MulticastAddress" level="9" type="STR" />
         <attribute name="msMQ-Recipient-FormatName" level="9" type="STR" />
         <attribute name="MSMQ-SecuredSource" level="9" type="BOOL" />
@@ -6260,6 +6274,15 @@
             <attribute name="msDS-cloudExtensionAttribute2" />
             <attribute name="msDS-cloudExtensionAttribute1" />
         </class>
+        <class name="msDS-DelegatedManagedServiceAccount">
+            <attribute name="msDS-DelegatedMSAState" />
+            <attribute name="msDS-GroupMSAMembership" />
+            <attribute name="msDS-ManagedAccountPrecededByLink" />
+            <attribute name="msDS-ManagedPassword" />
+            <attribute name="msDS-ManagedPasswordId" />
+            <attribute name="msDS-ManagedPasswordInterval" />
+            <attribute name="msDS-ManagedPasswordPreviousId" />
+         </class>
         <class name="msDS-Device">
             <attribute name="msDS-DeviceID" />
             <attribute name="msDS-IsEnabled" />
@@ -11524,6 +11547,8 @@
             <attribute name="msDFSR-MemberReferenceBL" />
             <attribute name="msDS-ObjectReferenceBL" />
             <attribute name="parentGUID" />
+            <attribute name="msDS-SupersededManagedAccountLinkBL" />
+            <attribute name="msDS-ManagedAccountPrecededByLinkBL" />
         </class>
         <class name="trustedDomain">
             <attribute name="msDS-EgressClaimsTransformationPolicy" />
@@ -11737,6 +11762,8 @@
             <attribute name="departmentNumber" />
             <attribute name="carLicense" />
             <attribute name="audio" />
+            <attribute name="msDS-SupersededServiceAccountState" />
+            <attribute name="msDS-SupersededManagedAccountLink" />
         </class>
         <class name="volume">
             <attribute name="uNCName" />

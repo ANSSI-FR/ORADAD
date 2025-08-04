@@ -34,7 +34,7 @@ BufferInitialize (
 
    // Create buffer
    ZeroMemory(pBuffer, sizeof(BUFFER_DATA));
-   pBuffer->BufferSize = 1024 * 1024;
+   pBuffer->BufferSize = READ_BUFFER_SIZE;
    pBuffer->pbData = (PBYTE)_HeapAlloc(pBuffer->BufferSize);
 
    if (g_GlobalConfig.bOutputFiles == TRUE)
@@ -406,10 +406,43 @@ pBufferWriteInternal (
    if (dwNumberOfBytesToWrite == 0)
       return 0;
 
-   if (dwNumberOfBytesToWrite >= pBuffer->BufferSize)
+   if (dwNumberOfBytesToWrite > pBuffer->BufferSize)
    {
-      // Can't write data bigger than buffer size
-      return 0;
+      BOOL bResult;
+      DWORD dwTotalBytesWritten = 0;
+
+      // Data bigger than buffer size
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+         "[!] %sBuffer is too small to receive the data%s (data size=%u).",
+         COLOR_YELLOW, COLOR_RESET,
+         dwNumberOfBytesToWrite
+      );
+
+      // Save current buffer
+      bResult = BufferSave(pBuffer);
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sUnable to save buffer%s.",
+            COLOR_RED, COLOR_RESET
+         );
+         return 0;
+      }
+
+      while (dwTotalBytesWritten != dwNumberOfBytesToWrite)
+      {
+         DWORD dwBytesWritten = 0;
+         DWORD dwBytesToWrite;
+
+         dwBytesToWrite = min((DWORD)pBuffer->BufferSize, dwNumberOfBytesToWrite - dwTotalBytesWritten);
+
+         dwBytesWritten = pBufferWriteInternal(pBuffer, &((PBYTE)pvData)[dwTotalBytesWritten], dwBytesToWrite);
+         dwTotalBytesWritten += dwBytesWritten;
+      }
+
+      return dwTotalBytesWritten;
    }
    else if ((pBuffer->BufferSize - pBuffer->Position) >= dwNumberOfBytesToWrite)
    {
