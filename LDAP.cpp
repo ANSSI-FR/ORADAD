@@ -802,6 +802,9 @@ LdapProcessRequest (
 
                case TYPE_STRS:
                {
+                  DWORD pdwFieldWritten = 0;
+                  BOOL bWriteError = TRUE;
+
                   ppValue = ldap_get_values(pLdapHandle, pEntry, pAttribute);
 
                   if (ppValue != NULL)
@@ -817,12 +820,12 @@ LdapProcessRequest (
                         {
                            if (k == 0)
                            {
-                              dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValue[k], (*pAttributes[j]).dwLimit);
+                              dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValue[k], (*pAttributes[j]).dwLimit, &pdwFieldWritten, &bWriteError, szDn, pAttribute);
                            }
                            else
                            {
                               dwTotalSize += BufferWriteSemicolon(pBuffer);
-                              dwTotalSize += BufferWrite(pBuffer, ppValue[k]);
+                              dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValue[k], (*pAttributes[j]).dwLimit, &pdwFieldWritten, &bWriteError, szDn, pAttribute);
                            }
                         }
 
@@ -866,12 +869,12 @@ LdapProcessRequest (
                               {
                                  if (k == 0)
                                  {
-                                    dwTotalSize += BufferWrite(pBuffer, ppValueRange[k]);
+                                    dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValueRange[k], (*pAttributes[j]).dwLimit, &pdwFieldWritten, &bWriteError, szDn, pAttribute);
                                  }
                                  else
                                  {
                                     dwTotalSize += BufferWriteSemicolon(pBuffer);
-                                    dwTotalSize += BufferWrite(pBuffer, ppValueRange[k]);
+                                    dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValueRange[k], (*pAttributes[j]).dwLimit, &pdwFieldWritten, &bWriteError, szDn, pAttribute);
                                  }
                               }
 
@@ -895,7 +898,7 @@ LdapProcessRequest (
                                  for (ULONG k = 0; k < ulValues; k++)
                                  {
                                     dwTotalSize += BufferWriteSemicolon(pBuffer);
-                                    dwTotalSize += BufferWrite(pBuffer, ppValueRange[k]);
+                                    dwTotalSize += BufferWriteStringWithLimit(pBuffer, ppValueRange[k], (*pAttributes[j]).dwLimit, &pdwFieldWritten, &bWriteError, szDn, pAttribute);
                                  }
 
                                  ldap_value_free(ppValueRange);

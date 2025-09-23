@@ -9,6 +9,8 @@ extern GLOBAL_CONFIG g_GlobalConfig;
 
 #define READ_BUFFER_SIZE 1024 * 1024
 
+#define MAX_FIELD_SIZE   1024 * 1024
+
 //
 // Private functions
 //
@@ -16,7 +18,11 @@ DWORD
 pBufferWriteInternal(
    _In_ PBUFFER_DATA pBuffer,
    _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
-   _In_ DWORD dwNumberOfBytesToWrite
+   _In_ DWORD dwNumberOfBytesToWrite,
+   _Inout_opt_ PDWORD pdwFieldWritten,
+   _Inout_opt_ PBOOL pbWriteError,
+   _In_opt_z_ LPWSTR szDn,
+   _In_opt_z_ LPWSTR szAttribute
 );
 
 //
@@ -88,7 +94,7 @@ BufferInitialize (
    {
       BYTE pbBomUTF16LE[2] = { 0xFF, 0xFE };
 
-      pBufferWriteInternal(pBuffer, pbBomUTF16LE, 2);
+      pBufferWriteInternal(pBuffer, pbBomUTF16LE, 2, NULL, NULL, NULL, NULL);
    }
 
    return TRUE;
@@ -130,7 +136,11 @@ BufferClose (
 DWORD
 BufferWrite (
    _In_ PBUFFER_DATA pBuffer,
-   _In_opt_z_ LPWSTR szString
+   _In_opt_z_ LPWSTR szString,
+   _Inout_opt_ PDWORD pdwFieldWritten,
+   _Inout_opt_ PBOOL pbWriteError,
+   _In_opt_z_ LPWSTR szDn,
+   _In_opt_z_ LPWSTR szAttribute
 )
 {
    size_t StringSize;
@@ -152,20 +162,33 @@ BufferWrite (
    else if (StringSize == 0)
       return 0;
    else
-      return pBufferWriteInternal(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)));
+      return pBufferWriteInternal(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)), pdwFieldWritten, pbWriteError, szDn, szAttribute);
+}
+
+DWORD
+BufferWrite (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString
+)
+{
+   return BufferWrite(pBuffer, szString, NULL, NULL, NULL, NULL);
 }
 
 DWORD
 BufferWriteStringWithLimit (
    _In_ PBUFFER_DATA pBuffer,
    _In_opt_z_ LPWSTR szString,
-   _In_ DWORD dwLimit
+   _In_ DWORD dwLimit,
+   _Inout_opt_ PDWORD pdwFieldWritten,
+   _Inout_opt_ PBOOL pbWriteError,
+   _In_opt_z_ LPWSTR szDn,
+   _In_opt_z_ LPWSTR szAttribute
 )
 {
    size_t StringSize;
 
    if (dwLimit == 0)
-      return BufferWrite(pBuffer, szString);
+      return BufferWrite(pBuffer, szString, pdwFieldWritten, pbWriteError, szDn, szAttribute);
 
    if (pBuffer == NULL)
       return 0;
@@ -184,7 +207,17 @@ BufferWriteStringWithLimit (
    else if (StringSize == 0)
       return 0;
    else
-      return pBufferWriteInternal(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)));
+      return pBufferWriteInternal(pBuffer, szString, (DWORD)(StringSize * sizeof(WCHAR)), pdwFieldWritten, pbWriteError, szDn, szAttribute);
+}
+
+DWORD
+BufferWriteStringWithLimit (
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString,
+   _In_ DWORD dwLimit
+)
+{
+   return BufferWriteStringWithLimit(pBuffer, szString, dwLimit, NULL, NULL, NULL, NULL);
 }
 
 DWORD
@@ -285,7 +318,7 @@ BufferWriteFromFile (
       }
 
       liFilePos.QuadPart += dwReadLength;
-      dwBytesWritten = pBufferWriteInternal(pBuffer, pReadBuffer, dwReadLength);
+      dwBytesWritten = pBufferWriteInternal(pBuffer, pReadBuffer, dwReadLength, NULL, NULL, NULL, NULL);
    }
 
    _SafeHeapRelease(pReadBuffer);
@@ -306,7 +339,7 @@ BufferWriteHex (
       WCHAR szChar[3];
 
       swprintf_s(szChar, 3, L"%02x", pbData[i]);
-      dwDataSizeSum += pBufferWriteInternal(pBuffer, szChar, 4);
+      dwDataSizeSum += pBufferWriteInternal(pBuffer, szChar, 4, NULL, NULL, NULL, NULL);
    }
 
    return dwDataSizeSum;
@@ -317,7 +350,7 @@ BufferWriteLine (
    _In_ PBUFFER_DATA pBuffer
 )
 {
-   return pBufferWriteInternal(pBuffer, (LPVOID)L"\r\n", 2 * sizeof(WCHAR));
+   return pBufferWriteInternal(pBuffer, (LPVOID)L"\r\n", 2 * sizeof(WCHAR), NULL, NULL, NULL, NULL);
 }
 
 DWORD
@@ -325,7 +358,7 @@ BufferWriteTab (
    _In_ PBUFFER_DATA pBuffer
 )
 {
-   return pBufferWriteInternal(pBuffer, (LPVOID)L"\t", 2);
+   return pBufferWriteInternal(pBuffer, (LPVOID)L"\t", 2, NULL, NULL, NULL, NULL);
 }
 
 DWORD
@@ -333,7 +366,7 @@ BufferWriteSemicolon (
    _In_ PBUFFER_DATA pBuffer
 )
 {
-   return pBufferWriteInternal(pBuffer, (LPVOID)L";", 2);
+   return pBufferWriteInternal(pBuffer, (LPVOID)L";", 2, NULL, NULL, NULL, NULL);
 }
 
 BOOL
@@ -391,7 +424,11 @@ DWORD
 pBufferWriteInternal (
    _In_ PBUFFER_DATA pBuffer,
    _In_reads_bytes_opt_(dwNumberOfBytesToWrite) LPVOID pvData,
-   _In_ DWORD dwNumberOfBytesToWrite
+   _In_ DWORD dwNumberOfBytesToWrite,
+   _Inout_opt_ PDWORD pdwFieldWritten,
+   _Inout_opt_ PBOOL pbWriteError,
+   _In_opt_z_ LPWSTR szDn,
+   _In_opt_z_ LPWSTR szAttribute
 )
 {
    if (pBuffer == NULL)
@@ -405,6 +442,34 @@ pBufferWriteInternal (
 
    if (dwNumberOfBytesToWrite == 0)
       return 0;
+
+   //
+   // If the data written to the field exceeds MAX_FIELD_SIZE,
+   // the rest of the data is truncated to never exceed MAX_FIELD_SIZE
+   //  - The size written in the field is given by pdwFieldWritten
+   //  - pbWriteError allows, in case of truncation, to display
+   //    an error message only once for the field
+   //
+   if (pdwFieldWritten != NULL)
+   {
+      if ((*pdwFieldWritten + dwNumberOfBytesToWrite) > MAX_FIELD_SIZE)
+      {
+         dwNumberOfBytesToWrite = (MAX_FIELD_SIZE - *pdwFieldWritten);
+         if (pbWriteError != NULL)
+         {
+            if (*pbWriteError == TRUE)
+            {
+               Log(
+                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+                  "[!] %sAttribute is truncated%s (%s|%s).",
+                  COLOR_YELLOW, COLOR_RESET,
+                  szDn, szAttribute
+               );
+               *pbWriteError = FALSE;
+            }
+         }
+      }
+   }
 
    if (dwNumberOfBytesToWrite > pBuffer->BufferSize)
    {
@@ -431,6 +496,7 @@ pBufferWriteInternal (
          return 0;
       }
 
+      // Write chunk by chunk
       while (dwTotalBytesWritten != dwNumberOfBytesToWrite)
       {
          DWORD dwBytesWritten = 0;
@@ -438,8 +504,10 @@ pBufferWriteInternal (
 
          dwBytesToWrite = min((DWORD)pBuffer->BufferSize, dwNumberOfBytesToWrite - dwTotalBytesWritten);
 
-         dwBytesWritten = pBufferWriteInternal(pBuffer, &((PBYTE)pvData)[dwTotalBytesWritten], dwBytesToWrite);
+         dwBytesWritten = pBufferWriteInternal(pBuffer, &((PBYTE)pvData)[dwTotalBytesWritten], dwBytesToWrite, pdwFieldWritten, pbWriteError, szDn, szAttribute);
          dwTotalBytesWritten += dwBytesWritten;
+         if (pdwFieldWritten != NULL)
+            *pdwFieldWritten += dwBytesWritten;
       }
 
       return dwTotalBytesWritten;
@@ -449,6 +517,8 @@ pBufferWriteInternal (
       // Copy data to buffer
       memcpy(pBuffer->pbData + pBuffer->Position, pvData, dwNumberOfBytesToWrite);
       pBuffer->Position += dwNumberOfBytesToWrite;
+      if (pdwFieldWritten != NULL)
+         *pdwFieldWritten += dwNumberOfBytesToWrite;
       return dwNumberOfBytesToWrite;
    }
    else
@@ -470,6 +540,8 @@ pBufferWriteInternal (
       // Copy data to buffer
       memcpy(pBuffer->pbData + pBuffer->Position, pvData, dwNumberOfBytesToWrite);
       pBuffer->Position += dwNumberOfBytesToWrite;
+      if (pdwFieldWritten != NULL)
+         *pdwFieldWritten += dwNumberOfBytesToWrite;
       return dwNumberOfBytesToWrite;
    }
 }

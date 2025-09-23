@@ -210,10 +210,31 @@ BufferWrite(
 );
 
 DWORD
+BufferWrite(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString,
+   _Inout_opt_ PDWORD pdwFieldWritten,
+   _Inout_opt_ PBOOL pbWriteError,
+   _In_opt_z_ LPWSTR szDn,
+   _In_opt_z_ LPWSTR szAttribute
+);
+
+DWORD
 BufferWriteStringWithLimit(
    _In_ PBUFFER_DATA pBuffer,
    _In_opt_z_ LPWSTR szString,
    _In_ DWORD dwLimit
+);
+
+DWORD
+BufferWriteStringWithLimit(
+   _In_ PBUFFER_DATA pBuffer,
+   _In_opt_z_ LPWSTR szString,
+   _In_ DWORD dwLimit,
+   _Inout_opt_ PDWORD pdwFieldWritten,
+   _Inout_opt_ PBOOL pbWriteError,
+   _In_opt_z_ LPWSTR szDn,
+   _In_opt_z_ LPWSTR szAttribute
 );
 
 DWORD
