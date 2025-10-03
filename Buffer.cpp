@@ -461,7 +461,7 @@ pBufferWriteInternal (
             {
                Log(
                   __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
-                  "[!] %sAttribute is truncated%s (%s|%s).",
+                  "[!] %sAttribute is truncated%s (%S|%S).",
                   COLOR_YELLOW, COLOR_RESET,
                   szDn, szAttribute
                );
