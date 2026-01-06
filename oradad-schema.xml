@@ -817,7 +817,7 @@
         <attribute name="aDMD" level="9" type="STR" />
         <attribute name="adminContextMenu" level="4" type="STRS" />
         <attribute name="adminCount" level="1" type="INT" />
-        <attribute name="adminDescription" level="9" type="STR" />
+        <attribute name="adminDescription" level="4" type="STR" />
         <attribute name="adminDisplayName" level="4" type="STR" />
         <attribute name="adminExtensionDLL" level="9" type="STR" />
         <attribute name="adminMultiselectPropertyPages" level="9" type="STRS" />
