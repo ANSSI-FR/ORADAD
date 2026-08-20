@@ -312,12 +312,19 @@ MlaAddFileFromFile (
             __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
             "[!] %sCannot read file %s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
          );
-         break;
+         goto End;
       }
 
       liFilePos.QuadPart += dwReadLength;
       bResult = MlaBufferWrite(hMlaFile, pReadBuffer, dwReadLength);
-      goto End;
+      if (bResult == FALSE)
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sCannot write file %s (error %u).", COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         goto End;
+      }
    }
 
    bReturn = TRUE;
