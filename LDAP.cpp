@@ -108,7 +108,11 @@ LdapGetRootDse (
    }
 
    pEntry = ldap_first_entry(pLdapHandle, pLdapMessage);
+   if (pEntry == NULL)
+      return FALSE;
    pAttribute = ldap_first_attribute(pLdapHandle, pEntry, &pBer);
+   if (pAttribute == NULL)
+      return FALSE;
 
    pRootDse->bIsLocalAdmin = FALSE;
    pRootDse->dwNamingContextsCount = 0;
@@ -149,6 +153,8 @@ LdapGetRootDse (
             ulValues = ldap_count_values(ppValue);
 
             pRootDse->pszNamingContexts = (LPWSTR*)_HeapAlloc(ulValues * sizeof(LPWSTR));
+            if (pRootDse->pszNamingContexts == NULL)
+               return FALSE;
 
             for (ULONG i = 0; i < ulValues; i++)
             {
@@ -265,7 +271,8 @@ LdapProcessRequest (
             "[!] %sCannot allocate memory%s (error %u).",
             COLOR_RED, COLOR_RESET, GetLastError()
          );
-         return FALSE;
+         bReturn = FALSE;
+         goto Final;
       }
 
       for (DWORD i = 0; i < dwAttributesCount; i++)
@@ -310,7 +317,8 @@ LdapProcessRequest (
             "[!] %sCannot allocate memory%s (error %u).",
             COLOR_RED, COLOR_RESET, GetLastError()
          );
-         return FALSE;
+         bReturn = FALSE;
+         goto Final;
       }
 
       for (DWORD i = 0; i < dwAttributesCount; i++)
@@ -403,7 +411,8 @@ LdapProcessRequest (
    }
    else
    {
-      return FALSE;
+      bReturn = FALSE;
+      goto Final;
    }
 
    //
@@ -456,7 +465,8 @@ LdapProcessRequest (
             "[!] %sCannot allocate memory%s (error %u).",
             COLOR_RED, COLOR_RESET, GetLastError()
          );
-         return FALSE;
+         bReturn = FALSE;
+         goto Final;
       }
 
       ullStartTime = GetTickCount64();
@@ -471,9 +481,15 @@ LdapProcessRequest (
       //
       bResult = BufferInitialize(&Buffer, szRelativePath, TRUE, FALSE);
       if (bResult == FALSE)
-         return FALSE;
+      {
+         _SafeHeapRelease(controlArray);
+         bReturn = FALSE;
+         goto Final;
+      }
       else
+      {
          bBufferOpen = TRUE;
+      }
 
       pBuffer = &Buffer;
 
@@ -539,7 +555,8 @@ LdapProcessRequest (
             if (bBufferOpen == TRUE)
                BufferClose(&Buffer);
 
-            return FALSE;
+            bReturn = FALSE;
+            goto Final;
          }
 
          // Add page control in controlArray[0]
@@ -571,7 +588,8 @@ LdapProcessRequest (
                if (bBufferOpen == TRUE)
                   BufferClose(&Buffer);
 
-               return FALSE;
+               bReturn = FALSE;
+               goto Final;
             }
 
             pBerElmt = ber_alloc_t(LBER_USE_DER);
@@ -611,6 +629,11 @@ LdapProcessRequest (
          // Note: dn can't be requested in attribute list. We get it by ldap_get_dn().
          //
          pszAttributes = (LPWSTR*)_HeapAlloc(((size_t)dwAttributesCount + 1) * sizeof(LPWSTR));   // +1 for NULL (list terminator)
+         if (pszAttributes == NULL)
+         {
+            bReturn = FALSE;
+            goto Final;
+         }
          for (DWORD i = 0; i < dwAttributesCount; i++)
             pszAttributes[i] = (*pAttributes[i]).szName;
 
@@ -638,8 +661,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_search_ext_s('%S', '%S')%s (error %u: %s).",
                COLOR_RED, szLdapBase, pRequest->szFilter, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            return FALSE;
-            //goto End;
+            bReturn = FALSE;
+            goto Final;
          }
 
          ulEntriesCount = ldap_count_entries(
@@ -655,12 +678,17 @@ LdapProcessRequest (
          {
             LPWSTR szDn;
             BOOL bHasRange;
-            BOOL bIsRoot = FALSE;
+            BOOL bIsRootDomain = FALSE;
 
             if (i == 0)
                pEntry = ldap_first_entry(pLdapHandle, pLdapMessage);
             else
                pEntry = ldap_next_entry(pLdapHandle, pEntry);
+            if (pEntry == NULL)
+            {
+               bReturn = FALSE;
+               goto Final;
+            }
 
             szDn = ldap_get_dn(pLdapHandle, pEntry);
 
@@ -681,10 +709,18 @@ LdapProcessRequest (
 
                   _CallWriteAndGetMax(BufferWrite(pBuffer, szDn), pRequest->dwStringMaxLengthDn);
 
-                  szDnDns = ConvertDnToDns(szDn);
+                  //
+                  // Check if DN is for root domain (to detect forest GUID)
+                  //
+                  szDnDns = ConvertDnToDns(szDn, FALSE);
+                  if (szDnDns == NULL)
+                  {
+                     bReturn = FALSE;
+                     goto Final;
+                  }
 
                   if (_wcsicmp(szDnDns, szRootDns) == 0)
-                     bIsRoot = TRUE;
+                     bIsRootDomain = TRUE;
 
                   _SafeHeapRelease(szDnDns);
                }
@@ -1026,23 +1062,34 @@ LdapProcessRequest (
 
                   if (ppval)
                   {
-                     LPWSTR szGuid = NULL;
-
-                     (void)UuidToString((UUID*)ppval[0]->bv_val, (RPC_WSTR*)&szGuid);
-
-                     if (szGuid != NULL)
+                     if (ppval[0]->bv_len == sizeof(GUID))
                      {
-                        BufferWrite(pBuffer, szGuid);;
+                        LPWSTR szGuid = NULL;
 
-                        if ((bIsTop == TRUE) && (bIsRoot == TRUE))
+                        (void)UuidToString((UUID*)ppval[0]->bv_val, (RPC_WSTR*)&szGuid);
+
+                        if (szGuid != NULL)
                         {
-                           if (_wcsicmp(pAttribute, L"objectGUID") == 0)
-                           {
-                              MetadataWriteFile(pGlobalConfig, L"forest|rootguid", szGuid);
-                           }
-                        }
+                           BufferWrite(pBuffer, szGuid);;
 
-                        RpcStringFree((RPC_WSTR*)&szGuid);
+                           if ((bIsTop == TRUE) && (bIsRootDomain == TRUE))
+                           {
+                              if (_wcsicmp(pAttribute, L"objectGUID") == 0)
+                              {
+                                 MetadataWriteFile(pGlobalConfig, L"forest|rootguid", szGuid);
+                              }
+                           }
+
+                           RpcStringFree((RPC_WSTR*)&szGuid);
+                        }
+                     }
+                     else
+                     {
+                        Log(
+                           __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+                           "[x] %sInvalid LDAP GUID size%s (size=%u)",
+                           COLOR_YELLOW, COLOR_RESET, ppval[0]->bv_len
+                        );
                      }
                   }
                }
@@ -1054,30 +1101,44 @@ LdapProcessRequest (
 
                   if (ppValue != NULL)
                   {
-                     WCHAR szDate[20];
+                     size_t len;
 
-                     szDate[0] = ppValue[0][0];
-                     szDate[1] = ppValue[0][1];
-                     szDate[2] = ppValue[0][2];
-                     szDate[3] = ppValue[0][3];
-                     szDate[4] = 0x2d;                // L"-";
-                     szDate[5] = ppValue[0][4];
-                     szDate[6] = ppValue[0][5];
-                     szDate[7] = 0x2d;                // L"-";
-                     szDate[8] = ppValue[0][6];
-                     szDate[9] = ppValue[0][7];
-                     szDate[10] = 0x20;                // L" ";
-                     szDate[11] = ppValue[0][8];
-                     szDate[12] = ppValue[0][9];
-                     szDate[13] = 0x3a;                // L":";
-                     szDate[14] = ppValue[0][10];
-                     szDate[15] = ppValue[0][11];
-                     szDate[16] = 0x3a;                // L":";
-                     szDate[17] = ppValue[0][12];
-                     szDate[18] = ppValue[0][13];
-                     szDate[19] = 0;
+                     len = wcslen(ppValue[0]);
+                     if (len > 13)
+                     {
+                        WCHAR szDate[20];
 
-                     BufferWrite(pBuffer, szDate);
+                        szDate[0] = ppValue[0][0];
+                        szDate[1] = ppValue[0][1];
+                        szDate[2] = ppValue[0][2];
+                        szDate[3] = ppValue[0][3];
+                        szDate[4] = 0x2d;                // L"-";
+                        szDate[5] = ppValue[0][4];
+                        szDate[6] = ppValue[0][5];
+                        szDate[7] = 0x2d;                // L"-";
+                        szDate[8] = ppValue[0][6];
+                        szDate[9] = ppValue[0][7];
+                        szDate[10] = 0x20;                // L" ";
+                        szDate[11] = ppValue[0][8];
+                        szDate[12] = ppValue[0][9];
+                        szDate[13] = 0x3a;                // L":";
+                        szDate[14] = ppValue[0][10];
+                        szDate[15] = ppValue[0][11];
+                        szDate[16] = 0x3a;                // L":";
+                        szDate[17] = ppValue[0][12];
+                        szDate[18] = ppValue[0][13];
+                        szDate[19] = 0;
+
+                        BufferWrite(pBuffer, szDate);
+                     }
+                     else
+                     {
+                        Log(
+                           __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARNING,
+                           "[x] %sInvalid LDAP DATE size%s (size=%u)",
+                           COLOR_YELLOW, COLOR_RESET, len
+                        );
+                     }
                   }
                }
                break;
@@ -1212,8 +1273,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_parse_result()%s (error %u: %s).",
                COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            return FALSE;
-            //goto End;
+            bReturn = FALSE;
+            goto Final;
          }
 
          ulResult = ldap_parse_page_control(pLdapHandle, currControls, NULL, (berval * *)& pLdapNewCookie);
@@ -1224,8 +1285,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_parse_page_control()%s (error %u: %s).",
                COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            return FALSE;
-            //goto End;
+            bReturn = FALSE;
+            goto Final;
          }
 
          if ((pLdapNewCookie->bv_len == 0) || (pLdapNewCookie->bv_val == 0))
@@ -1247,8 +1308,8 @@ LdapProcessRequest (
                "[!] %sError in ldap_create_page_control()%s (error %u: %s).",
                COLOR_RED, COLOR_RESET, ulResult, ldap_err2stringA(ulResult)
             );
-            return FALSE;
-            //goto End;
+            bReturn = FALSE;
+            goto Final;
          }
 
          ldap_msgfree(pLdapMessage);
@@ -1310,6 +1371,7 @@ LdapProcessRequest (
                dwObjectCount
             );
             bReturn = FALSE;
+            // No goto Final, pWriteTableInfo() should be called
          }
       }
    }
@@ -1319,6 +1381,7 @@ LdapProcessRequest (
       pWriteTableInfo(pGlobalConfig, pRequest, bIsTop, bIsRootDSE, szRelativePath, szTableName, szTableNameNoDomain, dwAttributesCount, pAttributes);
    }
 
+Final:
    _SafeHeapRelease(pAttributes);
 
    return bReturn;

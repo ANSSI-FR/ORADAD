@@ -337,7 +337,11 @@ pFilterNegFiletime (
 
    LONGLONG llValue;
 
-   llValue = -(*(PLONGLONG)pvData);
+   if (*(PLONGLONG)pvData == LLONG_MIN)
+      llValue = 0;
+   else
+      llValue = -(*(PLONGLONG)pvData);
+
    pFilterFiletime(&llValue, pvParam, szResult);
 
    return TRUE;

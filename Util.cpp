@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include <intsafe.h>
 #include "ORADAD.h"
@@ -64,7 +65,7 @@ Log (
 VOID
 DuplicateString (
    _In_z_ LPWSTR szInput,
-   _Out_ LPWSTR *szOutput
+   _Outptr_opt_result_maybenull_z_ LPWSTR *szOutput
 )
 {
    size_t InputSize;
@@ -73,7 +74,7 @@ DuplicateString (
       return;
 
    InputSize = wcslen(szInput);
-   *szOutput = (LPWSTR)_HeapAlloc((InputSize + 1) * sizeof(WCHAR));
+   *szOutput = (LPWSTR)_HeapAlloc((InputSize + 1) * sizeof(WCHAR));     // +1 for final \0
    if (*szOutput != NULL)
    {
       memcpy(*szOutput, szInput, InputSize * sizeof(WCHAR));
@@ -83,16 +84,35 @@ DuplicateString (
 //
 // Convert "DC=domain,DC=tld" to "domain.tld"
 //
+_Success_(return != 0)
+_Check_return_
+_Ret_z_
 LPWSTR
 ConvertDnToDns (
-   _In_z_ LPWSTR szString
+   _In_z_ LPWSTR szString,
+   _In_ BOOL bCheckInvalidChars           // For naming context names
 )
 {
+   LPWSTR szSearch;
    LPWSTR szCurrent;
    LPWSTR szNext;
    LPWSTR szReturn;
    size_t SizeString;
    DWORD dwPosition = 0;
+
+   if (bCheckInvalidChars == TRUE)
+   {
+      // Check prohibited characters (avoid path traversal)
+      szSearch = wcsstr(szString, L"/");
+      if (szSearch != NULL)
+         return NULL;
+      szSearch = wcsstr(szString, L"\\");
+      if (szSearch != NULL)
+         return NULL;
+      szSearch = wcsstr(szString, L".");
+      if (szSearch != NULL)
+         return NULL;
+   }
 
    SizeString = wcslen(szString);
    szReturn = (LPWSTR)_HeapAlloc((SizeString + 1) * sizeof(WCHAR));
@@ -365,7 +385,10 @@ MetadataCreateFile (
    MetadataWriteFile(pGlobalConfig, L"oradad|config|processSysvol", szMetadata);
 
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s", pGlobalConfig->szSysvolFilter);
-   MetadataWriteFile(pGlobalConfig, L"oradad|config|sysvolFilter", szMetadata);
+   if (pGlobalConfig->szSysvolFilter != NULL)
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|sysvolFilter", szMetadata);
+   else
+      MetadataWriteFile(pGlobalConfig, L"oradad|config|sysvolFilter", (LPWSTR)L"null");
 
    swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%d", pGlobalConfig->dwConfidential);
    MetadataWriteFile(pGlobalConfig, L"oradad|config|confidential", szMetadata);
@@ -375,7 +398,7 @@ MetadataCreateFile (
       WCHAR szMetadataKey[MAX_METADATA_VALUE];
 
       swprintf_s(szMetadataKey, MAX_METADATA_VALUE, L"oradad|config|server|%u", i);
-      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s|%s", pGlobalConfig->DomainConfig[i].szServer,pGlobalConfig->DomainConfig[i].szDomainName);
+      swprintf_s(szMetadata, MAX_METADATA_VALUE, L"%s|%s", pGlobalConfig->DomainConfig[i].szServer, pGlobalConfig->DomainConfig[i].szDomainName);
 
       MetadataWriteFile(pGlobalConfig, szMetadataKey, szMetadata);
    }
@@ -558,9 +581,9 @@ GetBuildDateStatus (
 
          ullDiff = uliStart.QuadPart - uliBuild.QuadPart;
 
-         if (ullDiff < (ULONGLONG)10 * 1000 * 1000 * 3600 * 24 * 100)
+         if (ullDiff < (ULONGLONG)10 * 1000 * 1000 * 3600 * 24 * 100)            // 100 days
             return StartStatus::Good;
-         else if (ullDiff < (ULONGLONG)10 * 1000 * 1000 * 3600 * 24 * 200)
+         else if (ullDiff < (ULONGLONG)10 * 1000 * 1000 * 3600 * 24 * 200)       // 200 days
             return StartStatus::Warning;
          else
             return StartStatus::Expired;

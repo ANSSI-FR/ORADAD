@@ -199,9 +199,6 @@ typedef struct _BUFFER_DATA
    MLAArchiveFileHandle hMlaFile;
 } BUFFER_DATA, *PBUFFER_DATA;
 
-#pragma pack(push,1)
-#pragma warning(disable : 4200)
-
 //
 // Util_Db.cpp
 //
@@ -211,7 +208,6 @@ typedef struct _DB_ENTRY
    //LPWSTR szKeyValue;
    DWORD dwKeyValue;
    PVOID pNext;
-#pragma pack(pop)
 } DB_ENTRY, *PDB_ENTRY;
 
 typedef struct _DOMAIN_CONFIG

@@ -23,7 +23,8 @@ pProcessSysvolFolder(
    _In_z_ LPCWSTR szDomainName,
    _In_z_ LPWSTR szFolder,
    _In_opt_ HANDLE hToken,
-   _In_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ DWORD dwLevel
 );
 
 BOOL
@@ -46,7 +47,7 @@ ProcessSysvol (
    _In_z_ LPWSTR szRootDns,                     // Forest DNS name
    _In_z_ LPCWSTR szPath1,                      // Alwas 'domain'
    _In_z_ LPCWSTR szPath2,                      // Domain DNS name
-   _In_opt_z_ LPWSTR szServer
+   _In_z_ LPWSTR szServer
 )
 {
    BOOL bResult;
@@ -108,7 +109,7 @@ ProcessSysvol (
       BufferWriteLine(pBuffer);                 // New line for last column
    }
 
-   wsprintf(szRemoteName, L"\\\\%s\\SYSVOL", szServer);
+   swprintf_s(szRemoteName, MAX_PATH, L"\\\\%s\\SYSVOL", szServer);
 
    Log(
       __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
@@ -126,7 +127,8 @@ ProcessSysvol (
             pGlobalConfig->szUserPassword,
             LOGON32_LOGON_NEW_CREDENTIALS,
             LOGON32_PROVIDER_DEFAULT,
-            &hToken);
+            &hToken
+         );
 
          if (bResult == FALSE)
          {
@@ -189,7 +191,7 @@ ProcessSysvol (
       }
    }
 
-   pProcessSysvolFolder(pGlobalConfig, szRootDns, szPath2, szRemoteName, hToken, pBuffer);
+   pProcessSysvolFolder(pGlobalConfig, szRootDns, szPath2, szRemoteName, hToken, pBuffer, 0);
 
    bReturn = TRUE;
 
@@ -319,23 +321,51 @@ pProcessSysvolFolder (
    _In_z_ LPCWSTR szDomainName,
    _In_z_ LPWSTR szFolder,
    _In_opt_ HANDLE hToken,
-   _In_ PBUFFER_DATA pBuffer
+   _In_ PBUFFER_DATA pBuffer,
+   _In_ DWORD dwLevel
 )
 {
    BOOL bResult;
    DWORD dwError = ERROR_SUCCESS;
 
+   LPWSTR szResult;
    WCHAR szOutPath[MAX_PATH];
 
    TCHAR szFindPattern[MAX_PATH];
    WIN32_FIND_DATA FindFileData;
    HANDLE hFindFile;
 
-   PathCombine(szFindPattern, szFolder, L"*");
+   if (dwLevel > 15)
+   {
+      Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sLevel too important%s (level %u).",
+         COLOR_RED, COLOR_RESET, dwLevel
+      );
+      return FALSE;
+   }
+
+   szResult = PathCombine(szFindPattern, szFolder, L"*");
+   if (szResult == NULL)
+   {
+      Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[!] %sPathCombine() failed%s.",
+         COLOR_RED, COLOR_RESET
+      );
+      return FALSE;
+   }
 
    if (hToken != NULL)
-      (VOID)ImpersonateLoggedOnUser(hToken);
-
+   {
+      bResult = ImpersonateLoggedOnUser(hToken);
+      if (bResult == FALSE)
+      {
+         Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sImpersonateLoggedOnUser() failed%s (error %u).",
+            COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
+   }
    hFindFile = FindFirstFile(szFindPattern, &FindFileData);
    if (hFindFile == INVALID_HANDLE_VALUE)
       dwError = GetLastError();
@@ -367,13 +397,30 @@ pProcessSysvolFolder (
          if ((wcscmp(FindFileData.cFileName, L".") == 0) || (wcscmp(FindFileData.cFileName, L"..") == 0))
             continue;
 
-         PathCombine(szFullPath, szFolder, FindFileData.cFileName);
+         szResult = PathCombine(szFullPath, szFolder, FindFileData.cFileName);
+         if (szResult == NULL)
+         {
+            Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sPathCombine() failed%s.",
+               COLOR_RED, COLOR_RESET
+            );
+            return FALSE;
+         }
+
+         if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) && (dwLevel > 1))
+         {
+            Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+               "[!] %sReparse point detected%s (level %u).",
+               COLOR_RED, COLOR_RESET, dwLevel
+            );
+            return FALSE;
+         }
 
          if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
          {
             // found a subdirectory; recurse into it
             pProcessSysvolFile(pGlobalConfig, szForestName, szDomainName, szFullPath, hToken, pBuffer);
-            pProcessSysvolFolder(pGlobalConfig, szForestName, szDomainName, szFullPath, hToken, pBuffer);
+            pProcessSysvolFolder(pGlobalConfig, szForestName, szDomainName, szFullPath, hToken, pBuffer, dwLevel + 1);
          }
          else
          {
@@ -420,7 +467,17 @@ pProcessSysvolFile (
    WIN32_FILE_ATTRIBUTE_DATA fileAttributeData;
 
    if (hToken != NULL)
-      (VOID)ImpersonateLoggedOnUser(hToken);
+   {
+      bResult = ImpersonateLoggedOnUser(hToken);
+      if (bResult == FALSE)
+      {
+         Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[!] %sImpersonateLoggedOnUser() failed%s (error %u).",
+            COLOR_RED, COLOR_RESET, GetLastError()
+         );
+         return FALSE;
+      }
+   }
 
    hFile = CreateFile(
       szFileName,
@@ -648,7 +705,17 @@ pProcessSysvolFile (
          HANDLE hFileRead;
 
          if (hToken != NULL)
-            (VOID)ImpersonateLoggedOnUser(hToken);
+         {
+            bResult = ImpersonateLoggedOnUser(hToken);
+            if (bResult == FALSE)
+            {
+               Log(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+                  "[!] %sImpersonateLoggedOnUser() failed%s (error %u).",
+                  COLOR_RED, COLOR_RESET, GetLastError()
+               );
+               return FALSE;
+            }
+         }
          hFileRead = CreateFile(
             szFileName,
             GENERIC_READ,

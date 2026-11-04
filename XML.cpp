@@ -88,10 +88,11 @@ XmlReadConfigFile (
    VARIANT_BOOL bSuccess = false;
 
    IXMLDOMDocument2 *pXMLDoc = NULL;
-   IXMLDOMNode *pXMLNode = NULL;
-   IXMLDOMNode *pXMLNodeDomains = NULL;
-   IXMLDOMNodeList *pXMLNodeList = NULL;
-   IXMLDOMNodeList *pXMLNodeDomainsList = NULL;
+
+   CComPtr<IXMLDOMNode> pXMLNode;
+   CComPtr<IXMLDOMNode> pXMLNodeDomains;
+   CComPtr<IXMLDOMNodeList> pXMLNodeList;
+   CComPtr<IXMLDOMNodeList> pXMLNodeDomainsList;
 
    long lLength, lDomainLength;
    ULONG ulCurrentDomain = 0;
@@ -121,7 +122,7 @@ XmlReadConfigFile (
 
    if ((hr != S_OK) || (bSuccess == FALSE))
    {
-      IXMLDOMParseError *pXmlParseError = NULL;
+      CComPtr<IXMLDOMParseError> pXmlParseError;
       BSTR strError;
       LPSTR szError;
 
@@ -140,7 +141,6 @@ XmlReadConfigFile (
          _SafeHeapRelease(szError);
       }
 
-      _SafeCOMRelease(pXmlParseError);
       _SafeCOMRelease(pXMLDoc);
       return NULL;
    }
@@ -198,16 +198,22 @@ XmlReadConfigFile (
 
       else if ((wcscmp(strNodeName, L"displayProgress") == 0) && (wcslen(strNodeText) > 0))
          pGlobalConfig->bDisplayProgress = pReadBoolean(strNodeText);
-
-      _SafeCOMRelease(pXmlNodeConfig);
    }
-
-   _SafeCOMRelease(pXMLNodeList);
-   _SafeCOMRelease(pXMLNode);
 
    //
    // Check values
    //
+   if ((pGlobalConfig->szUserDomain != NULL) && ((pGlobalConfig->szUserPassword == NULL) || (pGlobalConfig->szUserPassword == NULL)))
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+         "[!] %sUsername specified without password or domain name%s.",
+         COLOR_RED, COLOR_RESET
+      );
+      _SafeCOMRelease(pXMLDoc);
+      return NULL;
+   }
+
    if (pGlobalConfig->bAutoGetDomain == FALSE)
       (pGlobalConfig->bAutoGetTrusts = FALSE);
 
@@ -232,14 +238,20 @@ XmlReadConfigFile (
       hr = pXMLNodeDomainsList->get_length(&lDomainLength);
 
       pGlobalConfig->DomainConfig = (PDOMAIN_CONFIG)_HeapAlloc(sizeof(DOMAIN_CONFIG) * (pGlobalConfig->dwDomainCount + lDomainLength));
+      if (pGlobalConfig->DomainConfig == NULL)
+      {
+         _SafeCOMRelease(pXMLDoc);
+         return NULL;
+      }
 
       for (long i = 0; i < lDomainLength; i++)
       {
-         IXMLDOMNode* pXmlNodeDomain = NULL;
+         CComPtr<IXMLDOMNode> pXmlNodeDomain;
+         CComPtr<IXMLDOMNodeList> pXMLNodeDomainList;
 
          hr = pXMLNodeDomainsList->get_item(i, &pXmlNodeDomain);
-         hr = pXmlNodeDomain->get_childNodes(&pXMLNodeList);
-         hr = pXMLNodeList->get_length(&lLength);
+         hr = pXmlNodeDomain->get_childNodes(&pXMLNodeDomainList);
+         hr = pXMLNodeDomainList->get_length(&lLength);
 
          for (long j = 0; j < lLength; j++)
          {
@@ -247,7 +259,7 @@ XmlReadConfigFile (
             BSTR strNodeName;
             BSTR strNodeText;
 
-            hr = pXMLNodeList->get_item(j, &pXmlNodeConfig);
+            hr = pXMLNodeDomainList->get_item(j, &pXmlNodeConfig);
             hr = pXmlNodeConfig->get_nodeName(&strNodeName);
             hr = pXmlNodeConfig->get_text(&strNodeText);
 
@@ -263,23 +275,34 @@ XmlReadConfigFile (
                pGlobalConfig->DomainConfig[ulCurrentDomain].szUserDomain = strNodeText;
             else if ((wcscmp(strNodeName, L"userpassword") == 0) && (wcslen(strNodeText) > 0))
                pGlobalConfig->DomainConfig[ulCurrentDomain].szUserPassword = strNodeText;
-
-            _SafeCOMRelease(pXmlNodeConfig);
          }
 
-         _SafeCOMRelease(pXMLNodeList);
-         _SafeCOMRelease(pXmlNodeDomain);
+         // Check values
+         if ((pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername != NULL) && (wcslen(pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername) > 0))
+         {
+            // Explicit username specifed, check password and domaine name values
+            if ((pGlobalConfig->DomainConfig[ulCurrentDomain].szUserPassword == NULL) || (pGlobalConfig->DomainConfig[ulCurrentDomain].szDomainName == NULL))
+            {
+               Log(
+                  __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
+                  "[!] %sUsername specified without password or domain name%s (per domain options).",
+                  COLOR_RED, COLOR_RESET
+               );
+               _SafeCOMRelease(pXMLDoc);
+               return NULL;
+            }
+         }
 
          if (lLength > 0)
          {
             Log(
-               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
-               "[i] %sConfig%s Add domain %u (server='%S', domainName='%S', username='%S')",
+               __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFORMATION,
+               "[i] %sConfig%s Add domain %u (server='%S', domainName='%S', username='%S').",
                COLOR_BLUE, COLOR_RESET,
                ulCurrentDomain,
                pGlobalConfig->DomainConfig[ulCurrentDomain].szServer,
-               pGlobalConfig->DomainConfig[ulCurrentDomain].szDomainName,
-               pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szDomainName == NULL ? L"null" : pGlobalConfig->DomainConfig[ulCurrentDomain].szDomainName,
+               pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername == NULL ? L"null" : pGlobalConfig->DomainConfig[ulCurrentDomain].szUsername
             );
 
             // Be sure <domain> is valid (avoid #comment)
@@ -287,9 +310,6 @@ XmlReadConfigFile (
             ulCurrentDomain++;
          }
       }
-
-      _SafeCOMRelease(pXMLNodeDomainsList);
-      _SafeCOMRelease(pXMLNodeDomains);
    }
 
    if ((pGlobalConfig->bOutputFiles == FALSE) && (pGlobalConfig->bOutputMLA == FALSE))
@@ -298,6 +318,7 @@ XmlReadConfigFile (
          __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_CRITICAL,
          "[!] %sAt least one output (file or MLA) must be enabled.%s", COLOR_RED, COLOR_RESET
       );
+      _SafeCOMRelease(pXMLDoc);
       return NULL;
    }
 
@@ -351,7 +372,7 @@ XmlReadSchemaFile (
    else
    {
       SAFEARRAYBOUND rgsabound[1];
-      VARIANT v;
+      CComVariant v;
 
       HMODULE hCurrentProcess;
       HRSRC hrSchema;
@@ -386,7 +407,6 @@ XmlReadSchemaFile (
       psaSchema = SafeArrayCreate(VT_UI1, 1, rgsabound);
       memcpy(psaSchema->pvData, pSchema, dwSchemaSize);
 
-      VariantInit(&v);
       V_VT(&v) = VT_ARRAY | VT_UI1;
       V_ARRAY(&v) = psaSchema;
 
@@ -438,11 +458,13 @@ XmlReadSchemaFile (
 
    pGlobalConfig->dwRequestCount = lLength;
    pGlobalConfig->pRequests = (PREQUEST_CONFIG)_HeapAlloc(lLength * sizeof(REQUEST_CONFIG));
+   if (pGlobalConfig->pRequests == NULL)
+      return NULL;
 
    for (long i = 0; i < lLength; i++)
    {
-      IXMLDOMNode *pXmlNodeRequest = NULL;
-      IXMLDOMNodeList *pXmlNodeListRequest = NULL;
+      CComPtr<IXMLDOMNode> pXmlNodeRequest;
+      CComPtr<IXMLDOMNamedNodeMap> pXmlNodeListRequest;
 
       hr = pXMLNodeList->get_item(i, &pXmlNodeRequest);
 
@@ -463,10 +485,6 @@ XmlReadSchemaFile (
          // Allocate per request max attribute text size
          pGlobalConfig->pRequests[i].pdwStringMaxLength = (PDWORD)_HeapAlloc(sizeof(DWORD) * pGlobalConfig->pRequests[i].dwAttributesCount);
       }
-
-      // Free COM
-      _SafeCOMRelease(pXmlNodeListRequest);
-      _SafeCOMRelease(pXmlNodeRequest);
    }
 
    _SafeCOMRelease(pXMLNodeList);
@@ -687,6 +705,11 @@ pAddClassAttributes (
    else
    {
       pClass->pAttributes = (PATTRIBUTE_CONFIG*)HeapReAlloc(g_hHeap, HEAP_ZERO_MEMORY, pClass->pAttributes, pClass->dwAttributesCount * sizeof(ATTRIBUTE_CONFIG));
+   }
+
+   if (pClass->pAttributes == NULL)
+   {
+      return FALSE;
    }
 
    for (long i = 0; i < lLength; i++)

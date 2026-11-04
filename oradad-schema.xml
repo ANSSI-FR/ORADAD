@@ -511,6 +511,14 @@
             <filter>(objectClass=pKIEnrollmentService)</filter>
             <classes>pKIEnrollmentService</classes>
         </request>
+       <request>
+            <name>msPKI-Enterprise-Oid</name>
+            <description>msPKI-Enterprise-Oid</description>
+            <base>configuration</base>
+            <scope>subtree</scope>
+            <filter>(objectClass=msPKI-Enterprise-Oid)</filter>
+            <classes>msPKI-Enterprise-Oid</classes>
+        </request>
         <!-- AD LDS -->
         <request>
             <name>userProxy</name>
@@ -1410,7 +1418,7 @@
         <attribute name="ms-DS-MachineAccountQuota" level="3" type="INT" />
         <attribute name="mS-DS-ReplicatesNCReason" level="2" type="BIN" />
         <attribute name="ms-Mcs-AdmPwd" level="9" type="STR" flags="confidential" />
-        <attribute name="ms-Mcs-AdmPwdExpirationTime" level="4" type="INT64" />
+        <attribute name="ms-Mcs-AdmPwdExpirationTime" level="4" type="DATEINT64" />
         <attribute name="ms-net-ieee-80211-GP-PolicyData" level="9" type="STR" />
         <attribute name="ms-net-ieee-80211-GP-PolicyGUID" level="9" type="STR" />
         <attribute name="ms-net-ieee-80211-GP-PolicyReserved" level="9" type="BIN" />
@@ -1746,8 +1754,8 @@
         <attribute name="msDS-ObjectReference" level="9" type="STRS" />
         <attribute name="msDS-ObjectReferenceBL" level="9" type="STRS" />
         <attribute name="msDS-ObjectSoa" level="9" type="STR" />
-        <attribute name="msDS-OIDToGroupLink" level="9" type="STR" />
-        <attribute name="msDS-OIDToGroupLinkBl" level="9" type="STRS" />
+        <attribute name="msDS-OIDToGroupLink" level="4" type="STR" />
+        <attribute name="msDS-OIDToGroupLinkBl" level="4" type="STRS" />
         <attribute name="msDS-OperationsForAzRole" level="9" type="STRS" />
         <attribute name="msDS-OperationsForAzRoleBL" level="9" type="STRS" />
         <attribute name="msDS-OperationsForAzTask" level="9" type="STRS" />
@@ -3999,7 +4007,7 @@
         <attribute name="msLAPS-EncryptedPassword" level="4" type="BIN" flags="confidential" />
         <attribute name="msLAPS-EncryptedPasswordHistory" level="4" type="BIN" flags="confidential" />
         <attribute name="msLAPS-Password" level="4" type="STR" flags="confidential"/>
-        <attribute name="msLAPS-PasswordExpirationTime" level="4" type="INT64" filter="Filetime" />
+        <attribute name="msLAPS-PasswordExpirationTime" level="4" type="DATEINT64" />
         <attribute name="MSMQ-MulticastAddress" level="9" type="STR" />
         <attribute name="msMQ-Recipient-FormatName" level="9" type="STR" />
         <attribute name="MSMQ-SecuredSource" level="9" type="BOOL" />

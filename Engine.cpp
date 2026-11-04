@@ -16,7 +16,7 @@ _Success_(return)
 BOOL
 pLocateDc(
    _In_z_ LPWSTR szDomainName,
-   _Out_ LPWSTR *szServer
+   _Outptr_opt_result_maybenull_z_ LPWSTR *szServer
 );
 
 BOOL
@@ -103,7 +103,8 @@ Process (
 
    if (RootDse.rootDomainNamingContext != NULL)
    {
-      szRootDns = ConvertDnToDns(RootDse.rootDomainNamingContext);
+      szRootDns = ConvertDnToDns(RootDse.rootDomainNamingContext, TRUE);
+      // szRootDns not NULL checked below
    }
    else
    {
@@ -163,6 +164,17 @@ Process (
 
    if (pGlobalConfig->bOutputMLA == TRUE)
    {
+      int sizeInstance;
+      WCHAR szInstanceName[MAX_PATH];
+      MLAArchiveFileHandle hMlaFile;
+
+      sizeInstance = swprintf(
+         szInstanceName, MAX_PATH,
+         L"%s_%s",
+         szRootDns,
+         pGlobalConfig->szSystemTime
+      );
+
       // <forest>\<date>
       swprintf(
          pGlobalConfig->szMlaOutDirectory, MAX_PATH,
@@ -184,15 +196,21 @@ Process (
       //
       swprintf(
          pGlobalConfig->szMlaFilePath, MAX_PATH,
-         L"%s\\%s_%s.mla",
+         L"%s\\%s.mla",
          pGlobalConfig->szOutDirectory,
-         szRootDns,
-         pGlobalConfig->szSystemTime
+         szInstanceName
       );
 
       bResult = MlaInit(pGlobalConfig->szMlaFilePath);
       if (bResult == FALSE)
          return FALSE;
+
+      //
+      // Add instance.txt file
+      //
+      MlaAddFile(L"instance.txt", &hMlaFile);
+      MlaBufferWrite(hMlaFile, (PBYTE)szInstanceName, sizeInstance * sizeof(WCHAR));
+      MlaCloseFile(&hMlaFile);
    }
 
    //
@@ -356,7 +374,7 @@ Process (
       //
       for (DWORD i = 0; i < pGlobalConfig->dwDomainCount; i++)
       {
-         LPWSTR szDomainServer;
+         LPWSTR szDomainServer = NULL;
 
          if (pGlobalConfig->DomainConfig[i].szServer != NULL)
          {
@@ -431,7 +449,7 @@ Process (
 
             if (pTrust[i].DnsDomainName != NULL)
             {
-               LPWSTR szDomainServer;
+               LPWSTR szDomainServer = NULL;
 
                bResult = pLocateDc(pTrust[i].DnsDomainName, &szDomainServer);
                if (bResult == FALSE)
@@ -524,7 +542,7 @@ _Success_(return)
 BOOL
 pLocateDc (
    _In_z_ LPWSTR szDomainName,
-   _Out_ LPWSTR *szServer
+   _Outptr_opt_result_maybenull_z_ LPWSTR *szServer
 )
 {
    DWORD dwResult;
@@ -543,6 +561,9 @@ pLocateDc (
          "[!] %sUnable to locate DC for domain '%S'%s (error %u).",
          COLOR_RED, szDomainName, COLOR_RESET, dwResult
       );
+
+      if (szServer)
+         *szServer = NULL;
 
       if (dwResult == ERROR_NO_SUCH_DOMAIN)
       {
@@ -621,7 +642,9 @@ pProcessOtherNamingContexts (
          DbAddKey(&g_pBaseNc, pRootDse->pszNamingContexts[dwIdx], 0, DbCompareMode::Last);
       }
 
-      szPartition = ConvertDnToDns(pRootDse->pszNamingContexts[dwIdx]);
+      szPartition = ConvertDnToDns(pRootDse->pszNamingContexts[dwIdx], TRUE);
+      if (szPartition == NULL)
+         return FALSE;
 
       //
       // Create subdirectories (STR_APPLICATION)
@@ -693,7 +716,7 @@ pProcessDomain (
       if ((pRootDse->rootDomainNamingContext != NULL) &&
          (pRootDse->defaultNamingContext != NULL))
       {
-         szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
+         szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext, TRUE);
          if (szDomainDns == NULL)
             return FALSE;
 
@@ -724,12 +747,30 @@ pProcessDomain (
          if (bResult == FALSE)
             return FALSE;
       }
+      else
+      {
+         Log(
+            __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+            "[.] %sNo domain to process%s.",
+            COLOR_RED, COLOR_RESET
+         );
+         return FALSE;
+      }
    }
    else if (pRootDse->defaultNamingContext != NULL)
    {
-      szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext);
-      if (szDomainDns == FALSE)
+      szDomainDns = ConvertDnToDns(pRootDse->defaultNamingContext, TRUE);
+      if (szDomainDns == NULL)
          return FALSE;
+   }
+   else
+   {
+      Log(
+         __FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR,
+         "[.] %sNo domain to process%s.",
+         COLOR_RED, COLOR_RESET
+      );
+      return FALSE;
    }
 
    //

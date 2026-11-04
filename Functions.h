@@ -62,7 +62,7 @@ ProcessSysvol(
    _In_z_ LPWSTR szRootDns,
    _In_z_ LPCWSTR szPath1,
    _In_z_ LPCWSTR szPath2,
-   _In_opt_z_ LPWSTR szServer
+   _In_z_ LPWSTR szServer
 );
 
 VOID
@@ -87,12 +87,16 @@ Log(
 VOID
 DuplicateString(
    _In_z_ LPWSTR szInput,
-   _Out_ LPWSTR *szOutput
+   _Outptr_opt_result_maybenull_z_ LPWSTR *szOutput
 );
 
+_Success_(return != 0)
+_Check_return_
+_Ret_z_
 LPWSTR
 ConvertDnToDns(
-   _In_z_ LPWSTR szString
+   _In_z_ LPWSTR szString,
+   _In_ BOOL bCheckInvalidChars
 );
 
 VOID

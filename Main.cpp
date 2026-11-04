@@ -61,6 +61,9 @@ wmain (
    // Check OS type and token type
    //
    bResult = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hProcessToken);
+   if (bResult == FALSE)
+      return EXIT_FAILURE;
+
    bResult = GetTokenInformation(hProcessToken, TokenElevationType, &g_GlobalConfig.TokenType, sizeof(g_GlobalConfig.TokenType), &dwSize);
    if (bResult == FALSE)
    {
@@ -349,6 +352,22 @@ End:
    _SafeHeapRelease(szConfigPath);
    _SafeHeapRelease(szSchemaPath);
    _SafeHeapRelease(g_GlobalConfig.szOutDirectory);
+
+   //
+   // Wipe passwords from memory
+   //
+   if (g_GlobalConfig.szUserPassword != NULL)
+   {
+      SecureZeroMemory(g_GlobalConfig.szUserPassword, wcslen(g_GlobalConfig.szUserPassword) * sizeof(WCHAR));
+   }
+   for (DWORD i = 0; i < g_GlobalConfig.dwDomainCount; i++)
+   {
+      if (g_GlobalConfig.DomainConfig[i].szUserPassword != NULL)
+      {
+         SecureZeroMemory(g_GlobalConfig.DomainConfig[i].szUserPassword, wcslen(g_GlobalConfig.DomainConfig[i].szUserPassword) * sizeof(WCHAR));
+      }
+   }
+
    HeapDestroy(g_hHeap);
 
 #ifdef TRACELOGGING
