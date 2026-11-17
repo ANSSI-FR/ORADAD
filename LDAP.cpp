@@ -1064,19 +1064,39 @@ LdapProcessRequest (
                   {
                      if (ppval[0]->bv_len == sizeof(GUID))
                      {
+                        RPC_STATUS Status;
                         LPWSTR szGuid = NULL;
 
-                        (void)UuidToString((UUID*)ppval[0]->bv_val, (RPC_WSTR*)&szGuid);
+                        Status = UuidToString((UUID*)ppval[0]->bv_val, (RPC_WSTR*)&szGuid);
 
-                        if (szGuid != NULL)
+                        if ((Status == RPC_S_OK) && (szGuid != NULL))
                         {
-                           BufferWrite(pBuffer, szGuid);;
+                           BufferWrite(pBuffer, szGuid);
 
                            if ((bIsTop == TRUE) && (bIsRootDomain == TRUE))
                            {
                               if (_wcsicmp(pAttribute, L"objectGUID") == 0)
                               {
+                                 //
+                                 // This is the root domain of the forest
+                                 // Write GUID to metadata and forest_guid.txt file
+                                 //
                                  MetadataWriteFile(pGlobalConfig, L"forest|rootguid", szGuid);
+
+                                 if (pGlobalConfig->bOutputMLA == TRUE)
+                                 {
+                                    MLAArchiveFileHandle hMlaFile;
+                                    LPSTR szGuidA = NULL;
+
+                                    Status = UuidToStringA((UUID*)ppval[0]->bv_val, (RPC_CSTR*)&szGuidA);
+                                    if ((Status == RPC_S_OK) && (szGuidA != NULL))
+                                    {
+                                       MlaAddFile(L"forest_guid.txt", &hMlaFile);
+                                       MlaBufferWrite(hMlaFile, (PBYTE)szGuidA, 36);         // 36: strlen(GUID)
+                                       MlaCloseFile(&hMlaFile);
+                                       RpcStringFree((RPC_WSTR*)&szGuidA);
+                                    }
+                                 }
                               }
                            }
 
