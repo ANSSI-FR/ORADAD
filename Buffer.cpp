@@ -406,6 +406,8 @@ BufferSave (
    if (g_GlobalConfig.bOutputMLA == TRUE)
    {
       bResult = MlaBufferWrite(pBuffer->hMlaFile, pbOutBuffer, pBuffer->Position);
+      if (bResult == FALSE)
+         bReturn = FALSE;
    }
 
    //
